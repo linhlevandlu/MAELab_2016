@@ -43,6 +43,9 @@ double computeDistance(ptr_Line objLine, ptr_Point rPoint)
 	return objLine->perpendicularDistance(rPoint);
 }
 
+/*
+ * Intersection point between objLine and perpendicular line with objLine via origin
+ */
 ptr_Point closestPoint(ptr_Line objLine, ptr_Point origin)
 {
 	vector<double> equation = objLine->getEquation();
@@ -78,12 +81,13 @@ double computeAngle(ptr_Line objLine, ptr_Point rPoint)
 {
 	ptr_Line oX = new Line(rPoint,
 		new Point(rPoint->getX() + 100, rPoint->getY()));
-	ptr_Point pCloset = closestPoint(objLine, rPoint);
+	/*ptr_Point pCloset = closestPoint(objLine, rPoint);
 	ptr_Line distanceLine = new Line(rPoint, pCloset);
 	double theta = oX->angleLines(*distanceLine);
 	if (pCloset->getY() > rPoint->getY())
 		return (360 - theta);
-	return theta;
+	return theta;*/
+	return oX->angleLines(*objLine);
 }
 
 //==================================== Methods in class ==================================================
@@ -125,7 +129,7 @@ vector<ptr_PHTEntry> PHoughTransform::constructPHTTable(vector<ptr_Line> lines)
 		{
 			ptr_Line line2 = lines.at(j);
 
-			if (i != j && closetLine(line1, line2))
+			if (i != j)
 			{
 				HoughSpace hs2;
 				hs2.angle = computeAngle(line2, refPoint);
