@@ -435,9 +435,9 @@ ptr_PHTEntry matchingInScene2(vector<ptr_PHTEntry> modelTable,
 {
 	ptr_PHTEntry result = new PHTEntry();
 
-	for (size_t i = 0; i < sceneEntry.size(); i++)
+	for (size_t i = 0; i < sceneTable.size(); i++)
 	{
-		ptr_PHTEntry sEntry = sceneEntry.at(i);
+		ptr_PHTEntry sEntry = sceneTable.at(i);
 		vector<HoughSpace> hsp1 = sEntry->getListHoughSpace(); // chi co 2
 		result = searchEntry(modelTable, sEntry);
 		if (result->getListHoughSpace().size() > 0)
