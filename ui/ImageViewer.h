@@ -49,6 +49,7 @@ private slots:
 	void binThreshold();
 	void cannyAlgorithm();
 
+	void estimatedLandmarks();
 	void extractLandmarks();
 	void measureMBary();
 	void measureEBary();
@@ -92,6 +93,7 @@ private:
 	QAction *binaryThresholdAct;
 	QAction *cannyAct;
 
+	QAction *phtAct;
 	QAction *autoLandmarksAct;
 	QAction *measureMBaryAct;
 	QAction *measureEBaryAct;
