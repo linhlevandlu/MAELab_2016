@@ -45,6 +45,7 @@ private slots:
 	void fitToWindow();
 	void displayManualLandmarks();
 	void displayAutoLandmarks();
+	void detectBoundingBox();
 
 	void binThreshold();
 	void cannyAlgorithm();
@@ -87,6 +88,7 @@ private:
 	QAction *fitToWindowAct;
 	QAction *displayMLandmarksAct;
 	QAction *displayALandmarksAct;
+	QAction *displayBoundingBoxAct;
 
 	QAction *aboutAct;
 

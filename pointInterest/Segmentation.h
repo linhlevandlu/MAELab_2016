@@ -16,6 +16,7 @@ public:
 	vector<ptr_Line> segment(int minDistance);
 	ptr_IntMatrix threshold(int tValue, int maxValue);
 	vector<ptr_Edge> canny();
+	vector<ptr_Point> boundingBox();
 };
 
 #endif /* SEGMENTATION_H_ */
