@@ -68,9 +68,21 @@ ptr_Point refPointInScene(ptr_PHTEntry entry, vector<ptr_Line> matchLines,
 		return inter;
 	ptr_Line objl1 = matchLines.at(0);
 	ptr_Line objl2 = matchLines.at(1);
+	cout << "\nObject 1: (" << objl1->getBegin()->getX() << ", "
+		<< objl1->getBegin()->getY() << ")\t(" << objl1->getEnd()->getX() << ","
+		<< objl1->getEnd()->getY() << ")";
+	cout << "\nObject 2: (" << objl2->getBegin()->getX() << ", "
+		<< objl2->getBegin()->getY() << ")\t(" << objl2->getEnd()->getX() << ","
+		<< objl2->getEnd()->getY() << ")";
 
 	ptr_Line lineEntry1 = entry->getRefLine();
 	ptr_Line lineEntry2 = entry->getObjLine();
+	cout << "\nEntry 2: (" << lineEntry1->getBegin()->getX() << ", "
+		<< lineEntry1->getBegin()->getY() << ")\t(" << lineEntry1->getEnd()->getX()
+		<< "," << lineEntry1->getEnd()->getY() << ")";
+	cout << "\nEntry 2: (" << lineEntry2->getBegin()->getX() << ", "
+		<< lineEntry2->getBegin()->getY() << ")\t(" << lineEntry2->getEnd()->getX()
+		<< "," << lineEntry2->getEnd()->getY() << ")";
 
 	HoughSpace hs1, hs2;
 	hs1 = entry->getListHoughSpace().at(0);

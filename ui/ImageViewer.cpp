@@ -48,6 +48,7 @@ using namespace std;
 #include "../histograms/ShapeHistogram.h"
 #include "../pointInterest/Treatments.h"
 #include "../pointInterest/Segmentation.h"
+#include "../pointInterest/ProHoughTransform.h"
 #include "../pointInterest/LandmarkDetection.h"
 #include "../utils/ImageConvert.h"
 #include "../utils/Drawing.h"
@@ -170,6 +171,10 @@ void ImageViewer::createSegmentationMenu()
 }
 void ImageViewer::createLandmarksMenu()
 {
+	phtAct = new QAction(tr("&Probabilistic Hough Transform"), this);
+	phtAct->setEnabled(false);
+	connect(phtAct, SIGNAL(triggered()), this, SLOT(estimatedLandmarks()));
+
 	autoLandmarksAct = new QAction(tr("&Compute automatic landmarks"), this);
 	autoLandmarksAct->setEnabled(false);
 	connect(autoLandmarksAct, SIGNAL(triggered()), this,
@@ -189,8 +194,7 @@ void ImageViewer::createLandmarksMenu()
 	connect(dirAutoLandmarksAct, SIGNAL(triggered()), this,
 		SLOT(dirAutoLandmarks()));
 
-	dirCentroidMeasureAct = new QAction(tr("Measure centroid on folder"),
-		this);
+	dirCentroidMeasureAct = new QAction(tr("Measure centroid on folder"), this);
 	dirCentroidMeasureAct->setEnabled(false);
 	connect(dirCentroidMeasureAct, SIGNAL(triggered()), this,
 		SLOT(dirCentroidMeasure()));
@@ -231,6 +235,7 @@ void ImageViewer::createMenus()
 	segmentationMenu->addAction(cannyAct);
 
 	dominantPointMenu = new QMenu(tr("&Landmarks"), this);
+	dominantPointMenu->addAction(phtAct);
 	dominantPointMenu->addAction(autoLandmarksAct);
 	dominantPointMenu->addSeparator();
 	dominantPointMenu->addAction(measureMBaryAct);
@@ -278,6 +283,7 @@ void ImageViewer::activeFunction()
 	binaryThresholdAct->setEnabled(true);
 	cannyAct->setEnabled(true);
 
+	phtAct->setEnabled(true);
 	autoLandmarksAct->setEnabled(true);
 	if (matImage->getListOfManualLandmarks().size() > 0)
 		measureMBaryAct->setEnabled(true);
@@ -365,7 +371,7 @@ void ImageViewer::displayLandmarks(Image *image, vector<ptr_Point> lms,
 	}
 
 }
-// =========================== Slots =======================================
+// ========================================= File and help menu actions =================================================
 void ImageViewer::about()
 {
 	QMessageBox::about(this, tr("About MAELab"),
@@ -440,6 +446,8 @@ void ImageViewer::saveAs()
 	statusBar()->showMessage(tr("File saved"), 2000);
 	return;
 }
+
+// ========================================= View menu actions =================================================
 void ImageViewer::zoomIn()
 {
 	scaleImage(1.25);
@@ -563,6 +571,8 @@ void ImageViewer::displayAutoLandmarks()
 	}
 
 }
+
+// ========================================= Segmentation menu actions =================================================
 void ImageViewer::binThreshold()
 {
 	cout << "\nBinary thresholding...\n";
@@ -602,6 +612,68 @@ void ImageViewer::cannyAlgorithm()
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
+
+// ======================================================= Landmarks Menu actions =============================================
+void ImageViewer::estimatedLandmarks()
+{
+	cout << "\n Estimated landmarks by probabilistic hough transform.\n";
+	QMessageBox msgbox;
+
+	msgbox.setText("Select the model image.");
+	msgbox.exec();
+
+	QString fileName2 = QFileDialog::getOpenFileName(this);
+	if (fileName2.isEmpty())
+		return;
+	cout << endl << fileName2.toStdString() << endl;
+
+	Image *modelImage = new Image(fileName2.toStdString());
+
+	msgbox.setText("Select the landmark file of model image.");
+	msgbox.exec();
+
+	QString reflmPath = QFileDialog::getOpenFileName(this);
+	modelImage->readManualLandmarks(reflmPath.toStdString());
+
+	ProHoughTransform tr;
+	tr.setRefImage(*modelImage);
+
+	ptr_Point ePoint;
+	double angleDiff;
+	vector<ptr_Point> lms = tr.estimateLandmarks(*matImage, angleDiff,ePoint);
+	cout << "\nNumber of the landmarks: " << lms.size();
+	RGB color;
+	color.R = 255;
+	color.G = 0;
+	color.B = 0;
+
+	vector<ptr_Point> ePoints = drawingCircle(ePoint, 5, color);
+	for (int k = 0; k < ePoints.size(); k++)
+	{
+		ptr_Point p = ePoints.at(k);
+		matImage->getRGBMatrix()->setAtPosition(p->getY(), p->getX(),
+			p->getColor());
+	}
+	color.R = 0;
+	color.B = 255;
+	for (int i = 0; i < lms.size(); i++)
+	{
+		ptr_Point lm = lms.at(i);
+		vector<ptr_Point> dPoints = drawingCircle(lm, 5, color);
+		for (int k = 0; k < dPoints.size(); k++)
+		{
+			ptr_Point p = dPoints.at(k);
+			matImage->getRGBMatrix()->setAtPosition(p->getY(), p->getX(),
+				p->getColor());
+		}
+	}
+	this->loadImage(matImage, ptrRGBToQImage(matImage->getRGBMatrix()),
+		"PHT result");
+	this->show();
+	msgbox.setText("Finish");
+	msgbox.exec();
+}
+
 void ImageViewer::extractLandmarks()
 {
 	cout << "\n Automatic extraction the landmarks.\n";
@@ -663,7 +735,7 @@ void ImageViewer::measureMBary()
 	vector<ptr_Point> mLandmarks = matImage->getListOfManualLandmarks();
 	if (mLandmarks.size() > 0)
 	{
-		ptr_Point ebary = new Point(0,0);
+		ptr_Point ebary = new Point(0, 0);
 		double mCentroid = measureCentroidPoint(mLandmarks, ebary);
 
 		qmessage.setText(
@@ -683,7 +755,7 @@ void ImageViewer::measureEBary()
 	vector<ptr_Point> mLandmarks = matImage->getListOfAutoLandmarks();
 	if (mLandmarks.size() > 0)
 	{
-		ptr_Point ebary = new Point(0,0);
+		ptr_Point ebary = new Point(0, 0);
 		double mCentroid = measureCentroidPoint(mLandmarks, ebary);
 
 		qmessage.setText(
@@ -732,7 +804,7 @@ void ImageViewer::dirAutoLandmarks()
 			cout << "\n" << filePath;
 			Image sceneimage(filePath);
 
-			ptr_Point ePoint = new Point(0,0);
+			ptr_Point ePoint = new Point(0, 0);
 			double angleDiff = 0;
 			///ptr_Treatments tr;
 			//tr->setRefImage(*matImage);
@@ -747,13 +819,13 @@ void ImageViewer::dirAutoLandmarks()
 				string saveFile = savefolder.toStdString() + "/" + entry->d_name
 					+ ".TPS";
 				ofstream inFile(saveFile.c_str());
-				inFile <<"LM="<<esLandmarks.size()<<"\n";
+				inFile << "LM=" << esLandmarks.size() << "\n";
 				for (size_t k = 0; k < esLandmarks.size(); k++)
 				{
 					ptr_Point pk = esLandmarks.at(k);
 					inFile << pk->getX() << "\t" << pk->getY() << "\n";
 				}
-				inFile <<"IMAGE="<< saveFile << "\n";
+				inFile << "IMAGE=" << saveFile << "\n";
 				inFile.close();
 			}
 		}
@@ -774,11 +846,11 @@ void ImageViewer::dirCentroidMeasure()
 	QString lmfolder = QFileDialog::getExistingDirectory(this);
 
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save file"), ".",
-			tr("Measure file (*.txt)"));
+		tr("Measure file (*.txt)"));
 	/*qmessage.setText("Select the saving folder.");
-	qmessage.exec();
+	 qmessage.exec();
 
-	QString savefolder = QFileDialog::getExistingDirectory(this);*/
+	 QString savefolder = QFileDialog::getExistingDirectory(this);*/
 
 	DIR *pDir;
 	struct dirent *entry;
@@ -824,5 +896,4 @@ void ImageViewer::dirCentroidMeasure()
 	qmessage.setText("Finish.");
 	qmessage.exec();
 }
-
 
