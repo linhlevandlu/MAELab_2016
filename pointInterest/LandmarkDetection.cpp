@@ -44,7 +44,8 @@ LandmarkDetection::~LandmarkDetection()
 }
 
 vector<ptr_Point> LandmarkDetection::landmarksAutoDectect(Image sceneImage,
-	AngleAccuracy acc, int cols, int templSize, int sceneSize,ptr_Point &ePoint, double &angleDiff)
+	AngleAccuracy acc, int cols, int templSize, int sceneSize, ptr_Point &ePoint,
+	double &angleDiff)
 {
 	vector<ptr_Point> result;
 	Image modelImage = Treatments::refImage;
@@ -74,10 +75,12 @@ vector<ptr_Point> LandmarkDetection::landmarksAutoDectect(Image sceneImage,
 		vector<ptr_Point> phtEsLM = phtLandmarks(entriesTabel, mpht.getRefPoint(),
 			sLines, width, height, manualLMs, angleDiff, ePoint);
 
-		cout<<"\nAngle difference: "<<angleDiff;
-
-		result = verifyLandmarks(modelImage, sceneImage, manualLMs, phtEsLM,
-			templSize, sceneSize, angleDiff, ePoint);
+		cout << "\nAngle difference: " << angleDiff;
+		if (phtEsLM.size() > 0)
+		{
+			result = verifyLandmarks(modelImage, sceneImage, manualLMs, phtEsLM,
+				templSize, sceneSize, angleDiff, ePoint);
+		}
 	}
 
 	return result;
