@@ -129,6 +129,7 @@ void ImageViewer::createViewMenu()
 	displayBoundingBoxAct = new QAction(tr("&Bounding box detection"), this);
 	displayBoundingBoxAct->setEnabled(false);
 	displayBoundingBoxAct->setCheckable(true);
+	displayBoundingBoxAct->setShortcut(tr("Ctrl+B"));
 	connect(displayBoundingBoxAct, SIGNAL(triggered()), this,
 		SLOT(detectBoundingBox()));
 

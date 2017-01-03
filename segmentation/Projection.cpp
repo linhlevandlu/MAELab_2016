@@ -177,5 +177,13 @@ vector<ptr_Point> boundingBoxDetection(ptr_IntMatrix grayMatrix)
 	corners.push_back(topright);
 	corners.push_back(bottomleft);
 	corners.push_back(bottomright);
+
+	// free memory
+	delete quanMatrix;
+	delete topleft;
+	delete topright;
+	delete bottomleft;
+	delete bottomright;
+
 	return corners;
 }
