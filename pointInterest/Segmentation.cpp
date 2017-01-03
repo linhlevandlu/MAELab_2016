@@ -66,62 +66,92 @@ vector<ptr_Point> Segmentation::boundingBox()
 	ptr_IntMatrix grayMatrix = Treatments::refImage.getGrayMatrix();
 
 	// nho xoa
-	ptr_IntMatrix quanMatrix = quantization(grayMatrix, 1);
+	ptr_IntMatrix quanMatrix = quantization(grayMatrix, 3);
 
 	saveGrayScale("quanMatrix.jpg", quanMatrix);
-
-	/*int rows = grayMatrix->getRows();
+	int rows = grayMatrix->getRows();
 	int cols = grayMatrix->getCols();
-
-	int psize = 0;
-	int* hHistogram = histogramProjection(quanMatrix, Horizontal, psize);
-	cout << "\n" << psize << endl;
-
 	ptr_IntMatrix output = new Matrix<int>(rows, cols, 0);
-	int pvalue = 0;
-	for (int i = 0; i < psize; i++)
-	{
-		pvalue = hHistogram[i];
-		if (pvalue < 0)
-			pvalue = 0;
-		else
-			if (pvalue >= rows)
-				pvalue = rows - 1;
-		output->setAtPosition(rows - pvalue - 1, i, 255);
+	int tk1 =0, tk2 = 0, tk3 = 0, tk4 = 0;
+	int tValue;
+	for (int r = 0; r < rows; ++r) {
+		for (int c = 0; c < cols; ++c) {
+			tValue = quanMatrix->getAtPosition(r,c);
+			if(tValue <= 1)
+			{
+				output->setAtPosition(r,c,0);
+			}
+			else
+			{
+				output->setAtPosition(r,c,255);
+			}
+			if(tValue == 0)
+				tk1++;
+			if(tValue == 1)
+				tk2++;
+			if(tValue == 2)
+				tk3++;
+			if(tValue == 3)
+				tk4++;
+		}
 	}
-	int left = 0, right = 0;
-	analysisProjection(hHistogram, psize, left, right);
-	for (int k = 0; k < rows; ++k)
-	{
-		output->setAtPosition(k, left, 255);
-		output->setAtPosition(k, right, 255);
-	}
-	saveGrayScale("hProjection.jpg", output);
+	cout<<"\t 0 pixells: "<< tk1<<endl;
+	cout<<"\t 1 pixells: "<< tk2<<endl;
+	cout<<"\t 2 pixells: "<< tk3<<endl;
+	cout<<"\t 3 pixells: "<< tk4<<endl;
+	saveGrayScale("2GrayLevels.jpg", output);
+	/*int rows = grayMatrix->getRows();
+	 int cols = grayMatrix->getCols();
 
-	int vpsize = 0;
-	int* vHistogram = histogramProjection(quanMatrix, Vertical, vpsize);
-	cout << "\n" << vpsize << endl;
-	ptr_IntMatrix output2 = new Matrix<int>(rows, cols, 0);
-	int vpvalue = 0;
-	for (int i = 0; i < vpsize; i++)
-	{
-		vpvalue = vHistogram[i];
-		if (vpvalue < 0)
-			vpvalue = 0;
-		else
-			if (vpvalue >= cols)
-				vpvalue = cols - 1;
-		output2->setAtPosition(i, vpvalue, 255);
-	}
-	int top = 0, bottom = 0;
-	analysisProjection(vHistogram, vpsize, top, bottom);
-	for (int k = 0; k < cols; k++)
-	{
-		output2->setAtPosition(top, k, 255);
-		output2->setAtPosition(bottom, k, 255);
-	}
-	saveGrayScale("vProjection.jpg", output2);
+	 int psize = 0;
+	 int* hHistogram = histogramProjection(quanMatrix, Horizontal, psize);
+	 cout << "\n" << psize << endl;
 
-	boundingPoints = boundingBoxDetection(grayMatrix);*/
+	 ptr_IntMatrix output = new Matrix<int>(rows, cols, 0);
+	 int pvalue = 0;
+	 for (int i = 0; i < psize; i++)
+	 {
+	 pvalue = hHistogram[i];
+	 if (pvalue < 0)
+	 pvalue = 0;
+	 else
+	 if (pvalue >= rows)
+	 pvalue = rows - 1;
+	 output->setAtPosition(rows - pvalue - 1, i, 255);
+	 }
+	 int left = 0, right = 0;
+	 analysisProjection(hHistogram, psize, left, right);
+	 for (int k = 0; k < rows; ++k)
+	 {
+	 output->setAtPosition(k, left, 255);
+	 output->setAtPosition(k, right, 255);
+	 }
+	 saveGrayScale("hProjection.jpg", output);
+
+	 int vpsize = 0;
+	 int* vHistogram = histogramProjection(quanMatrix, Vertical, vpsize);
+	 cout << "\n" << vpsize << endl;
+	 ptr_IntMatrix output2 = new Matrix<int>(rows, cols, 0);
+	 int vpvalue = 0;
+	 for (int i = 0; i < vpsize; i++)
+	 {
+	 vpvalue = vHistogram[i];
+	 if (vpvalue < 0)
+	 vpvalue = 0;
+	 else
+	 if (vpvalue >= cols)
+	 vpvalue = cols - 1;
+	 output2->setAtPosition(i, vpvalue, 255);
+	 }
+	 int top = 0, bottom = 0;
+	 analysisProjection(vHistogram, vpsize, top, bottom);
+	 for (int k = 0; k < cols; k++)
+	 {
+	 output2->setAtPosition(top, k, 255);
+	 output2->setAtPosition(bottom, k, 255);
+	 }
+	 saveGrayScale("vProjection.jpg", output2);
+
+	 boundingPoints = boundingBoxDetection(grayMatrix);*/
 	return boundingPoints;
 }
