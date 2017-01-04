@@ -187,3 +187,30 @@ vector<ptr_Point> boundingBoxDetection(ptr_IntMatrix grayMatrix)
 
 	return corners;
 }
+vector<ptr_Point> boundingBoxDetection(int* hProjection, int hSize, int* vProjection, int vSize)
+{
+	vector<ptr_Point> corners;
+
+	int left = 0, right = 0;
+	analysisProjection(hProjection,hSize,left,right);
+
+	int top = 0, bottom = 0;
+	analysisProjection(vProjection,vSize,top,bottom);
+
+	ptr_Point topleft = new Point(left,top);
+	ptr_Point topright = new Point(right,top);
+	ptr_Point bottomleft = new Point(left,bottom);
+	ptr_Point bottomright = new Point(right,bottom);
+	corners.push_back(topleft);
+	corners.push_back(topright);
+	corners.push_back(bottomleft);
+	corners.push_back(bottomright);
+
+	// free memory
+	delete topleft;
+	delete topright;
+	delete bottomleft;
+	delete bottomright;
+
+	return corners;
+}
