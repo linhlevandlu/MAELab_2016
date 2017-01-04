@@ -49,6 +49,7 @@ private slots:
 
 	void binThreshold();
 	void cannyAlgorithm();
+	void approximatedLines();
 
 	void estimatedLandmarks();
 	void extractLandmarks();
@@ -94,6 +95,7 @@ private:
 
 	QAction *binaryThresholdAct;
 	QAction *cannyAct;
+	QAction *approximatedLinesAct;
 
 	QAction *phtAct;
 	QAction *autoLandmarksAct;

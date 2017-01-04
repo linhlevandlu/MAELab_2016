@@ -44,7 +44,7 @@ public:
 	vector<ptr_Point> getListOfAutoLandmarks();
 
 	vector<ptr_Edge> cannyAlgorithm();
-	vector<ptr_Line> getApproximateLines(int minDistance);
+	vector<ptr_Line> getApproximateLines(double minDistance);
 	vector<ptr_Point> readManualLandmarks(string fileName);
 
 	ptr_DoubleMatrix getRotationMatrix2D(ptr_Point center, double angle,

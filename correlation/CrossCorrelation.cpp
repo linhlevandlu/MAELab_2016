@@ -139,9 +139,7 @@ vector<ptr_Point> verifyLandmarks(Image mImage, Image sImage,
 				sceneSize, iLocation, iDistance);
 
 			ptr_Point maxLoc = matCrossCorrelation(templ, sceneM);
-			cout << "\n[" << maxLoc->getX() << "," << maxLoc->getY() << "]\t" << "["
-				<< iLocation->getX() << ", " << iLocation->getY() << "]\t["
-				<< tDistance->getX() << ", " << tDistance->getY() << "]";
+
 			int lmx = iLocation->getX() + maxLoc->getX() + tDistance->getX();
 			int lmy = iLocation->getY() + maxLoc->getY() + tDistance->getY();
 			mcResult.push_back(new Point(lmx, lmy));

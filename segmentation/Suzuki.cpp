@@ -906,30 +906,24 @@ vector<ptr_Edge> suzuki(ptr_IntMatrix inputImage)
 
 	}
 
-	ptr_IntMatrix output = new Matrix<int>(inputImage->getRows(),
-		inputImage->getCols(), 0);
 	cout << "\n Size of edges: " << edges.size();
 	vector<ptr_Edge> result;
+	int countpx = 0;
 
-	//ofstream of("/home/linh/Desktop/compare/suzukiValues.txt");
-	//int countpx = 0;
 	for (int i = edges.size() - 1; i >= 0; i--)
 	{
-		vector<ptr_Point> edge = edges.at(i);
+		 edge = edges.at(i);
 		result.push_back(new Edge(edge));
-		/*countpx += edge.size();
-		 for (int j = 0; j < edge.size(); j++)
-		 {
-		 ptr_Point p = edge.at(j);
-		 output->setAtPosition(p->getY(), p->getX(), 255);
-		 of << p->getY() << "\t" << p->getX() << "\n";
-		 }
+		countpx += edge.size();
 
-		 of << "\n";*/
 
 	}
-	//of.close();
-	//cout << "\nTotal pixels after Suzuki: " << countpx;
+
+	cout << "\nTotal pixels after Suzuki: " << countpx;
+
+	delete sbinMatrix;
+	edge.clear();
+	edges.clear();
 
 	return result;
 }

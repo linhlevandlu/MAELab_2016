@@ -73,7 +73,7 @@ bool Edge::checkPointInList(std::vector<ptr_Point> listPoints, ptr_Point point)
 
 
 static std::vector<ptr_Point> vvp; // used to keep the break points after recursive time
-void Edge::breakEdge(int minDistance)
+void Edge::breakEdge(double minDistance)
 { // in old program, minDistance is constant with value is 3
 	if (listOfPoints.size() <= 0)
 		return;
@@ -120,7 +120,7 @@ void Edge::breakEdge(int minDistance)
 }
 
 //=================================================== Public methods ===========================================
-std::vector<ptr_Point> Edge::segment(int minDistance)
+std::vector<ptr_Point> Edge::segment(double minDistance)
 {
 	listOfBreakPoints.clear();
 	vvp.clear();

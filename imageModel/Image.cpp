@@ -57,10 +57,13 @@ ptr_IntMatrix convertRGBToGray(ptr_RGBMatrix rgbMatrix)
 		{
 
 			grayMatrix->setAtPosition(h, w,
-				round(
-					((double) rgbMatrix->getAtPosition(h, w).R * RED_COEFFICIENT)
-						+ ((double) rgbMatrix->getAtPosition(h, w).G * GREEN_COEFFICIENT)
-						+ ((double) rgbMatrix->getAtPosition(h, w).B * BLUE_COEFFICIENT)));
+					round(
+							((double) rgbMatrix->getAtPosition(h, w).R
+									* RED_COEFFICIENT)
+									+ ((double) rgbMatrix->getAtPosition(h, w).G
+											* GREEN_COEFFICIENT)
+									+ ((double) rgbMatrix->getAtPosition(h, w).B
+											* BLUE_COEFFICIENT)));
 		}
 	}
 
@@ -130,7 +133,7 @@ ptr_RGBMatrix Image::getRGBMatrix()
 vector<ptr_Line> Image::getListOfLines()
 {
 	if (listOfLines.size() <= 0)
-		getApproximateLines(3);
+		getApproximateLines(3.5);
 	return listOfLines;
 }
 float Image::getMedianHistogram()
@@ -153,19 +156,68 @@ float Image::getThresholdValue()
 	return thresholdValue;
 }
 
-vector<ptr_Line> Image::getApproximateLines(int minDistance = 3)
+ptr_Edge tinhgiamEdge(ptr_Edge edge)
 {
+	vector<ptr_Point> listPoints = edge->getPoints();
+	vector<ptr_Point> newPoints;
+	ptr_Edge newEdge = new Edge();
+	ptr_Point pi;
+	for (size_t i = 0; i < listPoints.size(); i++) {
+		pi = listPoints.at(i);
+		if(!newEdge->checkPointInList(newPoints,pi))
+		{
+			newPoints.push_back(pi);
+		}
+	}
+	newEdge->setPoints(newPoints);
+
+	listPoints.clear();
+	delete pi;
+	newPoints.clear();
+
+	return newEdge;
+}
+
+vector<ptr_Edge> tinhgiamEdges(vector<ptr_Edge> oldEdges)
+{
+	vector<ptr_Edge> result;
+	ptr_Edge edgei,nedgei;
+
+	int count = 0;
+	for (size_t i = 0; i < oldEdges.size(); i++)
+	{
+		edgei = oldEdges.at(i);
+		//cout << "\nBefore tinh giam: " << edgei->getPoints().size() << endl;
+		edgei->sortByX();
+		// delete the duplicate points
+		nedgei = tinhgiamEdge(edgei);
+		//cout << "\nAfter tinh giam: " << nedgei->getPoints().size() << endl;
+		count+= nedgei->getPoints().size();
+		result.push_back(nedgei);
+	}
+	cout<<"\nTotal after tinh giam: "<< count<<endl;
+	return result;
+}
+vector<ptr_Line> Image::getApproximateLines(double minDistance)
+{
+
 	vector<ptr_Edge> listOfEdges = cannyAlgorithm();
+
+	vector<ptr_Edge> rEdges =  tinhgiamEdges(listOfEdges);
+
+
 	vector<ptr_Line> totalLines;
 
-	for (size_t i = 0; i < listOfEdges.size(); i++)
+	for (size_t i = 0; i < rEdges.size(); i++)
 	{
-		ptr_Edge ed = listOfEdges.at(i);
-		vector<ptr_Point> breakPoints = ed->segment(3);
+		ptr_Edge ed = rEdges.at(i);
+		vector<ptr_Point> breakPoints = ed->segment(minDistance);
 		vector<ptr_Line> lines = ed->getLines(breakPoints);
 		totalLines.insert(totalLines.end(), lines.begin(), lines.end());
 	}
-	cout << "\n Total lines after segment the edge: " << totalLines.size();
+	cout << "\n Min distance: " << minDistance;
+	cout << "\n Total lines after segment the edge: " << totalLines.size()
+			<< endl;
 	listOfLines = totalLines;
 	return totalLines;
 }
@@ -247,7 +299,7 @@ void Image::calThresholdValue()
 	if (medianHistogram == 0 || meanHistogram == 0)
 		calcGrayHistogram();
 	int limit1 =
-		meanHistogram > medianHistogram ? medianHistogram : meanHistogram;
+			meanHistogram > medianHistogram ? medianHistogram : meanHistogram;
 	limit1 = (limit1 >= 120) ? (limit1 - DECREASE_25) : (limit1 - DECREASE_5);
 	int imax1 = -1, max1 = -1;
 	for (int index = 0; index < limit1; index++)
@@ -260,7 +312,7 @@ void Image::calThresholdValue()
 		}
 	}
 	int limit2 =
-		meanHistogram > medianHistogram ? meanHistogram : medianHistogram;
+			meanHistogram > medianHistogram ? meanHistogram : medianHistogram;
 	int imin = -1, min = max1;
 	for (int k = imax1; k < limit2; k++)
 	{
@@ -292,10 +344,10 @@ vector<ptr_Edge> Image::cannyAlgorithm()
 		calThresholdValue();
 
 	ptr_IntMatrix binMatrix = binaryThreshold(grayMatrix, (int) thresholdValue,
-		MAX_GRAY_VALUE);
+			MAX_GRAY_VALUE);
 
 	ptr_IntMatrix cannyMatrix = cannyProcess(binMatrix, (int) thresholdValue,
-		3 * (int) thresholdValue);
+			3 * (int) thresholdValue);
 
 	vector<ptr_Edge> listOfEdges;
 	listOfEdges = suzuki(cannyMatrix);
@@ -304,7 +356,7 @@ vector<ptr_Edge> Image::cannyAlgorithm()
 }
 
 ptr_DoubleMatrix Image::getRotationMatrix2D(ptr_Point center, double angle,
-	double scale)
+		double scale)
 {
 	if (angle > 0)
 		angle = -angle;
@@ -317,11 +369,11 @@ ptr_DoubleMatrix Image::getRotationMatrix2D(ptr_Point center, double angle,
 	rotateM->setAtPosition(0, 0, alpha);
 	rotateM->setAtPosition(0, 1, beta);
 	rotateM->setAtPosition(0, 2,
-		(1 - alpha) * center->getX() - beta * center->getY());
+			(1 - alpha) * center->getX() - beta * center->getY());
 	rotateM->setAtPosition(1, 0, -beta);
 	rotateM->setAtPosition(1, 1, alpha);
 	rotateM->setAtPosition(1, 2,
-		beta * center->getX() + (1 - alpha) * center->getY());
+			beta * center->getX() + (1 - alpha) * center->getY());
 
 	return rotateM;
 }
@@ -378,8 +430,9 @@ ptr_IntMatrix Image::rotate(ptr_Point center, double angle, double scale)
 			RGB leftColor = rgbDest->getAtPosition(row, col - 1);
 			RGB rightColor = rgbDest->getAtPosition(row, col + 1);
 			if (color.R == 0 && color.G == 0 && color.B == 0
-				&& (leftColor.R != 0 || leftColor.G != 0 || leftColor.B != 0)
-				&& (rightColor.R != 0 || rightColor.G != 0 || rightColor.B != 0))
+					&& (leftColor.R != 0 || leftColor.G != 0 || leftColor.B != 0)
+					&& (rightColor.R != 0 || rightColor.G != 0
+							|| rightColor.B != 0))
 			{
 				RGB newColor;
 				newColor.R = (leftColor.R + rightColor.R) / 2;
