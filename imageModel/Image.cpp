@@ -187,11 +187,11 @@ vector<ptr_Edge> tinhgiamEdges(vector<ptr_Edge> oldEdges)
 	for (size_t i = 0; i < oldEdges.size(); i++)
 	{
 		edgei = oldEdges.at(i);
-		//cout << "\nBefore tinh giam: " << edgei->getPoints().size() << endl;
+		cout << "\nBefore tinh giam: " << edgei->getPoints().size() << endl;
 		edgei->sortByX();
 		// delete the duplicate points
 		nedgei = tinhgiamEdge(edgei);
-		//cout << "\nAfter tinh giam: " << nedgei->getPoints().size() << endl;
+		cout << "\nAfter tinh giam: " << nedgei->getPoints().size() << endl;
 		count+= nedgei->getPoints().size();
 		result.push_back(nedgei);
 	}
