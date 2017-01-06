@@ -131,15 +131,12 @@ std::vector<ptr_Point> Edge::segment(double minDistance)
 }
 vector<ptr_Line> Edge::getLines(vector<ptr_Point> listPoints) {
 	vector<ptr_Line> listLines;
-	ptr_Point p0 = new Point(0,0);
-	ptr_Point p1 = new Point(0,0);
-
 	if (listPoints.size() > 0) {
-		p0 = listPoints.at(0);
-		ptr_Line l;
+		ptr_Point p0 = listPoints.at(0);
+
 		for (size_t i = 1; i < listPoints.size(); i++) {
-			p1 = listPoints.at(i);
-			l = new Line(p0, p1);
+			ptr_Point p1 = listPoints.at(i);
+			ptr_Line l = new Line(p0, p1);
 			listLines.push_back(l);
 			p0 = p1;
 		}
