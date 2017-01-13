@@ -40,6 +40,7 @@ using namespace std;
 #include "../segmentation/Thresholds.h"
 #include "../segmentation/Canny.h"
 #include "../segmentation/Suzuki.h"
+#include "../segmentation/Texture.h"
 #include "../imageModel/Image.h"
 
 #include "../pht/PHTEntry.h"
@@ -180,6 +181,11 @@ void ImageViewer::createSegmentationMenu()
 	approximatedLinesAct->setEnabled(false);
 	connect(approximatedLinesAct, SIGNAL(triggered()), this,
 		SLOT(approximatedLines()));
+
+	textureSegmentAct = new QAction(tr("&Texture segmentation"), this);
+	textureSegmentAct->setEnabled(false);
+	connect(textureSegmentAct, SIGNAL(triggered()), this,
+		SLOT(textureSegmentation()));
 }
 void ImageViewer::createLandmarksMenu()
 {
@@ -246,9 +252,11 @@ void ImageViewer::createMenus()
 
 	segmentationMenu = new QMenu(tr("&Segmentation"), this);
 	segmentationMenu->addAction(binaryThresholdAct);
-	segmentationMenu->addAction(cannyAct);
 	segmentationMenu->addSeparator();
+	segmentationMenu->addAction(cannyAct);
 	segmentationMenu->addAction(approximatedLinesAct);
+	segmentationMenu->addSeparator();
+	segmentationMenu->addAction(textureSegmentAct);
 
 	dominantPointMenu = new QMenu(tr("&Landmarks"), this);
 	dominantPointMenu->addAction(phtAct);
@@ -300,6 +308,7 @@ void ImageViewer::activeFunction()
 	binaryThresholdAct->setEnabled(true);
 	cannyAct->setEnabled(true);
 	approximatedLinesAct->setEnabled(true);
+	textureSegmentAct->setEnabled(true);
 
 	phtAct->setEnabled(true);
 	autoLandmarksAct->setEnabled(true);
@@ -658,7 +667,7 @@ void ImageViewer::cannyAlgorithm()
 	for (size_t i = 0; i < edges.size(); i++)
 	{
 		ptr_Edge edgei = edges.at(i);
-		for (int k = 0; k < edgei->getPoints().size(); k++)
+		for (size_t k = 0; k < edgei->getPoints().size(); k++)
 		{
 			ptr_Point pi = edgei->getPoints().at(k);
 			matImage->getRGBMatrix()->setAtPosition(pi->getY(), pi->getX(), color);
@@ -689,7 +698,7 @@ void ImageViewer::approximatedLines()
 		li = lines.at(i);
 		pbegin = li->getBegin();
 		pend = li->getEnd();
-		cout<<"\n"<<pend->getX()<<"\t"<<pend->getY();
+		cout << "\n" << pend->getX() << "\t" << pend->getY();
 		matImage->getRGBMatrix()->setAtPosition(pbegin->getY(), pbegin->getX(),
 			color);
 		//matImage->getRGBMatrix()->setAtPosition(pend->getY(), pend->getX(),
@@ -704,6 +713,51 @@ void ImageViewer::approximatedLines()
 	msgbox.setText("Finish");
 	msgbox.exec();
 }
+
+void ImageViewer::textureSegmentation()
+{
+	cout << "\n Texture segmentation." << endl;
+	QMessageBox msgbox;
+
+	ptr_IntMatrix grayImage = matImage->getGrayMatrix();
+	vector<ptr_IntMatrix> regions = splitImage(grayImage);
+	cout << "\nNumber of regions: " << regions.size() << endl;
+
+	double contrast = 0;
+	double lbp = 0;
+	for (size_t i = 0; i < regions.size(); i++)
+	{
+		contrast = contrastLBP(regions.at(i), lbp);
+		cout << "\nLBP - C: " << lbp << "\t" << contrast << endl;
+	}
+
+	int rindex = regions.at(0)->getRows();
+	int cindex = regions.at(0)->getCols();
+	RGB color;
+	color.R = 255;
+	color.G = color.B = 0;
+	Line line1(new Point(cindex, 0), new Point(cindex, (rindex * 2) - 1));
+	Line line2(new Point(0, rindex), new Point(cindex * 2 - 1, rindex));
+	vector<ptr_Point> drawingPoints = drawingLine(&line1, color);
+	vector<ptr_Point> drawingPoints2 = drawingLine(&line2, color);
+	Point pi;
+	for (size_t i = 0; i < drawingPoints.size() - 1; i++)
+	{
+		pi = *drawingPoints.at(i);
+		matImage->getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(), color);
+	}
+	for (size_t i = 0; i < drawingPoints2.size() - 1; i++)
+	{
+		pi = *drawingPoints2.at(i);
+		matImage->getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(), color);
+	}
+
+	this->loadImage(matImage, ptrRGBToQImage(matImage->getRGBMatrix()),
+		"Texture segmentation result");
+	msgbox.setText("Finish.");
+	msgbox.exec();
+}
+
 // ======================================================= Landmarks Menu actions =============================================
 void ImageViewer::estimatedLandmarks()
 {
@@ -740,7 +794,7 @@ void ImageViewer::estimatedLandmarks()
 	color.B = 0;
 
 	vector<ptr_Point> ePoints = drawingCircle(ePoint, 5, color);
-	for (int k = 0; k < ePoints.size(); k++)
+	for (size_t k = 0; k < ePoints.size(); k++)
 	{
 		ptr_Point p = ePoints.at(k);
 		matImage->getRGBMatrix()->setAtPosition(p->getY(), p->getX(),
@@ -748,11 +802,11 @@ void ImageViewer::estimatedLandmarks()
 	}
 	color.R = 0;
 	color.G = 0;
-	for (int i = 0; i < lms.size(); i++)
+	for (size_t i = 0; i < lms.size(); i++)
 	{
 		ptr_Point lm = lms.at(i);
 		vector<ptr_Point> dPoints = drawingCircle(lm, 5, color);
-		for (int k = 0; k < dPoints.size(); k++)
+		for (size_t k = 0; k < dPoints.size(); k++)
 		{
 			ptr_Point p = dPoints.at(k);
 			int rindex = p->getY();
@@ -807,11 +861,11 @@ void ImageViewer::extractLandmarks()
 
 	ptr_Point lm;
 	matImage->rotate(ePoint, angleDiff, 1);
-	for (int i = 0; i < lms.size(); i++)
+	for (size_t i = 0; i < lms.size(); i++)
 	{
 		lm = lms.at(i);
 		vector<ptr_Point> dPoints = drawingCircle(lm, 5, color);
-		for (int k = 0; k < dPoints.size(); k++)
+		for (size_t k = 0; k < dPoints.size(); k++)
 		{
 			ptr_Point p = dPoints.at(k);
 			matImage->getRGBMatrix()->setAtPosition(p->getY(), p->getX(),
@@ -895,7 +949,7 @@ void ImageViewer::dirAutoLandmarks()
 	LandmarkDetection tr;
 	tr.setRefImage(*matImage);
 
-	for (int i = 0; i < fileNames.size(); i++)
+	for (size_t i = 0; i < fileNames.size(); i++)
 	{
 		string fileName = folder.toStdString() + "/" + fileNames.at(i);
 		cout << "\n" << fileName << endl;
@@ -943,7 +997,7 @@ void ImageViewer::dirCentroidMeasure()
 		string saveFile = fileName.toStdString();
 		inFile.open(saveFile.c_str(), std::ofstream::out);
 	}
-	for (int i = 0; i < fileNames.size(); i++)
+	for (size_t i = 0; i < fileNames.size(); i++)
 	{
 		string filePath = lmfolder.toStdString() + "/" + fileNames.at(i);
 		matImage->readManualLandmarks(filePath);
