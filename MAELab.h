@@ -7,6 +7,10 @@
 
 #ifndef MAELAB_H_
 #define MAELAB_H_
+
+ptr_IntMatrix get_Gray_Histogram(Image image);
+ptr_RGBMatrix get_RGB_Histogram(Image image);
+
 vector<Line> segment(ptr_Treatments treatment, Image sceneImage,
 	int minDistance);
 ShapeHistogram geomHistogram(ptr_Treatments treatment, Image image,

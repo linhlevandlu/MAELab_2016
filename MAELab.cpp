@@ -34,6 +34,16 @@ using namespace std;
 
 #include "MAELab.h"
 
+ptr_IntMatrix get_Gray_Histogram(Image image)
+{
+	return image.getGrayHistogram();
+}
+
+ptr_RGBMatrix get_RGB_Histogram(Image image)
+{
+	return image.getRGBHistogram();
+}
+
 vector<Line> segment(ptr_Treatments treatment, Image image, int minDistance)
 {
 
