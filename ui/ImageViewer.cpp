@@ -469,7 +469,7 @@ ImageViewer::ImageViewer()
 
 ImageViewer::~ImageViewer()
 {
-	delete matImage;
+	/*delete matImage;
 	delete parameterAction;
 	delete parameterDialog;
 
@@ -526,9 +526,23 @@ ImageViewer::~ImageViewer()
 	delete dirCentroidMeasureAct;
 	delete dirGenerateDataAct;
 	delete sobelAndSIFTAct;
-	delete cannyAndSIFTAct;
+	delete cannyAndSIFTAct;*/
 }
-
+void ImageViewer::closeEvent(QCloseEvent *event)
+{
+	QMessageBox::StandardButtons ret;
+	ret = QMessageBox::warning(this,tr("Warning"),tr("Do you want exit the program?"),QMessageBox::Yes | QMessageBox::No);
+	bool cl = true;
+	if(ret == QMessageBox::Yes)
+		cl = true;
+	else
+		if(ret == QMessageBox:: No)
+			cl = false;
+	if(cl)
+		event->accept();
+	else
+		event->ignore();
+}
 void ImageViewer::loadImage(QString fn)
 {
 
@@ -584,56 +598,56 @@ void ImageViewer::testMethod()
 	cout << "\nTest a method ..." << endl;
 	RGB df;
 	df.R = df.G = df.B = 0;
-	Matrix<int> patch = matImage->getGrayMatrix()->extractPatch(501,501,676,2746,0);
+	Matrix<int> patch = matImage->getGrayMatrix()->extractPatch(501, 501, 676,
+		2746, 0);
 	/*QMessageBox msgbox;
-	msgbox.setText("Select the landmark file of scene image.");
-	msgbox.exec();
-	QString reflmPath = QFileDialog::getOpenFileName(this);
-	matImage->readManualLandmarks(reflmPath.toStdString());
-	msgbox.setText("Select the model image.");
-	msgbox.exec();
-	QString fileName2 = QFileDialog::getOpenFileName(this);
-	if (fileName2.isEmpty())
-		return;
-	cout << endl << fileName2.toStdString() << endl;
-	Image *modelImage = new Image(fileName2.toStdString());
+	 msgbox.setText("Select the landmark file of scene image.");
+	 msgbox.exec();
+	 QString reflmPath = QFileDialog::getOpenFileName(this);
+	 matImage->readManualLandmarks(reflmPath.toStdString());
+	 msgbox.setText("Select the model image.");
+	 msgbox.exec();
+	 QString fileName2 = QFileDialog::getOpenFileName(this);
+	 if (fileName2.isEmpty())
+	 return;
+	 cout << endl << fileName2.toStdString() << endl;
+	 Image *modelImage = new Image(fileName2.toStdString());
 
-	msgbox.setText("Select the landmark file of model image.");
-	msgbox.exec();
-	QString reflmPath2 = QFileDialog::getOpenFileName(this);
-	modelImage->readManualLandmarks(reflmPath2.toStdString());
+	 msgbox.setText("Select the landmark file of model image.");
+	 msgbox.exec();
+	 QString reflmPath2 = QFileDialog::getOpenFileName(this);
+	 modelImage->readManualLandmarks(reflmPath2.toStdString());
 
-	//testLBPDescriptor(matImage->getGrayMatrix(), matImage->getListOfManualLandmarks(), 64);
+	 //testLBPDescriptor(matImage->getGrayMatrix(), matImage->getListOfManualLandmarks(), 64);
 
-	//testLBPDescriptor2Images(matImage->getGrayMatrix(),
+	 //testLBPDescriptor2Images(matImage->getGrayMatrix(),
 	 //matImage->getListOfManualLandmarks(), modelImage->getGrayMatrix(),
 	 //modelImage->getListOfManualLandmarks(), 64);
 
-	vector<Point> contourPoints;
+	 vector<Point> contourPoints;
 	 matImage->cannyAlgorithm(contourPoints);
 	 //vector<Point> rs = testLBPDescriptor2ImagesContours(
 	 //modelImage->getGrayMatrix(), modelImage->getListOfManualLandmarks(),
 	 //matImage->getGrayMatrix(), contourPoints, 64);
-	ptr_RGBMatrix shistogram = matImage->getRGBHistogram();
-	ptr_RGBMatrix sresult = colorThreshold(matImage->getRGBMatrix(), shistogram);
+	 ptr_RGBMatrix shistogram = matImage->getRGBHistogram();
+	 ptr_RGBMatrix sresult = colorThreshold(matImage->getRGBMatrix(), shistogram);
 
-	ptr_RGBMatrix mhistogram = modelImage->getRGBHistogram();
-	ptr_RGBMatrix mresult = colorThreshold(matImage->getRGBMatrix(), mhistogram);
+	 ptr_RGBMatrix mhistogram = modelImage->getRGBHistogram();
+	 ptr_RGBMatrix mresult = colorThreshold(matImage->getRGBMatrix(), mhistogram);
 
-	vector<Point> rs = testSIFTOnRGB(mresult, modelImage->getListOfManualLandmarks(),sresult,contourPoints, 64);
+	 vector<Point> rs = testSIFTOnRGB(mresult, modelImage->getListOfManualLandmarks(),sresult,contourPoints, 64);
 
-	RGB color;
-	color.R = 255;
-	color.G = color.B = 0;
-	for (int i = 0; i < rs.size(); i++)
-	{
-		Point p = rs.at(i);
-		fillCircle(*matImage->getRGBMatrix(), p, 5, color);
-	}*/
+	 RGB color;
+	 color.R = 255;
+	 color.G = color.B = 0;
+	 for (int i = 0; i < rs.size(); i++)
+	 {
+	 Point p = rs.at(i);
+	 fillCircle(*matImage->getRGBMatrix(), p, 5, color);
+	 }*/
 
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(&patch),
-		"Test a method");
+	other->loadImage(matImage, ptrIntToQImage(&patch), "Test a method");
 	other->move(x() - 40, y() - 40);
 	other->show();
 
@@ -692,7 +706,7 @@ void ImageViewer::save()
 }
 void ImageViewer::saveAs()
 {
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save image"), ".",
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save as image"), ".",
 		tr("Image Files (*.jpg)"));
 	if (fileName.isEmpty())
 	{

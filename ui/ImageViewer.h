@@ -32,6 +32,9 @@ public:
 
 	void loadImage(QString fn);
 	void loadImage(Image *_matImage, QImage _qImage, QString tt);
+protected:
+	void closeEvent(QCloseEvent *event);
+
 private slots:
 	void about();
 	void testMethod();
