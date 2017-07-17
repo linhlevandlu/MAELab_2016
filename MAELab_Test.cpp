@@ -122,15 +122,15 @@ void calSIFT(ptr_IntMatrix imageGray, Point point, int patchsize,
 			if (i != 0)
 				inFile << "\n";
 			inFile << SIFTVector.at(i);
-			cout << endl << SIFTVector.at(i);
+			//cout << endl << SIFTVector.at(i);
 		}
 		else
 		{
-			cout << "\t" << SIFTVector.at(i);
+			//cout << "\t" << SIFTVector.at(i);
 			inFile << "\t" << SIFTVector.at(i);
 		}
 	}
-	cout << "\n";
+	//cout << "\n";
 	inFile.close();
 }
 void calculateSIFT(string image_file, string lm_file, int patchsize,
@@ -146,6 +146,7 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 	for (int i = 0; i < landmarks.size(); ++i)
 	{
 		Point pi = landmarks.at(i);
+		pi.toString();
 		std::stringstream ssname;
 		ssname << sname;
 		ssname << "_p" << i << ".txt";
@@ -320,9 +321,9 @@ int main(int argc, char* argv[])
 	//getProjections(filename,savename);
 	//colorThreshold(filename, savename);
 	//extractLandmarkPatch(filename, lm_file, width, height, save_folder);
-	//calculateSIFT(filename,lm_file,9,save_folder);
+	calculateSIFT(filename,lm_file,9,save_folder);
 	//resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
 	//data_Augmentation(filename,lm_file,INCREASE_RED,10,save_folder);
-	read_Image_Landmarks("/home/linh/Desktop/data/pronotum_data_5/val_green",
-		"/home/linh/Desktop/data/pronotum_data_5/landmarks/val", "results/val_green.txt");
+	//read_Image_Landmarks("/home/linh/Desktop/data/pronotum_data_5/val_green",
+	//	"/home/linh/Desktop/data/pronotum_data_5/landmarks/val", "results/val_green.txt");
 }

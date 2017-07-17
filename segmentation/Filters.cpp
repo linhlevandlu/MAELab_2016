@@ -85,6 +85,37 @@ Matrix<int> gaussianBlur(Matrix<int> inputMatrix, Matrix<double> kernel)
 	}
 	return inputMatrix;
 }
+Matrix<double> gaussianBlur_Double(Matrix<int> inputMatrix, Matrix<double> kernel)
+{
+	int rows = inputMatrix.getRows();
+	int cols = inputMatrix.getCols();
+	int krows = kernel.getRows();
+	int kcols = kernel.getCols();
+
+	int begin = krows / 2;
+	Matrix<double> result(rows, cols);
+	for (int r = -begin; r < rows - begin; r++)
+	{
+		for (int c = -begin; c < cols - begin; c++)
+		{
+			double sum = 0;
+			for (int i = 0; i < krows; i++)
+			{
+				for (int j = 0; j < kcols; j++)
+				{
+					double kvalue = kernel.getAtPosition(i, j);
+					double gValue =
+						(i + r < 0 || j + c < 0 || i + r >= rows || j + c >= cols) ?
+							getBorderValue(&inputMatrix, i + r, j + c) :
+							(double) inputMatrix.getAtPosition(i + r, j + c);
+					sum += kvalue * gValue;
+				}
+			}
+			result.setAtPosition(r + begin, c + begin, sum);
+		}
+	}
+	return result;
+}
 Matrix<int> RobertOperation(ptr_IntMatrix grayMatrix)
 {
 	int rows = grayMatrix->getRows();

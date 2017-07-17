@@ -19,6 +19,7 @@ using namespace std;
 #include "../imageModel/Point.h"
 #include "../imageModel/Line.h"
 #include "../imageModel/Matrix.h"
+#include "../segmentation/Filters.h"
 
 #include "DescriptorDistance.h"
 
@@ -34,8 +35,10 @@ Matrix<double> createDescriptor(ptr_IntMatrix mImage, Point lefttop,
 	int i = 0, j = 0;
 	for (int r = lefttop.getY(); r <= rightbot.getY(); r++)
 	{
+		//cout<<"\n";
 		for (int c = lefttop.getX(); c <= rightbot.getX(); c++)
 		{
+			//cout<<mImage->getAtPosition(r,c)<<"\t";
 			llocation = rlocation = alocation = blocation = 0;
 
 			if (r - 1 >= 0 && r - 1 < rows)
@@ -54,11 +57,16 @@ Matrix<double> createDescriptor(ptr_IntMatrix mImage, Point lefttop,
 			{
 				rlocation = mImage->getAtPosition(r, c + 1);
 			}
-			double d1 = (double) blocation - (double) alocation;
-			double d2 = (double) rlocation - (double) llocation;
-			if (d2 != 0)
+			double dy = (double) blocation - (double) alocation;
+			double dx = (double) rlocation - (double) llocation;
+			double angle= atan2(dy,dx) * 180/M_PI;
+			if (angle < 0)
+					angle += 360;
+				orientation.setAtPosition(i, j, angle);
+			/*if (d2 != 0)
 			{
-				double angle = atan(d1 / d2) * 180 / M_PI;
+				//double angle = atan(d1 / d2) * 180 / M_PI;
+				double angle = atan2(d2, d1) * 180 / M_PI;
 				if (angle < 0)
 					angle += 360;
 				orientation.setAtPosition(i, j, angle);
@@ -67,8 +75,74 @@ Matrix<double> createDescriptor(ptr_IntMatrix mImage, Point lefttop,
 			else
 			{
 				orientation.setAtPosition(i, j, 0.0);
+			}*/
+			double magnutide = (dx * dx) + (dy * dy);
+			gradient.setAtPosition(i, j, sqrt(magnutide));
+			j++;
+		}
+		i++;
+		j = 0;
+	}
+
+	return orientation;
+}
+
+Matrix<double> createDescriptor_Double(ptr_DoubleMatrix mImage, Point lefttop,
+	Point rightbot, Matrix<double> &gradient)
+{
+	int rows = mImage->getRows();
+	int cols = mImage->getCols();
+	int rpatch = rightbot.getY() - lefttop.getY() + 1;
+	int cpatch = rightbot.getX() - lefttop.getX() + 1;
+	Matrix<double> orientation(rpatch, cpatch, 0.0);
+	double llocation = 0, rlocation = 0, alocation = 0, blocation = 0;
+	int i = 0, j = 0;
+	for (int r = lefttop.getY(); r <= rightbot.getY(); r++)
+	{
+		//cout<<"\n";
+		for (int c = lefttop.getX(); c <= rightbot.getX(); c++)
+		{
+			//cout<<mImage->getAtPosition(r,c)<<"\t";
+			llocation = rlocation = alocation = blocation = 0;
+
+			if (r - 1 >= 0 && r - 1 < rows)
+			{
+				alocation = mImage->getAtPosition(r - 1, c);
 			}
-			double magnutide = (d2 * d2) + (d1 * d1);
+			if (r + 1 >= 0 && r + 1 < rows)
+			{
+				blocation = mImage->getAtPosition(r + 1, c);
+			}
+			if (c - 1 >= 0 && c - 1 < cols)
+			{
+				llocation = mImage->getAtPosition(r, c - 1);
+			}
+			if (c + 1 >= 0 && c + 1 < cols)
+			{
+				rlocation = mImage->getAtPosition(r, c + 1);
+			}
+			double dy = (double) alocation - (double) blocation;
+			double dx = (double) rlocation - (double) llocation;
+
+			double angle= atan2(dy,dx) * 180/M_PI;
+			if (angle < 0)
+				angle += 360;
+			orientation.setAtPosition(i, j, angle);
+			//cout<<"\t"<<dx <<"\t"<<dy<<"\t"<<angle<<endl;
+			/*if (d2 != 0)
+			{
+				//double angle = atan(d1 / d2) * 180 / M_PI;
+				double angle = atan2(d2, d1) * 180 / M_PI;
+				if (angle < 0)
+					angle += 360;
+				orientation.setAtPosition(i, j, angle);
+
+			}
+			else
+			{
+				orientation.setAtPosition(i, j, 0.0);
+			}*/
+			double magnutide = (dx * dx) + (dy * dy);
 			gradient.setAtPosition(i, j, sqrt(magnutide));
 			j++;
 		}
@@ -87,6 +161,7 @@ vector<double> orientHist4(Matrix<double> gradient, Matrix<double> orientation,
 	vector<double> histograms;
 	histograms.resize(8, 0.0);
 	double grad = 0.0, orien = 0.0;
+	//cout<<"\n";
 	for (int r = rbegin; r < rbegin + size; r++)
 	{
 		for (int c = cbegin; c < cbegin + size; c++)
@@ -95,12 +170,14 @@ vector<double> orientHist4(Matrix<double> gradient, Matrix<double> orientation,
 			{
 				grad = gradient.getAtPosition(r, c);
 				orien = orientation.getAtPosition(r, c);
+				//cout<<"\t"<<orien;
 				int bin = ceil(orien / 45);
 				bin = (bin == 0) ? 0 : (bin - 1);
 				histograms.at(bin) += grad;
 			}
 		}
 	}
+	//cout<<"\n";
 	return histograms;
 }
 
@@ -113,10 +190,12 @@ vector<double> orientHist16(Matrix<double> gradient, Matrix<double> orientation,
 	{
 		for (int c = 0; c < gradient.getCols(); c += subsize)
 		{
+			
 			hist.resize(8, 0.0);
 			hist = orientHist4(gradient, orientation, r, c, subsize);
 			histograms.insert(histograms.end(), hist.begin(), hist.end());
 		}
+		
 	}
 	// normalize the vector (twice)
 	double totalValue = 0;
@@ -142,19 +221,6 @@ vector<double> orientHist16(Matrix<double> gradient, Matrix<double> orientation,
 			histograms.at(i) /= totalValue2;
 		}
 	}
-	/*double histMax = -1;
-	 for (size_t i = 0; i < histograms.size(); i++)
-	 {
-	 if (histograms.at(i) >= histMax)
-	 {
-	 histMax = histograms.at(i);
-	 }
-	 }
-	 for (size_t i = 0; i < histograms.size(); i++)
-	 {
-	 double newValue = (histograms.at(i)/histMax) * 255;
-	 histograms.at(i) = newValue;
-	 }*/
 
 	return histograms;
 }
@@ -204,7 +270,32 @@ Point createPatch(ptr_IntMatrix imageMatrix, int psize, Point center,
 	right.setY(ry);
 	return left;
 }
+Point createPatch_Double(ptr_DoubleMatrix imageMatrix, int psize, Point center,
+	Point &right)
+{
+	Point left(0, 0);
+	right = left;
+	int hsize = psize / 2;
+	int cx = center.getX();
+	int cy = center.getY();
+	int rows = imageMatrix->getRows();
+	int cols = imageMatrix->getCols();
 
+	int lx = (cx - hsize) < 0 ? 0 : (cx - hsize);
+	int ly = (cy - hsize) < 0 ? 0 : (cy - hsize);
+	left.setX(lx);
+	left.setY(ly);
+
+	int tempx = cx + hsize;
+	int tempy = cy + hsize;
+	tempx = (psize % 2 != 0) ? tempx : tempx - 1;
+	tempy = (psize % 2 != 0) ? tempy : tempy - 1;
+	int rx = tempx >= cols ? cols - 1 : tempx;
+	int ry = tempy >= rows ? rows - 1 : tempy;
+	right.setX(rx);
+	right.setY(ry);
+	return left;
+}
 // Find the point in lsPoints that nearest with p
 Point nearestPoint(vector<Point> lsPoints, Point p)
 {
@@ -227,12 +318,22 @@ Point nearestPoint(vector<Point> lsPoints, Point p)
 vector<double> SIFTDescriptor(ptr_IntMatrix imgMatrix, Point center, int size)
 {
 	Point mright(0, 0);
-	Point mleft = createPatch(imgMatrix, size, center, mright);
+// Apply gaussian blur before calculating the SIFT descriptor
+	Matrix<double> kernelGaussian = getGaussianKernel(5,1.6);
+	Matrix<double> gausMatrix = gaussianBlur_Double(*imgMatrix, kernelGaussian);
+	Point mleft = createPatch_Double(&gausMatrix, size, center, mright);
+	Matrix<double> mgradient(mright.getY() - mleft.getY() + 1,
+		mright.getX() - mleft.getX() + 1, 0.0);
+	Matrix<double> mOrient = createDescriptor_Double(&gausMatrix, mleft, mright,
+		mgradient);
+	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);
+
+	/*Point mleft = createPatch(imgMatrix, size, center, mright);
 	Matrix<double> mgradient(mright.getY() - mleft.getY() + 1,
 		mright.getX() - mleft.getX() + 1, 0.0);
 	Matrix<double> mOrient = createDescriptor(imgMatrix, mleft, mright,
 		mgradient);
-	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);
+	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);*/
 	return mHistogram;
 }
 

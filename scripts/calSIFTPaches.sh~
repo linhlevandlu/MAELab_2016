@@ -3,7 +3,7 @@
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
 SCENEJPGFOLDER="/home/linh/Datasets/Morphometrics/pronotum/Images_without_grid_2/*"
 SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/pronotum/landmarks/*"
-SAVEFOLDER="/home/linh/Desktop/results/2017/pronotum/SIFT/siftPatches_9x9_color/green"
+SAVEFOLDER="/home/linh/Desktop/results/2017/pronotum/SIFT/10-juilliet/org/"
 PATCHSIZE="9"
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
