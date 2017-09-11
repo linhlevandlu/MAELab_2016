@@ -276,8 +276,8 @@ vector<Point> test(Image modelImage, Image sceneImage,
 	vector<Point> mnLandmarks)
 {
 	vector<Point> result;
-	int rows = sceneImage.getGrayMatrix()->getRows();
-	int cols = sceneImage.getGrayMatrix()->getCols();
+	int rows = sceneImage.getGrayMatrix().getRows();
+	int cols = sceneImage.getGrayMatrix().getCols();
 	int size = 9;
 
 	/*vector<Point> scenePoints;
@@ -301,7 +301,7 @@ vector<Point> test(Image modelImage, Image sceneImage,
 		Point p = sceneMLM.at(k);
 		Point p1 = p - Point(20, 20);
 		Point p2 = p + Point(20, 20);
-		vector<pDescriptor> pdsk = createListPatches2(*sceneImage.getGrayMatrix(),
+		vector<pDescriptor> pdsk = createListPatches2(sceneImage.getGrayMatrix(),
 			p1, p2, size);
 		pds.insert(pds.end(), pdsk.begin(), pdsk.end());
 	}
@@ -310,7 +310,7 @@ vector<Point> test(Image modelImage, Image sceneImage,
 	for (int i = 0; i < mnLandmarks.size(); i++)
 	{
 		lmi = mnLandmarks.at(i);
-		Matrix<int> mpatch = createPatch(*modelImage.getGrayMatrix(), lmi, size);
+		Matrix<int> mpatch = createPatch(modelImage.getGrayMatrix(), lmi, size);
 		pDescriptor mpd = calpDescriptor(mpatch, lmi);
 		pDescriptor lm = binarySearch(pds, mpd);
 		result.push_back(lm.center);
@@ -329,7 +329,8 @@ vector<Point> test(Image modelImage, Image sceneImage,
 
 vector<Edge> test2(Image image)
 {
-	ptr_RGBMatrix rgbmatrix = image.getRGBMatrix();
+	Matrix<RGB> rgbData = image.getRGBMatrix();
+	ptr_RGBMatrix rgbmatrix = &rgbData;
 	ptr_IntMatrix greenChannel = new Matrix<int>(rgbmatrix->getRows(),
 		rgbmatrix->getCols(), 0);
 	for (int r = 0; r < rgbmatrix->getRows(); r++)
@@ -342,7 +343,7 @@ vector<Edge> test2(Image image)
 	}
 	//getContour(greenChannel);
 	Image image2;
-	image2.setGrayMatrix(greenChannel);
+	image2.setGrayMatrix(*greenChannel);
 	vector<Point> cPoints;
 	vector<Edge> edges = image2.cannyAlgorithm(cPoints);
 	return edges;

@@ -19,7 +19,7 @@ using namespace std;
 
 //====================================================== JPEG File ==================================================
 
-ptr_RGBMatrix readJPGToRGB(const char* filename,int &rows, int &cols)
+Matrix<RGB> readJPGToRGB(const char* filename,int &rows, int &cols)
 {
 	return decompressJPEG(filename,rows,cols);
 }

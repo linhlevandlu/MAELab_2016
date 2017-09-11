@@ -38,29 +38,29 @@ const double RED_COEFFICIENT = 0.299f;
 const double GREEN_COEFFICIENT = 0.587f;
 const double BLUE_COEFFICIENT = 0.114f;
 
-const int MAX_GRAY_VALUE = 255;
+
 /*
  * The equations to convert from RGB or BGR to Grayscale: Gvalue = 0.299*R + 0.587*G + 0.114*B
  *
  */
 //================================================= Utils methods =================================================
-ptr_IntMatrix convertRGBToGray(ptr_RGBMatrix rgbMatrix)
+Matrix<int> convertRGBToGray(Matrix<RGB> rgbMatrix)
 {
-	ptr_IntMatrix grayMatrix;
-	int width = rgbMatrix->getCols();
-	int height = rgbMatrix->getRows();
 
-	grayMatrix = new Matrix<int>(height, width);
+	int width = rgbMatrix.getCols();
+	int height = rgbMatrix.getRows();
+	Matrix<int> grayMatrix(height,width);
+	//grayMatrix = new Matrix<int>(height, width);
 	for (int h = 0; h < height; h++)
 	{
 		for (int w = 0; w < width; w++)
 		{
 
-			grayMatrix->setAtPosition(h, w,
+			grayMatrix.setAtPosition(h, w,
 				round(
-					((double) rgbMatrix->getAtPosition(h, w).R * RED_COEFFICIENT)
-						+ ((double) rgbMatrix->getAtPosition(h, w).G * GREEN_COEFFICIENT)
-						+ ((double) rgbMatrix->getAtPosition(h, w).B * BLUE_COEFFICIENT)));
+					((double) rgbMatrix.getAtPosition(h, w).R * RED_COEFFICIENT)
+						+ ((double) rgbMatrix.getAtPosition(h, w).G * GREEN_COEFFICIENT)
+						+ ((double) rgbMatrix.getAtPosition(h, w).B * BLUE_COEFFICIENT)));
 		}
 	}
 
@@ -109,13 +109,19 @@ Image::Image(std::string filePath)
 	int rows = 0, cols = 0;
 	imgMatrix = readJPGToRGB(filePath.c_str(), rows, cols);
 
-	grayMatrix = new Matrix<int>(rows, cols);
 	grayMatrix = convertRGBToGray(imgMatrix);
+	grayHistogram.setRows(1);
+	grayHistogram.setCols(BIN_SIZE);
+	grayHistogram.Init();
 
-	calcGrayHistogram();
+	rgbHistogram.setRows(1);
+	rgbHistogram.setCols(BIN_SIZE);
+	rgbHistogram.Init();
+
+	calcHistogram();
 
 	calThresholdValue();
-	//delete imgTemp;
+
 	cout << endl << "Threshold value: " << thresholdValue;
 }
 
@@ -152,11 +158,11 @@ void Image::setMLandmarks(string tpsFile)
 {
 	manualLandmarks = readManualLandmarks(tpsFile);
 }
-void Image::setRGBMatrix(ptr_RGBMatrix rgbMatrix)
+void Image::setRGBMatrix(Matrix<RGB> rgbMatrix)
 {
 	imgMatrix = rgbMatrix;
 }
-void Image::setGrayMatrix(ptr_IntMatrix graymatrix)
+void Image::setGrayMatrix(Matrix<int> graymatrix)
 {
 	grayMatrix = graymatrix;
 }
@@ -164,11 +170,11 @@ void Image::setAutoLandmarks(vector<Point> eLandmarks)
 {
 	autoLandmarks = eLandmarks;
 }
-ptr_IntMatrix Image::getGrayMatrix()
+Matrix<int> Image::getGrayMatrix()
 {
 	return grayMatrix;
 }
-ptr_RGBMatrix Image::getRGBMatrix()
+Matrix<RGB> Image::getRGBMatrix()
 {
 	return imgMatrix;
 }
@@ -181,22 +187,22 @@ vector<Line> Image::getListOfLines()
 float Image::getMedianHistogram()
 {
 	if (medianHistogram == 0)
-		calcGrayHistogram();
+		calcHistogram();
 	return medianHistogram;
 
 }
-ptr_IntMatrix Image::getGrayHistogram()
+Matrix<int> Image::getGrayHistogram()
 {
 	return grayHistogram;
 }
-ptr_RGBMatrix Image::getRGBHistogram()
+Matrix<RGB> Image::getRGBHistogram()
 {
 	return rgbHistogram;
 }
 float Image::getMeanHistogram()
 {
 	if (meanHistogram == 0)
-		calcGrayHistogram();
+		calcHistogram();
 	return meanHistogram;
 }
 float Image::getThresholdValue()
@@ -225,7 +231,7 @@ vector<Line> Image::getApproximateLines(double minDistance)
 	}
 
 	cout << "\n Min distance: " << minDistance;
-	cout << "\n Total lines after segment the edge: " << totalLines.size();
+	cout << "\n Total lines after segment the edge: " << totalLines.size()<<endl;
 	listOfLines = totalLines;
 	return totalLines;
 }
@@ -233,7 +239,7 @@ vector<Point> Image::readManualLandmarks(string fileName)
 {
 	manualLandmarks.clear();
 	vector<Point> mLandmarks = readTPSFile(fileName.c_str());
-	int rows = grayMatrix->getRows();
+	int rows = grayMatrix.getRows();
 	Point temp;
 	Point p;
 	for (size_t t = 0; t < mLandmarks.size(); t++)
@@ -259,10 +265,10 @@ vector<Point> Image::getListOfAutoLandmarks()
 //================================================ End public methods ==================================================
 
 //================================================ Private methods =====================================================
-void Image::calcGrayHistogram()
+void Image::calcHistogram()
 {
 
-	if (grayMatrix->getCols() != 0)
+	if (grayMatrix.getCols() != 0)
 	{
 		float total = 0;
 		float pi = 0;
@@ -274,29 +280,24 @@ void Image::calcGrayHistogram()
 		int blueArray[BIN_SIZE] = {0};
 		RGB color;
 		color.R = color.G = color.B = 0;
-		for (int r = 0; r < grayMatrix->getRows(); r++)
+		for (int r = 0; r < grayMatrix.getRows(); r++)
 		{
-			for (int c = 0; c < grayMatrix->getCols(); c++)
+			for (int c = 0; c < grayMatrix.getCols(); c++)
 			{
-				int k = grayMatrix->getAtPosition(r, c);
+				int k = grayMatrix.getAtPosition(r, c);
 				array[k]++;
 
-				RGB ccolor = imgMatrix->getAtPosition(r,c);
-				int red = ccolor.R;
-				redArray[red]++;
+				RGB ccolor = imgMatrix.getAtPosition(r,c);
+				redArray[ccolor.R]++;
 				greenArray[ccolor.G]++;
 				blueArray[ccolor.B]++;
 			}
 		}
 
-		grayHistogram = new Matrix<int>(1, BIN_SIZE, 0);
-		color.R = color.G = color.B = 0;
-		rgbHistogram = new Matrix<RGB>(1,BIN_SIZE,color);
-
 		for (int k = 0; k < BIN_SIZE; k++)
 		{
 			// save and calculate the mean of gray histogram
-			grayHistogram->setAtPosition(0, k, array[k]);
+			grayHistogram.setAtPosition(0, k, array[k]);
 			total += array[k];
 			pi += (k * array[k]);
 
@@ -304,7 +305,7 @@ void Image::calcGrayHistogram()
 			color.R = redArray[k];
 			color.G = greenArray[k];
 			color.B = blueArray[k];
-			rgbHistogram->setAtPosition(0,k,color);
+			rgbHistogram.setAtPosition(0,k,color);
 		}
 
 		// calculate the mean of histogram
@@ -328,14 +329,14 @@ void Image::calcGrayHistogram()
 void Image::calThresholdValue()
 {
 	if (medianHistogram == 0 || meanHistogram == 0)
-		calcGrayHistogram();
+		calcHistogram();
 	int limit1 =
 		meanHistogram > medianHistogram ? medianHistogram : meanHistogram;
 	limit1 = (limit1 >= 120) ? (limit1 - DECREASE_25) : (limit1 - DECREASE_5);
 	int imax1 = -1, max1 = -1;
 	for (int index = 0; index < limit1; index++)
 	{
-		int temp = grayHistogram->getAtPosition(0, index);
+		int temp = grayHistogram.getAtPosition(0, index);
 		if (temp > max1)
 		{
 			max1 = temp;
@@ -347,7 +348,7 @@ void Image::calThresholdValue()
 	int imin = -1, min = max1;
 	for (int k = imax1; k < limit2; k++)
 	{
-		int temp = grayHistogram->getAtPosition(0, k);
+		int temp = grayHistogram.getAtPosition(0, k);
 		if (temp < min)
 		{
 			min = temp;
@@ -357,7 +358,7 @@ void Image::calThresholdValue()
 	int max2 = -1, imax2 = -1;
 	for (int k = limit2; k < BIN_SIZE; k++)
 	{
-		int temp = grayHistogram->getAtPosition(0, k);
+		int temp = grayHistogram.getAtPosition(0, k);
 		if (temp > max2)
 		{
 			max2 = temp;
@@ -374,7 +375,7 @@ vector<Edge> Image::cannyAlgorithm(vector<Point> &cPoints)
 	if (thresholdValue == 0)
 		calThresholdValue();
 
-	ptr_IntMatrix binMatrix = binaryThreshold(grayMatrix, (int) thresholdValue,
+	ptr_IntMatrix binMatrix = binaryThreshold(&grayMatrix, (int) thresholdValue,
 		MAX_GRAY_VALUE);
 	ptr_IntMatrix cannyMatrix = cannyProcess(binMatrix, (int) thresholdValue,
 		3 * (int) thresholdValue, cPoints);
@@ -419,8 +420,8 @@ void Image::rotate(Point center, double angle, double scale)
 	 ptr_IntMatrix source = grayMatrix;*/
 	RGB color;
 	color.R = color.B = color.G = 0;
-	grayMatrix->rotation(center, angle, scale, 0);
-	imgMatrix->rotation(center, angle, scale, color);
+	grayMatrix.rotation(center, angle, scale, 0);
+	imgMatrix.rotation(center, angle, scale, color);
 
 	//*grayMatrix = gray;
 	//*imgMatrix = rgb;
@@ -495,14 +496,14 @@ void Image::rotate(Point center, double angle, double scale)
 vector<Matrix<int> > Image::splitChannels()
 {
 	vector<Matrix<int> > channels;
-	int rows = imgMatrix->getRows();
-	int cols = imgMatrix->getCols();
+	int rows = imgMatrix.getRows();
+	int cols = imgMatrix.getCols();
 	Matrix<int> red_Channel(rows,cols,0);
 	Matrix<int> green_Channel(rows,cols,0);
 	Matrix<int> blue_Channel(rows,cols,0);
 	for (int r = 0; r < rows; r++) {
 		for (int c = 0; c < cols; c++) {
-			RGB color = imgMatrix->getAtPosition(r,c);
+			RGB color = imgMatrix.getAtPosition(r,c);
 			red_Channel.setAtPosition(r,c,color.R);
 			green_Channel.setAtPosition(r,c,color.G);
 			blue_Channel.setAtPosition(r,c,color.B);
@@ -512,6 +513,33 @@ vector<Matrix<int> > Image::splitChannels()
 	channels.push_back(green_Channel);
 	channels.push_back(blue_Channel);
 	return channels;
+}
+
+// Merge 3 channels (R, G, B) into RGB matrix
+Matrix<RGB> Image::mergeChannels(vector<Matrix<int> > channels)
+{
+	Matrix<RGB> mergeMatrix;
+	if(channels.size() == 3) // 
+	{
+		int rows = channels.at(0).getRows();
+		int cols = channels.at(0).getCols();
+		mergeMatrix.setRows(rows);
+		mergeMatrix.setCols(cols);
+		mergeMatrix.Init();
+		RGB color;
+		for (int r = 0; r < rows; r++)
+		{
+			for (int c = 0; c < cols; c++)
+			{
+				color.R = channels.at(0).getAtPosition(r,c);
+				color.G = channels.at(1).getAtPosition(r,c);
+				color.B = channels.at(2).getAtPosition(r,c);
+				mergeMatrix.setAtPosition(r,c,color);
+			}
+		}
+		imgMatrix = mergeMatrix;
+	}
+	return mergeMatrix;
 }
 //================================================ End private methods =====================================================
 

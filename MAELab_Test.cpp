@@ -35,6 +35,7 @@ using namespace std;
 #include "segmentation/Projection.h"
 #include "correlation/DescriptorDistance.h"
 
+#include "utils/Converter.h"
 /**
  * This function is used to fill the hole inside the object (pronotum)
  * Input: file path of rgb image
@@ -45,7 +46,7 @@ ptr_IntMatrix holeFill(string filename, string savename)
 {
 	Image image(filename);
 	Matrix<double> gauKernel = getGaussianKernel(5, 1);
-	Matrix<int> result = gaussianBlur(*image.getGrayMatrix(), gauKernel);
+	Matrix<int> result = gaussianBlur(image.getGrayMatrix(), gauKernel);
 	ptr_IntMatrix binMatrix = binaryThreshold(&result, image.getThresholdValue(),
 		255);
 	binMatrix = postProcess(binMatrix, 255);
@@ -75,10 +76,12 @@ void getProjections(string filename, string savename)
 void colorThreshold(string filename, string savename)
 {
 	Image matImage(filename);
-	ptr_RGBMatrix histogram = matImage.getRGBHistogram();
-	double totalPixels = matImage.getGrayMatrix()->getRows()
-		* matImage.getGrayMatrix()->getCols();
-	ptr_RGBMatrix result = colorThreshold(matImage.getRGBMatrix(), histogram);
+	Matrix<RGB> temp = matImage.getRGBHistogram();
+	ptr_RGBMatrix histogram = &temp;
+	double totalPixels = matImage.getGrayMatrix().getRows()
+		* matImage.getGrayMatrix().getCols();
+	Matrix<RGB> temp2 = matImage.getRGBMatrix();
+	ptr_RGBMatrix result = colorThreshold(&temp2, histogram);
 	saveRGB(savename.c_str(), result);
 }
 
@@ -97,7 +100,7 @@ void extractLandmarkPatch(string image_file, string landmark_file, int width,
 	for (int i = 0; i < landmarks.size(); i++)
 	{
 		Point pi = landmarks.at(i);
-		Matrix<int> patch = matImage.getGrayMatrix()->extractPatch(width, height,
+		Matrix<int> patch = matImage.getGrayMatrix().extractPatch(width, height,
 			pi.getY(), pi.getX(), 0);
 		std::stringstream ssname;
 		ssname << sname;
@@ -151,7 +154,8 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 		ssname << sname;
 		ssname << "_p" << i << ".txt";
 		string savename = save_folder + "/" + ssname.str();
-		calSIFT(matImage.getGrayMatrix(), pi, patchsize, savename);
+		Matrix<int> temp = matImage.getGrayMatrix();
+		calSIFT(&temp, pi, patchsize, savename);
 	}
 }
 
@@ -171,7 +175,7 @@ vector<Point> resize_Landmarks(string file_name, string lm_file, double xRatio,
 		int y_new = pi.getY() / yRatio;
 		result.push_back(Point(x_new, y_new));
 		outfile << x_new << " "
-			<< (image.getGrayMatrix()->getRows() / yRatio) - y_new << "\n";
+			<< (image.getGrayMatrix().getRows() / yRatio) - y_new << "\n";
 	}
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
@@ -186,17 +190,17 @@ void data_Augmentation(string filename, string lm_file, AUGMENTATION aug,
 {
 	Image image(filename);
 	image.readManualLandmarks(lm_file);
-	ptr_RGBMatrix rgbImage = image.getRGBMatrix();
+	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	RGB color;
 	color.R = color.G = color.B = 255;
-	int rows = rgbImage->getRows();
-	int cols = rgbImage->getCols();
+	int rows = rgbImage.getRows();
+	int cols = rgbImage.getCols();
 	Matrix<RGB> result(rows, cols, color);
 	for (int r = 0; r < rows; r++)
 	{
 		for (int c = 0; c < cols; c++)
 		{
-			color = rgbImage->getAtPosition(r, c);
+			color = rgbImage.getAtPosition(r, c);
 			switch (aug)
 			{
 			case INCREASE_RED:
@@ -224,6 +228,130 @@ void data_Augmentation(string filename, string lm_file, AUGMENTATION aug,
 		}
 	}
 	saveRGB(save_file.c_str(), &result);
+}
+
+void get_Bounding_Box(vector<Point> mLandmarks, Point &lt, Point &rb)
+{
+	lt.setX(0);
+	lt.setY(0);
+	rb.setX(0);
+	rb.setY(0);
+	
+	Point p0 = mLandmarks.at(0);
+	int left = p0.getX(), right = p0.getX(), top = p0.getY(), bottom = p0.getY();
+	for (int k = 1; k < mLandmarks.size(); ++k) {
+		Point p = mLandmarks.at(k);
+		if(p.getX() < left)
+			left = p.getX();
+		if(p.getX() > right)
+			right = p.getX();
+		if(p.getY() < top)
+			top = p.getY();
+		if(p.getY() > bottom)
+			bottom = p.getY();
+	}
+	left -= 5;
+	right += 5;
+	top -= 5;
+	bottom += 5;
+	lt.setX(left);
+	lt.setY(top);
+	rb.setX(right);
+	rb.setY(bottom);
+}
+/*
+	Read the list of images, list of landmarks and store the coordinate of 
+	the landmarks on txt file. This file is used as the input of CNN.
+*/
+void write_Image_Landmarks_txt(vector<string> images, vector<string> landmarks, 
+	string savename)
+{
+	size_t found = savename.find_last_of(".");
+	string ext = savename.substr(found+1,3);
+	if(strcmp(ext.c_str(),"txt") != 0)
+	{
+		cout<<"\n The saving extension is not TXT format!!!\n";
+		return;
+	}
+	ofstream outfile(savename.c_str());
+		for (int i = 0; i < images.size(); ++i)
+		{
+			string imgfile = images.at(i);
+			string lmfile = landmarks.at(i);
+			Image image(imgfile);
+			image.readManualLandmarks(lmfile);
+			vector<Point> mLandmarks = image.getListOfManualLandmarks();
+			outfile << image.getFileName();
+			Point lt, rb;
+			get_Bounding_Box(mLandmarks,lt,rb);
+			outfile <<" "<<lt.getX()<<" "<<rb.getX()<<" "<<lt.getY()<<" "<<rb.getY();
+			for (int k = 0; k < mLandmarks.size(); ++k) {
+				Point p = mLandmarks.at(k);
+				outfile<<" "<<p.getX()<<" "<<p.getY();
+			}
+			outfile << "\n";
+		}
+		outfile.close();
+}
+
+string image_Values(Matrix<int> inputMatrix)
+{
+	int rows = inputMatrix.getRows();
+	int cols = inputMatrix.getCols();
+	string result = "";
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			int pvalue = inputMatrix.getAtPosition(r,c);
+			result += numberToString(pvalue).c_str();
+			result += " ";
+		}
+	}
+	return result.substr(0,result.length() - 1);
+}
+
+void write_Image_Landmarks_csv(vector<string> images, vector<string> landmarks, 
+	string savename)
+{
+	size_t found = savename.find_last_of(".");
+	string ext = savename.substr(found+1,3);
+	if(strcmp(ext.c_str(),"csv") != 0)
+	{
+		cout<<"\n The saving extension is not CSV format!!!\n";
+		return;
+	}
+
+	ofstream outfile(savename.c_str());
+	string title ="lm1_x;lm1_y;lm2_x;lm2_y;lm3_x;lm3_y;lm4_x;lm4_y;lm5_x;lm5_y;lm6_x;lm6_y;lm7_x;lm7_y;lm8_x;lm8_y;image;\n";
+	outfile<<title;
+	for (int i = 0; i < images.size(); ++i)
+	{
+		string imgfile = images.at(i);
+		string lmfile = landmarks.at(i);
+		Image image(imgfile);
+		image.readManualLandmarks(lmfile);
+		vector<Point> mLandmarks = image.getListOfManualLandmarks();
+		string iValue = image_Values( image.getGrayMatrix());
+		//outfile << image.getFileName();
+		
+		//Point lt, rb;
+		//get_Bounding_Box(mLandmarks,lt,rb);
+		//outfile <<" "<<lt.getX()<<" "<<rb.getX()<<" "<<lt.getY()<<" "<<rb.getY();
+		string lmCoors = "";
+		for (int k = 0; k < mLandmarks.size(); ++k) {
+			Point p = mLandmarks.at(k);
+			lmCoors += numberToString(p.getX()).c_str();
+			lmCoors += ";";
+			lmCoors += numberToString(p.getY()).c_str();
+			lmCoors += ";";
+			//outfile<<" "<<p.getX()<<" "<<p.getY();
+		}
+		string swrite = lmCoors + iValue + ";\n";
+		outfile << swrite;
+		
+	}
+	outfile.close();
 }
 
 void read_Image_Landmarks(string image_folder, string lm_folder,
@@ -269,24 +397,13 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 	closedir(dir);
 	if (images.size() == landmarks.size())
 	{
-		ofstream outfile(savename.c_str());
-		for (int i = 0; i < images.size(); ++i)
-		{
-			string imgfile = images.at(i);
-			string lmfile = landmarks.at(i);
-			Image image(imgfile);
-			image.readManualLandmarks(lmfile);
-			vector<Point> mLandmarks = image.getListOfManualLandmarks();
-			outfile << image.getFileName();
-			for (int k = 0; k < mLandmarks.size(); ++k) {
-				Point p = mLandmarks.at(k);
-				outfile<<" "<<p.getX()<<" "<<p.getY();
-			}
-			outfile << "\n";
-		}
-		outfile.close();
+		//write_Image_Landmarks_txt(images,landmarks,savename);
+		write_Image_Landmarks_csv(images,landmarks,savename);
 	}
 }
+
+
+
 
 int main(int argc, char* argv[])
 {
@@ -321,9 +438,10 @@ int main(int argc, char* argv[])
 	//getProjections(filename,savename);
 	//colorThreshold(filename, savename);
 	//extractLandmarkPatch(filename, lm_file, width, height, save_folder);
-	calculateSIFT(filename,lm_file,9,save_folder);
+	//calculateSIFT(filename,lm_file,9,save_folder);
 	//resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
 	//data_Augmentation(filename,lm_file,INCREASE_RED,10,save_folder);
-	//read_Image_Landmarks("/home/linh/Desktop/data/pronotum_data_5/val_green",
-	//	"/home/linh/Desktop/data/pronotum_data_5/landmarks/val", "results/val_green.txt");
+	read_Image_Landmarks("/home/vanlinh/Downloads/pronotum_data_5/train_green",
+		"/home/vanlinh/Downloads/pronotum_data_5/landmarks/train", 
+		"/home/vanlinh/Downloads/pronotum_data_5/train_green.csv");
 }

@@ -42,10 +42,11 @@ Segmentation::~Segmentation()
 	// TODO Auto-generated destructor stub
 }
 
+// da thay the bang mot ham trong MAELab
 ptr_IntMatrix Segmentation::threshold(int tValue, int maxValue)
 {
-
-	ptr_IntMatrix inputMatrix = Treatments::refImage.getGrayMatrix();
+	Matrix<int> inputData = Treatments::refImage.getGrayMatrix();
+	ptr_IntMatrix inputMatrix = &inputData;
 	ptr_IntMatrix binaryMatrix = new Matrix<int>(inputMatrix->getRows(),
 		inputMatrix->getCols(), maxValue);
 	*binaryMatrix = *(binaryThreshold(inputMatrix, tValue, maxValue));
@@ -70,8 +71,10 @@ vector<Line> Segmentation::segment()
 int Segmentation::removePronotum()
 {
 	Image image = Treatments::refImage;
-	ptr_IntMatrix histogram = image.getGrayHistogram();
-	ptr_IntMatrix grayScale = image.getGrayMatrix();
+	Matrix<int> grayHistData = image.getGrayHistogram();
+	Matrix<int> grayData = image.getGrayMatrix();
+	ptr_IntMatrix histogram = &grayHistData;
+	ptr_IntMatrix grayScale = &grayData;
 	int histCols = histogram->getCols();
 	int max = -1, imax = -1;
 	for (int i = 0; i < histCols / 2; i++)

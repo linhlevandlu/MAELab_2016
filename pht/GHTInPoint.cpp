@@ -25,10 +25,10 @@ using namespace std;
 
 ptr_IntMatrix getGradientDMatrix(Image grayImage, vector<Point> &edgePoints) {
 
-	int rows = grayImage.getGrayMatrix()->getRows();
-	int cols = grayImage.getGrayMatrix()->getCols();
+	int rows = grayImage.getGrayMatrix().getRows();
+	int cols = grayImage.getGrayMatrix().getCols();
 	ptr_IntMatrix mMatrix = new Matrix<int>(rows, cols, 0);
-	*mMatrix = *(grayImage.getGrayMatrix());
+	*mMatrix = grayImage.getGrayMatrix();
 	int mThresholdValue = (int) grayImage.getThresholdValue();
 	ptr_IntMatrix mbinMatrix = new Matrix<int>(
 			*binaryThreshold(mMatrix, mThresholdValue, 255));

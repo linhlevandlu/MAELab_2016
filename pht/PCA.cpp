@@ -281,8 +281,8 @@ vector<Point> refine(vector<Point> contours, vector<Point> estlm)
 vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 	vector<Point> mnLandmarks)
 {
-	int rows = sceneGray.getGrayMatrix()->getRows();
-	int cols = sceneGray.getGrayMatrix()->getCols();
+	int rows = sceneGray.getGrayMatrix().getRows();
+	int cols = sceneGray.getGrayMatrix().getCols();
 	ptr_IntMatrix lastModel = new Matrix<int>(rows, cols, 0);
 	ptr_IntMatrix lastScene = new Matrix<int>(rows, cols, 0);
 
@@ -465,8 +465,8 @@ vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 vector<Point> PCAI(Image modelGray, Image &sceneGray, vector<Point> mnLandmarks)
 {
 	// PCA
-	int rows = modelGray.getGrayMatrix()->getRows();
-	int cols = modelGray.getGrayMatrix()->getCols();
+	int rows = modelGray.getGrayMatrix().getRows();
+	int cols = modelGray.getGrayMatrix().getCols();
 	vector<Point> modelPoints;
 	ptr_IntMatrix modelGrandient = new Matrix<int>(rows, cols, -1);
 	*modelGrandient = *(getGradientDMatrix(modelGray, modelPoints));

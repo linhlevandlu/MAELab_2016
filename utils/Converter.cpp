@@ -7,7 +7,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include <string.h>
 #include <cmath>
+#include <sstream>
 using namespace std;
 
 #include "Converter.h"
@@ -40,4 +42,19 @@ int roundToDegree(double value)
     if(min >= 30)
     	deg += 1;
     return deg;
+}
+
+
+string numberToString(int number)
+{
+    stringstream ss;
+    ss << number;
+    return ss.str();
+}
+
+int stringToNumber(const string &text)
+{
+    stringstream ss(text);
+    int result;
+    return ss >> result ? result : 0;
 }

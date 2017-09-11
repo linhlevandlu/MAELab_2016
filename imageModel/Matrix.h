@@ -11,14 +11,12 @@
 void rotateAPoint(int x, int y, Point center, double angle, double scale,
 		int &xnew, int &ynew);
 template<typename T>
-class Matrix
-{
+class Matrix {
 private:
 	std::vector<std::vector<T> > data; // store the data
 	int rows; // number of rows
 	int cols; // number of columns
-	void Init();
-	void InitWithValue(T);
+
 public:
 	// basic constructor
 	Matrix();
@@ -29,47 +27,42 @@ public:
 	Matrix(const Matrix<T> &tMatrix);
 
 	void operator=(const Matrix<T> &tMatrix);
-	~Matrix()
-	{
+	void Init();
+	void InitWithValue(T);
+	~Matrix() {
 		/*rows = 0;
-		cols = 0;
-		data.clear();*/
+		 cols = 0;
+		 data.clear();*/
 	}
-	int getRows()
-	{
+	int getRows() {
 		return rows;
 	}
-	int getCols()
-	{
+	int getCols() {
 		return cols;
 	}
-	void setRows(int nrows)
-	{
+	void setRows(int nrows) {
 		rows = nrows;
 	}
-	void setCols(int ncols)
-	{
+	void setCols(int ncols) {
 		cols = ncols;
 	}
-	std::vector<std::vector<T> > getData()
-	{
+	std::vector<std::vector<T> > getData() {
 		return data;
 	}
 
-	void setData(std::vector<std::vector<T> > iData)
-	{
+	void setData(std::vector<std::vector<T> > iData) {
 		data = iData;
 	}
 
 	T getAtPosition(int, int);
 	void setAtPosition(int, int, T);
 	void printMatrix();
-	void rotation(Point center, double angle, double scale,
-			T defaultValue);
+	void rotation(Point center, double angle, double scale, T defaultValue);
 	Matrix<T> translate(int dx, int dy, T defaultValue);
 	Matrix<T> transposition(T defaultValue);
 	Matrix<T> multiply(Matrix<T> object, T defaultValue);
-	Matrix<T> extractPatch(int width, int height, int rowIndex, int colIndex, T initValue);
+	Matrix<T> extractPatch(int width, int height, int rowIndex, int colIndex,
+			T initValue);
 };
 typedef Matrix<int>* ptr_IntMatrix;
 typedef Matrix<double>* ptr_DoubleMatrix;

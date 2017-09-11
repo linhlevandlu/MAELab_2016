@@ -131,10 +131,11 @@ vector<Point> verifyLandmarks(Image mImage, Image sImage,
 	vector<Point> manualLM, vector<Point> esLandmarks, int templSize,
 	int sceneSize, double angleDiff, Point ePoint)
 {
-
-	ptr_IntMatrix mMatrix = mImage.getGrayMatrix();
+	Matrix<int> mgrayData = mImage.getGrayMatrix();
+	ptr_IntMatrix mMatrix =&mgrayData;
 	//sImage.rotate(ePoint, angleDiff, 1);
-	ptr_IntMatrix sRotateImg = sImage.getGrayMatrix();
+	Matrix<int> sgrayData = sImage.getGrayMatrix();
+	ptr_IntMatrix sRotateImg = &sgrayData;
 	int width = mMatrix->getCols();
 	int height = mMatrix->getRows();
 

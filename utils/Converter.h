@@ -11,4 +11,8 @@
 int random(int min,int max);
 string getName(string fullPath,string split);
 int roundToDegree(double value);
+
+
+string numberToString(int number);
+int stringToNumber(const string &text);
 #endif /* CONVERTER_H_ */

@@ -8,6 +8,6 @@
 #ifndef IMAGECONVERT_H_
 #define IMAGECONVERT_H_
 
-QImage ptrIntToQImage(ptr_IntMatrix inputMatrix);
-QImage ptrRGBToQImage(ptr_RGBMatrix inputMatrix);
+QImage ptrIntToQImage(Matrix<int> inputMatrix);
+QImage ptrRGBToQImage(Matrix<RGB> inputMatrix);
 #endif /* IMAGECONVERT_H_ */
