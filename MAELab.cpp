@@ -108,7 +108,7 @@ vector<Line> mae_Line_Segment(Image* inputImage)
 Matrix<RGB> mae_Gaussian_Filter(Image* inputImage, Matrix<double> kernel)
 {
 	vector<Matrix<int> > channels = inputImage->splitChannels();
-	for (int i = 0; i < channels.size(); i++)
+	for (size_t i = 0; i < channels.size(); i++)
 	{
 		Matrix<int> gau = gaussianBlur(channels[i], kernel);
 		channels[i] = gau;

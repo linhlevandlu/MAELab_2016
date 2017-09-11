@@ -267,7 +267,7 @@ ptr_IntMatrix holeFill(string filename, string savefolder)
 {
 	Image image(filename);
 	Matrix<double> gauKernel = getGaussianKernel(5, 1);
-	Matrix<int> result = gaussianBlur(*image.getGrayMatrix(), gauKernel);
+	Matrix<int> result = gaussianBlur(image.getGrayMatrix(), gauKernel);
 	ptr_IntMatrix binMatrix = binaryThreshold(&result, image.getThresholdValue(),
 		255);
 	//binMatrix = postProcess(binMatrix, 255);
@@ -303,10 +303,11 @@ void getProjections(string filename, string savename)
 void colorThreshold(string filename, string savename)
 {
 	Image matImage(filename);
-	ptr_RGBMatrix histogram = matImage.getRGBHistogram();
-	double totalPixels = matImage.getGrayMatrix()->getRows()
-		* matImage.getGrayMatrix()->getCols();
-	ptr_RGBMatrix result = colorThreshold(matImage.getRGBMatrix(), histogram);
+	Matrix<RGB> histogram = matImage.getRGBHistogram();
+	double totalPixels = matImage.getGrayMatrix().getRows()
+		* matImage.getGrayMatrix().getCols();
+	Matrix<RGB> rgbMatrix = matImage.getRGBMatrix();
+	ptr_RGBMatrix result = colorThreshold(&rgbMatrix, &histogram);
 	saveRGB(savename.c_str(), result);
 }
 
@@ -325,7 +326,7 @@ void extractLandmarkPatch(string image_file, string landmark_file, int width,
 	for (int i = 0; i < landmarks.size(); i++)
 	{
 		Point pi = landmarks.at(i);
-		Matrix<int> patch = matImage.getGrayMatrix()->extractPatch(width, height,
+		Matrix<int> patch = matImage.getGrayMatrix().extractPatch(width, height,
 			pi.getY(), pi.getX(), 0);
 		std::stringstream ssname;
 		ssname << sname;
@@ -371,6 +372,7 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 	size_t found2 = name.find_last_of(".");
 	string sname = name.substr(0, found2);
 	//vector<Matrix<int> > channels = matImage.splitChannels();
+	Matrix<int> grayMatrix = matImage.getGrayMatrix();
 	for (int i = 0; i < landmarks.size(); ++i)
 	{
 		Point pi = landmarks.at(i);
@@ -379,7 +381,7 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 		ssname << sname;
 		ssname << "_p" << i << ".txt";
 		string savename = save_folder + "/" + ssname.str();
-		calSIFT(matImage.getGrayMatrix(), pi, patchsize, savename);
+		calSIFT(&grayMatrix, pi, patchsize, savename);
 	}
 }
 
@@ -399,7 +401,7 @@ vector<Point> resize_Landmarks(string file_name, string lm_file, double xRatio,
 		int y_new = pi.getY() / yRatio;
 		result.push_back(Point(x_new, y_new));
 		outfile << x_new << " "
-			<< (image.getGrayMatrix()->getRows() / yRatio) - y_new << "\n";
+			<< (image.getGrayMatrix().getRows() / yRatio) - y_new << "\n";
 	}
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
@@ -415,24 +417,24 @@ void data_Augmentation(string filename, string lm_file, AUGMENTATION aug,
 	cout << "\nData augmentation";
 	Image image(filename);
 	image.readManualLandmarks(lm_file);
-	ptr_RGBMatrix rgbImage = image.getRGBMatrix();
+	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	if (aug == GRAY_SCALE)
 	{
-		ptr_IntMatrix gray = image.getGrayMatrix();
-		saveGrayScale(save_file.c_str(), gray);
+		Matrix<int> gray = image.getGrayMatrix();
+		saveGrayScale(save_file.c_str(), &gray);
 	}
 	else
 	{
 		RGB color;
 		color.R = color.G = color.B = 255;
-		int rows = rgbImage->getRows();
-		int cols = rgbImage->getCols();
+		int rows = rgbImage.getRows();
+		int cols = rgbImage.getCols();
 		Matrix<RGB> result(rows, cols, color);
 		for (int r = 0; r < rows; r++)
 		{
 			for (int c = 0; c < cols; c++)
 			{
-				color = rgbImage->getAtPosition(r, c);
+				color = rgbImage.getAtPosition(r, c);
 				switch (aug)
 				{
 				case INCREASE_RED:
@@ -611,7 +613,7 @@ void bounding_Box(string imagePath, string savefolder)
 
 	int width = 600, height = 400;
 	Image inputImage(imagePath);
-	Matrix<RGB> rgb = *(inputImage.getRGBMatrix());
+	Matrix<RGB> rgb = inputImage.getRGBMatrix();
 	int rows = rgb.getRows();
 	int cols = rgb.getCols();
 	string imgName = inputImage.getName();
@@ -1040,7 +1042,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	ptr_IntMatrix binImage = holeFill(imagePath, savefolder);
 	//origin_Detect(binImage);
 	Image inputImage(imagePath);
-	Matrix<RGB> rgb = *(inputImage.getRGBMatrix());
+	Matrix<RGB> rgb = inputImage.getRGBMatrix();
 	int rows = rgb.getRows();
 	int cols = rgb.getCols();
 	string imgName = inputImage.getName();
