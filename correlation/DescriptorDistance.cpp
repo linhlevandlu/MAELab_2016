@@ -319,21 +319,21 @@ vector<double> SIFTDescriptor(ptr_IntMatrix imgMatrix, Point center, int size)
 {
 	Point mright(0, 0);
 // Apply gaussian blur before calculating the SIFT descriptor
-	Matrix<double> kernelGaussian = getGaussianKernel(5,1.6);
+	/*Matrix<double> kernelGaussian = getGaussianKernel(5,1.6);
 	Matrix<double> gausMatrix = gaussianBlur_Double(*imgMatrix, kernelGaussian);
 	Point mleft = createPatch_Double(&gausMatrix, size, center, mright);
 	Matrix<double> mgradient(mright.getY() - mleft.getY() + 1,
 		mright.getX() - mleft.getX() + 1, 0.0);
 	Matrix<double> mOrient = createDescriptor_Double(&gausMatrix, mleft, mright,
 		mgradient);
-	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);
+	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);*/
 
-	/*Point mleft = createPatch(imgMatrix, size, center, mright);
+	Point mleft = createPatch(imgMatrix, size, center, mright);
 	Matrix<double> mgradient(mright.getY() - mleft.getY() + 1,
 		mright.getX() - mleft.getX() + 1, 0.0);
 	Matrix<double> mOrient = createDescriptor(imgMatrix, mleft, mright,
 		mgradient);
-	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);*/
+	vector<double> mHistogram = orientHist16(mgradient, mOrient, 3);
 	return mHistogram;
 }
 

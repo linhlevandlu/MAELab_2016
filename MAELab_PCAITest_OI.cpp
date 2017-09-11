@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
 	Image scene(scenejpg);
 	scene.readManualLandmarks(scenetps);
 
-	int rows = scene.getRGBMatrix()->getRows();
-	int cols = scene.getRGBMatrix()->getCols();
+	int rows = scene.getRGBMatrix().getRows();
+	int cols = scene.getRGBMatrix().getCols();
 	estLandmarks = PCAI(model, scene, model.getListOfManualLandmarks());
 	RGB color;
 	color.R = 255;
@@ -125,20 +125,21 @@ int main(int argc, char* argv[])
 	// draw manual landmarks
 	vector<Point> sceneManual = scene.getListOfManualLandmarks();
 	Point pi;
+	Matrix<RGB> result_img = scene.getRGBMatrix();
 	for (size_t i = 0; i < sceneManual.size(); i++)
 	{
 		pi = sceneManual.at(i);
-		fillCircle(*scene.getRGBMatrix(), pi, 3, color);
+		result_img = fillCircle(result_img, pi, 3, color);
 	}
 	// draw estimated landmarks
 	color.G = 255;
 	for (size_t i = 0; i < estLandmarks.size(); i++)
 	{
 		pi = estLandmarks.at(i);
-		fillCircle(*scene.getRGBMatrix(), pi, 3, color);
+		result_img = fillCircle(result_img, pi, 3, color);
 	}
 
-	saveRGB(savejpg.c_str(), scene.getRGBMatrix());
+	saveRGB(savejpg.c_str(), &result_img);
 	// save TPS
 	ofstream inFile(savetps.c_str());
 	inFile << "LM=" << estLandmarks.size() << "\n";

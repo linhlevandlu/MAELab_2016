@@ -324,14 +324,10 @@ vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 		rotateAPoint(pi.getX() + dx, pi.getY() + dy, mPoint, angleR, 1, xnew, ynew);
 		scenePoints.at(i).setX(xnew);
 		scenePoints.at(i).setY(ynew);
-		/*if (xnew >= 0 && ynew >= 0 && ynew < rows && xnew < cols)
-		 {
-		 sceneGray.getRGBMatrix()->setAtPosition(ynew, xnew, color);
-		 }*/
 	}
 	color.R = 255;
 	color.B = 0;
-	// hien thu ket qua lan thu nhat
+	// hien thu ket qua lan thu nhat cua model
 	for (size_t i = 0; i < modelPoints.size(); i++)
 	{
 		pi = modelPoints.at(i);
@@ -339,7 +335,6 @@ vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 			&& pi.getY() < rows)
 		{
 			lastModel->setAtPosition(pi.getY(), pi.getX(), 255);
-			//sceneGray.getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(), color);
 		}
 	}
 	vector<Point> sceneTemp;
@@ -354,9 +349,9 @@ vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 			&& pi.getY() < rows)
 		{
 			lastScene->setAtPosition(pi.getY(), pi.getX(), 255);
-			//sceneGray.getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(), color);
 		}
 	}
+
 
 // indicate the bounding box of the edges
 	Point mLeft, mRight;
@@ -451,13 +446,7 @@ vector<Point> PCAI(vector<Point> modelPoints, Image &sceneGray,
 		result.at(i).setX(xnew);
 		result.at(i).setY(ynew);
 	}
-	/*for (size_t i = 0; i < result.size(); i++)
-	{
-		Point mi = result.at(i);
-		Point ci = nearestPoint(scenePoints2, mi);	// find the closest point
-		result.at(i).setX(ci.getX());
-		result.at(i).setY(ci.getY());
-	}*/
+
 	result = refine(scenePoints2, result);
 	//delete sceneGrandient;
 	return result;
@@ -471,48 +460,9 @@ vector<Point> PCAI(Image modelGray, Image &sceneGray, vector<Point> mnLandmarks)
 	ptr_IntMatrix modelGrandient = new Matrix<int>(rows, cols, -1);
 	*modelGrandient = *(getGradientDMatrix(modelGray, modelPoints));
 
-	vector<Point> scenePoints;
-	ptr_IntMatrix sceneGrandient = new Matrix<int>(rows, cols, -1);
-	*sceneGrandient = *(getGradientDMatrix(sceneGray, scenePoints));
 	vector<Point> result = PCAI(modelPoints, sceneGray, mnLandmarks);
 
-	//delete modelGrandient;
+	delete modelGrandient;
 	//delete sceneGrandient;
 	return result;
 }
-/*void pcaiFolder(string folderScene, vector<string> sceneImages, Image model,
- vector<Point> mnLandmarks, string savePath)
- {
- int rows = model.getRGBMatrix()->getRows();
- int cols = model.getRGBMatrix()->getCols();
- vector<Point> modelPoints;
- ptr_IntMatrix modelGrandient = new Matrix<int>(rows, cols, -1);
- *modelGrandient = *(getGradientDMatrix(model, modelPoints));
- vector<Point> result;
- for (size_t i = 0; i < 20; i++)
- {
- string sceneName = sceneImages.at(i);
- cout << "\n==============================================" << sceneName;
- vector<Point> result;
- Image sceneImage(folderScene + "/" + sceneName);
- result = PCAI(modelPoints, sceneImage, mnLandmarks);
-
- // save TPS
- string path = savePath + "/" + sceneImage.getName();
- ofstream inFile((path + ".TPS").c_str());
- inFile << "LM=" << result.size() << "\n";
- Point epk;
- RGB color;
- color.R = color.G = 255;
- color.B = 0;
- for (size_t k = 0; k < result.size(); k++)
- {
- epk = result.at(k);
- inFile << epk.getX() << " " << rows - epk.getY() << "\n";
- }
- inFile << "IMAGE=" << path << "\n";
- inFile.close();
-
- result.clear();
- }
- }*/
