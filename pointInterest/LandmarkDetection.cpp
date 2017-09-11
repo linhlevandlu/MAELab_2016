@@ -81,8 +81,8 @@ vector<Point> LandmarkDetection::landmarksAutoDectect(Image sceneImage,
 	vector<Point> manualLMs = modelImage.getListOfManualLandmarks();
 	vector<Line> mLines = modelImage.getListOfLines();
 	vector<Line> sLines = sceneImage.getListOfLines();
-	int width = modelImage.getGrayMatrix()->getCols();
-	int height = modelImage.getGrayMatrix()->getRows();
+	int width = modelImage.getGrayMatrix().getCols();
+	int height = modelImage.getGrayMatrix().getRows();
 
 	ShapeHistogram mHistogram;
 	vector<LocalHistogram> mLocalHist = mHistogram.constructPGH(mLines);
@@ -128,8 +128,8 @@ vector<Point> LandmarkDetection::landmarksAutoDectect2(Image &sceneImage,
 	proHT.setRefImage(modelImage);
 	double angle = 0;
 	Point ePoint, mPoint;
-	int rows = sceneImage.getGrayMatrix()->getRows();
-	int cols = sceneImage.getGrayMatrix()->getCols();
+	int rows = sceneImage.getGrayMatrix().getRows();
+	int cols = sceneImage.getGrayMatrix().getCols();
 	ptr_IntMatrix newScene = new Matrix<int>(rows, cols, 0);
 	vector<Point> modelPoints, scenePoints, newScenePoints;
 	Point translation, scaleMove;
@@ -193,8 +193,8 @@ vector<Point> LandmarkDetection::landmarksWithSIFT(Image &sceneImage,
 	proHT.setRefImage(modelImage);
 	double angle = 0;
 	Point ePoint, mPoint;
-	int rows = sceneImage.getGrayMatrix()->getRows();
-	int cols = sceneImage.getGrayMatrix()->getCols();
+	int rows = sceneImage.getGrayMatrix().getRows();
+	int cols = sceneImage.getGrayMatrix().getCols();
 	ptr_IntMatrix newScene = new Matrix<int>(rows, cols, 0);
 	vector<Point> modelPoints, scenePoints, newScenePoints;
 	Point translation, scaleMove;
@@ -268,8 +268,8 @@ void LandmarkDetection::landmarksOnDir(string modelName, string folderScene,
 	Image modelImage = Treatments::refImage;
 	vector<Point> manualLMs = modelImage.getListOfManualLandmarks();
 	vector<Line> mLines = modelImage.getListOfLines();
-	int width = modelImage.getGrayMatrix()->getCols();
-	int height = modelImage.getGrayMatrix()->getRows();
+	int width = modelImage.getGrayMatrix().getCols();
+	int height = modelImage.getGrayMatrix().getRows();
 
 	ShapeHistogram mHistogram;
 	vector<LocalHistogram> mLocalHist = mHistogram.constructPGH(mLines);
@@ -332,8 +332,8 @@ void LandmarkDetection::landmarksOnDir2(string modelName, string folderScene,
 
 	Image modelImage = Treatments::refImage;
 
-	int rows = modelImage.getGrayMatrix()->getRows();
-	int cols = modelImage.getGrayMatrix()->getCols();
+	int rows = modelImage.getGrayMatrix().getRows();
+	int cols = modelImage.getGrayMatrix().getCols();
 	ptr_IntMatrix mgradirection = new Matrix<int>(rows, cols, -1);
 	vector<Point> modelPoints;
 	*mgradirection = *(getGradientDMatrix(modelImage, modelPoints));
@@ -371,7 +371,7 @@ void LandmarkDetection::landmarksOnDir2(string modelName, string folderScene,
 		{
 			for (int c = 0; c < cols; c++)
 			{
-				int value = sceneImage->getGrayMatrix()->getAtPosition(r, c);
+				int value = sceneImage->getGrayMatrix().getAtPosition(r, c);
 				int xnew = c + dx;
 				int ynew = r + dy;
 				rotateAPoint(c + dx, r + dy, mPoint, angle, 1, xnew, ynew);
@@ -388,7 +388,8 @@ void LandmarkDetection::landmarksOnDir2(string modelName, string folderScene,
 		{
 			cout << "\nAngle difference: " << angle << endl;
 			cout << "\n Number of landmarks (ght): " << eslm.size();
-			estLandmarks = verifyLandmarks2(modelImage.getGrayMatrix(), newScene,
+			Matrix<int> mgData = modelImage.getGrayMatrix();
+			estLandmarks = verifyLandmarks2(&mgData, newScene,
 				mLandmarks, eslm, 100, 300);
 
 		}
@@ -423,7 +424,7 @@ void LandmarkDetection::landmarksOnDir2(string modelName, string folderScene,
 			if (epk.getX() >= 0 && epk.getX() < cols && epk.getY() >= 0
 				&& epk.getY() < rows)
 			{
-				fillCircle(*(sceneImage->getRGBMatrix()), epk, 5, color);
+				fillCircle(sceneImage->getRGBMatrix(), epk, 5, color);
 			}
 
 			inFile << epk.getX() << " " << rows - epk.getY() << "\n";
@@ -432,7 +433,8 @@ void LandmarkDetection::landmarksOnDir2(string modelName, string folderScene,
 		inFile.close();
 
 		string imgFile = saveFolder + "/" + modelName + "_" + sceneName;
-		saveRGB(imgFile.c_str(), sceneImage->getRGBMatrix());
+		Matrix<RGB> sData = sceneImage->getRGBMatrix();
+		saveRGB(imgFile.c_str(), &sData);
 
 		estLandmarks.clear();
 		eslm.clear();
@@ -449,8 +451,8 @@ void LandmarkDetection::landmarksOnDir3(string modelName, string folderScene,
 
 	Image modelImage = Treatments::refImage;
 
-	int rows = modelImage.getGrayMatrix()->getRows();
-	int cols = modelImage.getGrayMatrix()->getCols();
+	int rows = modelImage.getGrayMatrix().getRows();
+	int cols = modelImage.getGrayMatrix().getCols();
 	ptr_IntMatrix mgradirection = new Matrix<int>(rows, cols, -1);
 	vector<Point> modelPoints;
 	*mgradirection = *(getGradientDMatrix(modelImage, modelPoints));
@@ -498,8 +500,8 @@ void LandmarkDetection::landmarksOnDir4(string modelName, string folderScene,
 
 	Image modelImage = Treatments::refImage;
 	vector<Point> mLandmarks = modelImage.getListOfManualLandmarks();
-	int rows = modelImage.getGrayMatrix()->getRows();
-	int cols = modelImage.getGrayMatrix()->getCols();
+	int rows = modelImage.getGrayMatrix().getRows();
+	int cols = modelImage.getGrayMatrix().getCols();
 	for (size_t i = 20; i < 40; i++)
 	{
 
@@ -527,9 +529,9 @@ void LandmarkDetection::landmarksOnDir4(string modelName, string folderScene,
 				&& epk.getY() < rows)
 			{
 				color.G = 255;
-				fillCircle(*(sceneImage.getRGBMatrix()), epk, 3, color);
+				fillCircle(sceneImage.getRGBMatrix(), epk, 3, color);
 				color.G = 0;
-				fillCircle(*(sceneImage.getRGBMatrix()), mnLandmarks.at(k), 3, color);
+				fillCircle(sceneImage.getRGBMatrix(), mnLandmarks.at(k), 3, color);
 			}
 			Line line(epk, mnLandmarks.at(k));
 
@@ -540,7 +542,8 @@ void LandmarkDetection::landmarksOnDir4(string modelName, string folderScene,
 		inFile.close();
 
 		string imgFile = saveFolder + "/" + modelName + "_" + sceneName;
-		saveRGB(imgFile.c_str(), sceneImage.getRGBMatrix());
+		Matrix<RGB> saveData = sceneImage.getRGBMatrix();
+		saveRGB(imgFile.c_str(), &saveData);
 
 		estLandmarks.clear();
 

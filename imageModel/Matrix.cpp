@@ -53,7 +53,7 @@ template<typename T>
 void Matrix<T>::Init()
 {
 	data.resize(getRows());
-	for (int i = 0; i < getRows(); ++i)
+	for (int i = 0; i < getRows(); i++)
 		data[i].resize(getCols());
 }
 
@@ -61,7 +61,7 @@ template<typename T>
 void Matrix<T>::InitWithValue(T value)
 {
 	data.resize(getRows());
-	for (int i = 0; i < getRows(); ++i)
+	for (int i = 0; i < getRows(); i++)
 		data[i].resize(getCols(), value);
 }
 

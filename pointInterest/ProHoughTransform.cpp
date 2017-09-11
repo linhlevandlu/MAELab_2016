@@ -321,7 +321,7 @@ PHoughTransform ProHoughTransform::constructPHT()
 {
 	ptr_IntMatrix grayImage;
 	grayImage = (Matrix<int> *) malloc(sizeof(Matrix<int> ));
-	*grayImage = *(Treatments::refImage.getGrayMatrix());
+	*grayImage = Treatments::refImage.getGrayMatrix();
 	//grayImage = Treatments::refImage.getGrayMatrix();
 	int width = grayImage->getCols();
 	int height = grayImage->getRows();
@@ -338,7 +338,8 @@ vector<Point> ProHoughTransform::estimateLandmarks(Image sImage,
 	double &angleDiff, Point &ePoint)
 {
 	vector<Point> eLandmarks;
-	ptr_IntMatrix mMatrix = Treatments::refImage.getGrayMatrix();
+	Matrix<int> gMatrix = Treatments::refImage.getGrayMatrix();
+	ptr_IntMatrix mMatrix = &gMatrix;
 	int width = mMatrix->getCols();
 	int height = mMatrix->getRows();
 
@@ -488,8 +489,8 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 	vector<Point> &newScenePoints, double &scaleX, double &scaleY,
 	Point &moveScale)
 {
-	int rows = sImage.getGrayMatrix()->getRows();
-	int cols = sImage.getGrayMatrix()->getCols();
+	int rows = sImage.getGrayMatrix().getRows();
+	int cols = sImage.getGrayMatrix().getCols();
 	Image mImage = Treatments::refImage;
 	ptr_IntMatrix mgradirection = new Matrix<int>(rows, cols, -1);
 	vector<Point> modelPoints;
@@ -569,7 +570,7 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 	{
 		for (int c = 0; c < cols; c++)
 		{
-			int value = sImage.getGrayMatrix()->getAtPosition(r, c);
+			int value = sImage.getGrayMatrix().getAtPosition(r, c);
 			int xnew = c + smove.getX();
 			int ynew = r + smove.getY();
 			rotateAPoint(xnew, ynew, mPoint, sangle, 1, xnew, ynew);
@@ -648,7 +649,7 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 	Point sceneCenter;
 	sceneCenter.setX((sLeft.getX() + sRight.getX()) / 2);
 	sceneCenter.setY((sLeft.getY() + sRight.getY()) / 2);
-	fillCircle(*sImage.getRGBMatrix(), sceneCenter, 5, color);
+	fillCircle(sImage.getRGBMatrix(), sceneCenter, 5, color);
 	color.G = 0;
 	Point mLeft, mRight;
 	mLeft.setX(cols);
@@ -662,7 +663,7 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 		int y = mi.getY();
 		if (x >= 0 && y >= 0 && y < rows && x < cols)
 		{
-			sImage.getRGBMatrix()->setAtPosition(y, x, color);
+			sImage.getRGBMatrix().setAtPosition(y, x, color);
 			if (x < mLeft.getX())
 				mLeft.setX(x);
 			if (y < mLeft.getY())
@@ -676,7 +677,7 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 	Point modelCenter;
 	modelCenter.setX((mLeft.getX() + mRight.getX()) / 2);
 	modelCenter.setY((mLeft.getY() + mRight.getY()) / 2);
-	fillCircle(*sImage.getRGBMatrix(), modelCenter, 5, color);
+	fillCircle(sImage.getRGBMatrix(), modelCenter, 5, color);
 	// draw bounding box
 	/*drawingLine(*sImage.getRGBMatrix(),
 	 Line(mLeft, Point(mRight.getX(), mLeft.getY())), color);
@@ -721,7 +722,7 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 		newScenePoints.at(i).setY(y);
 		if (x >= 0 && y >= 0 && y < rows && x < cols)
 		{
-			sImage.getRGBMatrix()->setAtPosition(y, x, color);
+			sImage.getRGBMatrix().setAtPosition(y, x, color);
 		}
 	}
 	Point pi;
@@ -731,10 +732,10 @@ vector<Point> ProHoughTransform::generalTransform(Image &sImage, double &angle,
 		Point ci = nearestPoint(newScenePoints, pi);
 		eslm.at(k).setX(ci.getX());
 		eslm.at(k).setY(ci.getY());
-		fillCircle(*(sImage.getRGBMatrix()), ci, 5, color);
+		fillCircle(sImage.getRGBMatrix(), ci, 5, color);
 	}
-
-	saveRGB("color.jpg", sImage.getRGBMatrix());
+	Matrix<RGB> savergb = sImage.getRGBMatrix();
+	saveRGB("color.jpg", &savergb);
 // ================================================================================
 	angle = -sangle;
 	translation.setX(-smove.getX());

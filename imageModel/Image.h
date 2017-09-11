@@ -8,6 +8,9 @@
 #ifndef IMAGE_H_
 #define IMAGE_H_
 #include "Edge.h"
+
+const int MAX_GRAY_VALUE = 255;
+
 class Image
 {
 private:
@@ -15,15 +18,15 @@ private:
 	vector<Line> listOfLines;
 	vector<Point> manualLandmarks;
 	vector<Point> autoLandmarks;
-	ptr_IntMatrix grayMatrix;
-	ptr_RGBMatrix imgMatrix;
-	ptr_IntMatrix grayHistogram;
-	ptr_RGBMatrix rgbHistogram;
+	Matrix<int> grayMatrix;
+	Matrix<RGB> imgMatrix;
+	Matrix<int> grayHistogram;
+	Matrix<RGB> rgbHistogram;
 	float medianHistogram;
 	float meanHistogram;
 	float thresholdValue;
 
-	void calcGrayHistogram();
+	void calcHistogram ();
 	void calThresholdValue();
 
 public:
@@ -35,13 +38,13 @@ public:
 	std::string getFileName();
 	string getName();
 	void setMLandmarks(string);
-	void setRGBMatrix(ptr_RGBMatrix);
-	void setGrayMatrix(ptr_IntMatrix);
+	void setRGBMatrix(Matrix<RGB>);
+	void setGrayMatrix(Matrix<int>);
 	void setAutoLandmarks(vector<Point>);
-	ptr_IntMatrix getGrayMatrix();
-	ptr_RGBMatrix getRGBMatrix();
-	ptr_IntMatrix getGrayHistogram();
-	ptr_RGBMatrix getRGBHistogram();
+	Matrix<int> getGrayMatrix();
+	Matrix<RGB> getRGBMatrix();
+	Matrix<int> getGrayHistogram();
+	Matrix<RGB> getRGBHistogram();
 	float getMedianHistogram();
 	float getMeanHistogram();
 	float getThresholdValue();
@@ -53,6 +56,7 @@ public:
 	vector<Line> getApproximateLines(double minDistance);
 	vector<Point> readManualLandmarks(string fileName);
 	vector<Matrix<int> > splitChannels();
+	Matrix<RGB> mergeChannels(vector<Matrix<int> > channels);
 	/*ptr_DoubleMatrix getRotationMatrix2D(Point center, double angle,
 		double scale);*/
 	void rotate(Point center, double angle, double scale);

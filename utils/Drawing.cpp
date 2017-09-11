@@ -142,7 +142,7 @@ vector<Point> detectFillCircle(Point center, int radius, RGB color)
 	}
 	return result;
 }
-void drawingCircle(Matrix<RGB> &mat, Point center, int radius, RGB color)
+Matrix<RGB> drawingCircle(Matrix<RGB> mat, Point center, int radius, RGB color)
 {
 	vector<Point> dpoints = detectCircle(center, radius);
 	int rows = mat.getRows();
@@ -157,8 +157,9 @@ void drawingCircle(Matrix<RGB> &mat, Point center, int radius, RGB color)
 			mat.setAtPosition(p1.getY(), p1.getX(), p1.getColor());
 		}
 	}
+	return mat;
 }
-void fillCircle(Matrix<RGB> &mat, Point center, int radius, RGB color)
+Matrix<RGB> fillCircle(Matrix<RGB> mat, Point center, int radius, RGB color)
 {
 	vector<Point> dpoints = detectFillCircle(center, radius, color);
 	int rows = mat.getRows();
@@ -173,8 +174,9 @@ void fillCircle(Matrix<RGB> &mat, Point center, int radius, RGB color)
 			mat.setAtPosition(p1.getY(), p1.getX(), p1.getColor());
 		}
 	}
+	return mat;
 }
-void drawingLine(Matrix<RGB> &mat, Line line, RGB color)
+Matrix<RGB> drawingLine(Matrix<RGB> mat, Line line, RGB color)
 {
 	vector<Point> dpoints = detectLine(line);
 	int rows = mat.getRows();
@@ -189,4 +191,5 @@ void drawingLine(Matrix<RGB> &mat, Line line, RGB color)
 			mat.setAtPosition(p1.getY(), p1.getX(), color);
 		}
 	}
+	return mat;
 }

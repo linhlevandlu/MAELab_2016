@@ -22,10 +22,8 @@ using namespace std;
 
 #include "JPEGReader.h"
 
-ptr_RGBMatrix decompressJPEG(const char* filename, int &rows, int &cols) {
+Matrix<RGB> decompressJPEG(const char* filename, int &rows, int &cols) {
 	std::cout << "\nBegin decompress JPEG image.\n";
-
-	ptr_RGBMatrix rgbMatrix;
 
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -45,9 +43,9 @@ ptr_RGBMatrix decompressJPEG(const char* filename, int &rows, int &cols) {
 	jpeg_read_header(&cinfo, TRUE);
 	jpeg_start_decompress(&cinfo);
 
-	rgbMatrix = new Matrix<RGB>(cinfo.output_height, cinfo.output_width);
-	rows = rgbMatrix->getRows();
-	cols = rgbMatrix->getCols();
+	Matrix<RGB> rgbMatrix((int)cinfo.output_height, (int)cinfo.output_width);
+	rows = rgbMatrix.getRows();
+	cols = rgbMatrix.getCols();
 
 	row_stride = cinfo.output_width * cinfo.output_components;
 	buffer = new unsigned char[cinfo.output_height * row_stride];
@@ -64,7 +62,7 @@ ptr_RGBMatrix decompressJPEG(const char* filename, int &rows, int &cols) {
 			rgb.R = (unsigned short int) buffer[k];
 			rgb.G = (unsigned short int) buffer[k + 1];
 			rgb.B = (unsigned short int) buffer[k + 2];
-			rgbMatrix->setAtPosition(row, i, rgb);
+			rgbMatrix.setAtPosition(row, i, rgb);
 		}
 	}
 

@@ -561,13 +561,13 @@ void ImageViewer::loadImage(Image *_matImage, QImage _qImage, QString tt) {
 
 void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color) {
 	Point lm;
+	Matrix<RGB> imgWithLM = image->getRGBMatrix();
 	for (size_t i = 0; i < lms.size(); i++) {
 		lm = lms.at(i);
 		cout << "\nManual landmark: " << lm.getX() << "\t" << lm.getY();
-		fillCircle(*(image->getRGBMatrix()), lm, 3, color);
-
+		imgWithLM = fillCircle(imgWithLM, lm, 5, color);
 	}
-
+	image->setRGBMatrix(imgWithLM);
 }
 // =========================== Slots =======================================
 void ImageViewer::about() {
@@ -580,7 +580,7 @@ void ImageViewer::testMethod() {
 	cout << "\nTest a method ..." << endl;
 	RGB df;
 	df.R = df.G = df.B = 0;
-	Matrix<int> patch = matImage->getGrayMatrix()->extractPatch(501, 501, 676,
+	Matrix<int> patch = matImage->getGrayMatrix().extractPatch(501, 501, 676,
 			2746, 0);
 	/*QMessageBox msgbox;
 	 msgbox.setText("Select the landmark file of scene image.");
@@ -629,7 +629,7 @@ void ImageViewer::testMethod() {
 	 }*/
 
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(&patch), "Test a method");
+	other->loadImage(matImage, ptrIntToQImage(patch), "Test a method");
 	other->move(x() - 40, y() - 40);
 	other->show();
 
@@ -715,7 +715,8 @@ void ImageViewer::fitToWindow() {
 }
 void ImageViewer::gScaleHistogram() {
 	cout << "\n Gray scale histogram." << endl;
-	ptr_IntMatrix histogram = get_Gray_Histogram(*matImage) ;//matImage->getGrayHistogram();
+	//Matrix<int> grayHist = mae_get_Gray_Histogram(matImage);//matImage->getGrayHistogram();
+	ptr_IntMatrix histogram = mae_get_Gray_Histogram(matImage);
 	int max = -1;
 	for (int c = 0; c < histogram->getCols(); c++) {
 		if (histogram->getAtPosition(0, c) > max)
@@ -733,20 +734,24 @@ void ImageViewer::gScaleHistogram() {
 		double newR = 0
 				+ (histogram->getAtPosition(0, c) - 0) * (239 - 0) / (max - 0);
 		pend.setY(239 - newR);
-		drawingLine(*hDisplay, Line(pbegin, pend), color);
+		*hDisplay = drawingLine(*hDisplay, Line(pbegin, pend), color);
 	}
+	delete histogram;
+
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrRGBToQImage(hDisplay), "Histogram result");
+	other->loadImage(matImage, ptrRGBToQImage(*hDisplay), "Histogram result");
 	other->move(x() - 40, y() - 40);
 	other->show();
+
+	delete hDisplay;
+
 	cout << "\nFinished." << endl;
 }
 
 void ImageViewer::rgbHistogramCalc() {
 	cout << "\n RGB histogram." << endl;
 
-	ptr_RGBMatrix histogram = matImage->getRGBHistogram();//get_RGB_Histogram(*matImage);
-
+	ptr_RGBMatrix histogram = mae_get_RGB_Histogram(matImage);
 	double maxR = -1, maxG = -1, maxB = -1;
 	for (int c = 0; c < histogram->getCols(); c++) {
 		RGB color = histogram->getAtPosition(0, c);
@@ -773,39 +778,43 @@ void ImageViewer::rgbHistogramCalc() {
 		pend.setY(239 - ((double) ((cvalue.R * 239) / maxR)));
 		color.R = 255;
 		color.G = color.B = 0;
-
-		drawingLine(*redDisplay, Line(pbegin, pend), color);
+		*redDisplay = drawingLine(*redDisplay, Line(pbegin, pend), color);
 
 		pend.setX(c);
-		 pend.setY(239 - ((double) ((cvalue.G * 239) / maxG)));
-		 color.G = 255;
-		 color.R = color.B = 0;
-		 drawingLine(*greenDisplay, Line(pbegin, pend), color);
+		pend.setY(239 - ((double) ((cvalue.G * 239) / maxG)));
+		color.G = 255;
+		color.R = color.B = 0;
+		*greenDisplay = drawingLine(*greenDisplay, Line(pbegin, pend), color);
 
-		 pend.setX(c);
-		 pend.setY(239 - ((double) ((cvalue.B * 239) / maxB)));
-		 color.B = 255;
-		 color.R = color.G = 0;
-		 drawingLine(*blueDisplay, Line(pbegin, pend), color);
+		pend.setX(c);
+		pend.setY(239 - ((double) ((cvalue.B * 239) / maxB)));
+		color.B = 255;
+		color.R = color.G = 0;
+		*blueDisplay = drawingLine(*blueDisplay, Line(pbegin, pend), color);
 	}
+	delete histogram;
 
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrRGBToQImage(redDisplay),
+	other->loadImage(matImage, ptrRGBToQImage(*redDisplay),
 			"RGB Histogram result - Red channel");
 	other->move(x() - 40, y() - 40);
 	other->show();
 
 	ImageViewer *other2 = new ImageViewer;
-	 other2->loadImage(matImage, ptrRGBToQImage(greenDisplay),
-	 "RGB Histogram result - Green channel");
-	 other2->move(x() - 60, y() - 60);
-	 other2->show();
+	other2->loadImage(matImage, ptrRGBToQImage(*greenDisplay),
+			"RGB Histogram result - Green channel");
+	other2->move(x() - 60, y() - 60);
+	other2->show();
 
-	 ImageViewer *other3 = new ImageViewer;
-	 other3->loadImage(matImage, ptrRGBToQImage(blueDisplay),
-	 "RGB Histogram result - Blue Channel");
-	 other3->move(x() - 80, y() - 80);
-	 other3->show();
+	ImageViewer *other3 = new ImageViewer;
+	other3->loadImage(matImage, ptrRGBToQImage(*blueDisplay),
+			"RGB Histogram result - Blue Channel");
+	other3->move(x() - 80, y() - 80);
+	other3->show();
+
+	delete redDisplay;
+	delete greenDisplay;
+	delete blueDisplay;
 
 	cout << "\nFinished." << endl;
 }
@@ -895,111 +904,94 @@ void ImageViewer::displayAutoLandmarks() {
 }
 void ImageViewer::binThreshold() {
 	cout << "\nBinary thresholding...\n";
-	float tValue = matImage->getThresholdValue();
-
-	Segmentation tr; // = new Segmentation();
-	tr.setRefImage(*matImage);
-	cout << "\ntValue: " << tValue << endl;
-	ptr_IntMatrix rsMatrix = tr.threshold(tValue, 255);
-	rsMatrix = postProcess(rsMatrix, 255);
+	ptr_IntMatrix rsMatrix = mae_Binary_Threshold(matImage);
+	//rsMatrix = postProcess(rsMatrix, 255);
 
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(rsMatrix), "Thresholding result");
+	other->loadImage(matImage, ptrIntToQImage(*rsMatrix),
+			"Thresholding result");
 	other->show();
 
 }
 void ImageViewer::cannyAlgorithm() {
 	cout << "\nCanny Algorithm...\n";
-	Segmentation tr;
-	tr.setRefImage(*matImage);
-	vector<Edge> edges = tr.canny();
+
+	vector<Point> cPoints = mae_Canny_Algorithm(matImage);
+
+	/*Segmentation tr;
+	 tr.setRefImage(*matImage);
+	 vector<Edge> edges = tr.canny();*/
 
 	RGB color;
 	color.R = 255;
 	color.G = color.B = 0;
-	Edge edgei;
 	Point pi;
-	int rows = matImage->getGrayMatrix()->getRows();
-	int cols = matImage->getGrayMatrix()->getCols();
-
-	for (size_t i = 0; i < edges.size(); i++) {
-		edgei = edges.at(i);
-		for (size_t k = 0; k < edgei.getPoints().size(); k++) {
-			pi = edgei.getPoints().at(k);
-			if (pi.getX() >= 0 && pi.getX() < cols && pi.getY() >= 0
-					&& pi.getY() < rows) {
-				matImage->getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(),
-						color);
-			}
-		}
-		cout << "\nNumber of points in edge: " << edgei.getPoints().size();
+	cout << endl << "Number of points: " << cPoints.size() << endl;
+	Matrix<RGB> sImage = matImage->getRGBMatrix();
+	for (size_t i = 0; i < cPoints.size(); i++) {
+		pi = cPoints.at(i);
+		sImage.setAtPosition(pi.getY(), pi.getX(), color);
 	}
+
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrRGBToQImage(matImage->getRGBMatrix()),
-			"Canny result");
+	other->loadImage(matImage, ptrRGBToQImage(sImage), "Canny result");
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
 void ImageViewer::suzukiAlgorithm() {
 	cout << "\nSuzuki Algorithm...\n";
-	Segmentation tr;
-	tr.setRefImage(*matImage);
-	vector<Edge> edges = tr.canny();
+	vector<Edge> edges = mae_Suzuki_Algorithm(matImage);
+	/*Segmentation tr;
+	 tr.setRefImage(*matImage);
+	 vector<Edge> edges = tr.canny();*/
 
 	RGB color;
 	color.R = 255;
 	color.G = color.B = 0;
 	Edge edgei;
 	Point pi;
-	int rows = matImage->getGrayMatrix()->getRows();
-	int cols = matImage->getGrayMatrix()->getCols();
-
+	/*int rows = matImage->getGrayMatrix().getRows();
+	 int cols = matImage->getGrayMatrix().getCols();*/
+	Matrix<RGB> sImage = matImage->getRGBMatrix();
 	for (size_t i = 0; i < edges.size(); i++) {
 		edgei = edges.at(i);
 		for (size_t k = 0; k < edgei.getPoints().size(); k++) {
 			pi = edgei.getPoints().at(k);
-			if (pi.getX() >= 0 && pi.getX() < cols && pi.getY() >= 0
-					&& pi.getY() < rows) {
-				matImage->getRGBMatrix()->setAtPosition(pi.getY(), pi.getX(),
-						color);
-			}
+			sImage.setAtPosition(pi.getY(), pi.getX(), color);
 		}
 	}
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrRGBToQImage(matImage->getRGBMatrix()),
-			"Canny result");
+	other->loadImage(matImage, ptrRGBToQImage(sImage), "Suzuki result");
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
 void ImageViewer::lineSegmentation() {
 	cout << "\nDisplay the list of lines." << endl;
-	QMessageBox msgbox;
-	Segmentation tr;
-	tr.setRefImage(*matImage);
-	vector<Line> listOfLines = tr.segment();
+	vector<Line> listOfLines = mae_Line_Segment(matImage);
 	RGB color;
 	color.R = 255;
 	color.G = color.B = 0;
 	Line linei;
+	cout<<"\nBegin draw the lines...\n";
+	Matrix<RGB> sImage = matImage->getRGBMatrix();
 	for (size_t i = 0; i < listOfLines.size(); i++) {
 		linei = listOfLines.at(i);
-		drawingLine(*(matImage->getRGBMatrix()), linei, color);
+		sImage = drawingLine(sImage, linei, color);
 	}
 
-	this->loadImage(matImage, ptrRGBToQImage(matImage->getRGBMatrix()),
-			"Line segmentation result");
-	this->show();
-
-	msgbox.setText("Finish");
-	msgbox.exec();
+	ImageViewer *other = new ImageViewer;
+	other->loadImage(matImage, ptrRGBToQImage(sImage), "Line segmentation result");
+	other->move(x() - 40, y() - 40);
+	other->show();
 }
 // ==================================================== Filter menu =========================================
 void ImageViewer::gauFilter() {
 	cout << "\n Gaussian filter." << endl;
 	Matrix<double> kernel = getGaussianKernel(3, 1);
-	Matrix<int> gsResult = gaussianBlur(*(matImage->getGrayMatrix()), kernel);
+	Matrix<RGB> gsResult = mae_Gaussian_Filter(matImage,kernel);
+	//Matrix<int> gsResult = gaussianBlur(matImage->getGrayMatrix(), kernel);
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(&gsResult),
+	other->loadImage(matImage, ptrRGBToQImage(gsResult),
 			"Gaussian filter result");
 	other->move(x() - 40, y() - 40);
 	other->show();
@@ -1007,9 +999,12 @@ void ImageViewer::gauFilter() {
 
 void ImageViewer::robertFilter() {
 	cout << "\n Robert filter." << endl;
-	Matrix<int> rbResult = RobertOperation(matImage->getGrayMatrix());
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> rbResult = RobertOperation(&grayData);
+	rbResult = postSobel(rbResult);*/
+	Matrix<int> rbResult = mae_Robert_Filter(matImage);
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(&rbResult),
+	other->loadImage(matImage, ptrIntToQImage(rbResult),
 			"Robert filter result");
 	other->move(x() - 40, y() - 40);
 	other->show();
@@ -1017,22 +1012,24 @@ void ImageViewer::robertFilter() {
 
 void ImageViewer::sobelFilter() {
 	cout << "\n Sobel filter." << endl;
-	Matrix<int> sbResult = SobelOperation(matImage->getGrayMatrix());
-	sbResult = postSobel(sbResult);
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> sbResult = SobelOperation(&grayData);
+	sbResult = postSobel(sbResult);*/
+	Matrix<int> sbResult = mae_Sobel_Filter(matImage);
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(&sbResult),
-			"Sobel filter result");
+	other->loadImage(matImage, ptrIntToQImage(sbResult), "Sobel filter result");
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
 
 void ImageViewer::erosionOperation() {
 	cout << "\n Erosion operation." << endl;
-	Matrix<int> sbResult = SobelOperation(matImage->getGrayMatrix());
-	sbResult = postSobel(sbResult);
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> sbResult = SobelOperation(&grayData);
+	sbResult = postFilter(sbResult);
 
-	ptr_IntMatrix erResult = erode(&sbResult, 3);
-
+	ptr_IntMatrix erResult = erode(&sbResult, 3);*/
+	Matrix<int> erResult = mae_Erode(matImage);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(erResult),
 			"Erosion operation result");
@@ -1042,10 +1039,12 @@ void ImageViewer::erosionOperation() {
 
 void ImageViewer::dilationOperation() {
 	cout << "\n Dilation operation." << endl;
-	Matrix<int> sbResult = SobelOperation(matImage->getGrayMatrix());
-	sbResult = postSobel(sbResult);
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> sbResult = SobelOperation(&grayData);
+	sbResult = postFilter(sbResult);
 
-	ptr_IntMatrix dlResult = dilate(&sbResult, 3);
+	ptr_IntMatrix dlResult = dilate(&sbResult, 3);*/
+	Matrix<int> dlResult = mae_Dilate(matImage);
 
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(dlResult),
@@ -1056,11 +1055,11 @@ void ImageViewer::dilationOperation() {
 
 void ImageViewer::openOperation() {
 	cout << "\n Open operation." << endl;
-	Matrix<int> sbResult = SobelOperation(matImage->getGrayMatrix());
-	sbResult = postSobel(sbResult);
-
-	ptr_IntMatrix dlResult = openBinary(&sbResult, 3);
-
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> sbResult = SobelOperation(&grayData);
+	sbResult = postFilter(sbResult);
+	ptr_IntMatrix dlResult = openBinary(&sbResult, 3);*/
+	Matrix<int> dlResult = mae_Open_Binary(matImage);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(dlResult),
 			"Open operation result");
@@ -1070,13 +1069,14 @@ void ImageViewer::openOperation() {
 
 void ImageViewer::closeOperation() {
 	cout << "\n Close operation." << endl;
-	Matrix<int> sbResult = SobelOperation(matImage->getGrayMatrix());
-	sbResult = postSobel(sbResult);
+	/*Matrix<int> grayData = matImage->getGrayMatrix();
+	Matrix<int> sbResult = SobelOperation(&grayData);
+	sbResult = postFilter(sbResult);
+	ptr_IntMatrix dlResult = closeBinary(&sbResult, 3);*/
 
-	ptr_IntMatrix dlResult = closeBinary(&sbResult, 3);
-
+	Matrix<int> clResult = mae_Close_Binary(matImage);
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(dlResult),
+	other->loadImage(matImage, ptrIntToQImage(clResult),
 			"Close operation result");
 	other->move(x() - 40, y() - 40);
 	other->show();
@@ -1123,9 +1123,9 @@ void ImageViewer::gHoughTransform() {
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
 		//fillCircle(*(matImage->getRGBMatrix()), lm, 5, color);
-		if (lm.getX() >= 0 && lm.getX() < matImage->getRGBMatrix()->getCols()
+		if (lm.getX() >= 0 && lm.getX() < matImage->getRGBMatrix().getCols()
 				&& lm.getY() >= 0
-				&& lm.getY() < matImage->getRGBMatrix()->getRows()) {
+				&& lm.getY() < matImage->getRGBMatrix().getRows()) {
 			qpainter.drawEllipse(lm.getX(), lm.getY(), 4, 4);
 			qpainter.drawText(lm.getX() + 6, lm.getY(),
 					QString::number((int) i));
@@ -1182,7 +1182,7 @@ void ImageViewer::extractLandmarks() {
 	matImage->rotate(ePoint, angleDiff, 1);
 	for (size_t i = 0; i < lms.size(); i++) {
 		lm = lms.at(i);
-		drawingCircle(*(matImage->getRGBMatrix()), lm, 5, color);
+		drawingCircle(matImage->getRGBMatrix(), lm, 5, color);
 	}
 	matImage->setAutoLandmarks(lms);
 	displayALandmarksAct->setEnabled(true);
@@ -1441,7 +1441,7 @@ void ImageViewer::pcaiMethodViewer() {
 		lm = estLandmarks.at(i);
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
-		fillCircle(*(matImage->getRGBMatrix()), lm, 5, color);
+		fillCircle(matImage->getRGBMatrix(), lm, 5, color);
 		qpainter.drawEllipse(lm.getX(), lm.getY(), 4, 4);
 		qpainter.drawText(lm.getX() + 6, lm.getY(), QString::number((int) i));
 	}
@@ -1461,7 +1461,8 @@ void ImageViewer::pcaiMethodViewer() {
 	 vector<string> images = readDirectory(imageFolder.c_str());
 	 pcaiFolder(imageFolder, images, *matImage,
 	 modelImage->getListOfManualLandmarks(),saveFolder);*/
-	saveRGB("result.jpg", matImage->getRGBMatrix());
+	Matrix<RGB> saveData = matImage->getRGBMatrix();
+	saveRGB("result.jpg", &saveData);
 	this->loadImage(matImage, qImage, "PCAI result");
 	this->show();
 	//delete newScene;
@@ -1489,7 +1490,7 @@ void ImageViewer::sobelAndSIFT() {
 
 	// get the contours in the scene image
 	Matrix<double> kernel = getGaussianKernel(5, 2);
-	Matrix<int> gsResult = gaussianBlur(*(matImage->getGrayMatrix()), kernel);
+	Matrix<int> gsResult = gaussianBlur(matImage->getGrayMatrix(), kernel);
 	Matrix<int> sbResult = SobelOperation(&gsResult);
 	int tValue = 6; //thresholdOtsu(sbResult);
 	cout << "\n Otsu threshold: " << tValue << endl;
@@ -1516,9 +1517,10 @@ void ImageViewer::sobelAndSIFT() {
 	}
 	cout << "\nManual landmarks: "
 			<< modelImage->getListOfManualLandmarks().size() << endl;
-	vector<Point> estLandmarks = verifyDescriptors3(modelImage->getGrayMatrix(),
-			matImage->getGrayMatrix(), contours,
-			modelImage->getListOfManualLandmarks(), 9);
+	Matrix<int> modelData = modelImage->getGrayMatrix();
+	Matrix<int> matData = matImage->getGrayMatrix();
+	vector<Point> estLandmarks = verifyDescriptors3(&modelData, &matData,
+			contours, modelImage->getListOfManualLandmarks(), 9);
 	cout << "\nNumber of estimated landmarks: " << estLandmarks.size() << endl;
 
 	RGB color;
@@ -1528,7 +1530,7 @@ void ImageViewer::sobelAndSIFT() {
 	Point lm;
 	for (size_t i = 0; i < estLandmarks.size(); i++) {
 		lm = estLandmarks.at(i);
-		fillCircle(*(matImage->getRGBMatrix()), lm, 7, color);
+		fillCircle(matImage->getRGBMatrix(), lm, 7, color);
 	}
 
 	ImageViewer *other = new ImageViewer;
@@ -1557,9 +1559,11 @@ void ImageViewer::cannyAndSIFT() {
 	vector<Point> cPoints;
 	matImage->cannyAlgorithm(cPoints);
 	cout << "\nNumber of points on contours: " << cPoints.size() << endl;
-	vector<Point> estLandmarks = verifyDescriptors4(modelImage->getGrayMatrix(),
-			matImage->getGrayMatrix(), cPoints,
-			modelImage->getListOfManualLandmarks(), 63);
+	Matrix<int> modelGrayData = modelImage->getGrayMatrix();
+	Matrix<int> sceneGrayData = matImage->getGrayMatrix();
+	vector<Point> estLandmarks = verifyDescriptors4(&modelGrayData,
+			&sceneGrayData, cPoints, modelImage->getListOfManualLandmarks(),
+			63);
 	cout << "\nNumber of estimated landmarks: " << estLandmarks.size() << endl;
 	RGB color;
 	color.R = 255;
@@ -1568,7 +1572,7 @@ void ImageViewer::cannyAndSIFT() {
 	Point lm;
 	for (size_t i = 0; i < estLandmarks.size(); i++) {
 		lm = estLandmarks.at(i);
-		fillCircle(*(matImage->getRGBMatrix()), lm, 7, color);
+		fillCircle(matImage->getRGBMatrix(), lm, 7, color);
 	}
 
 	ImageViewer *other = new ImageViewer;

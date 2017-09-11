@@ -8,7 +8,7 @@
 #ifndef READER_H_
 #define READER_H_
 
-ptr_RGBMatrix readJPGToRGB(const char* filename,int &rows, int &cols);
+Matrix<RGB> readJPGToRGB(const char* filename,int &rows, int &cols);
 void saveRGB(const char* filename, ptr_RGBMatrix rgbMatrix);
 void saveGrayScale(const char* filename, ptr_IntMatrix grayMatrix);
 vector<Point> readTPSFile(const char* filename);

@@ -209,7 +209,7 @@ Matrix<int> SobelOperation(ptr_IntMatrix grayMatrix)
 	return dMatrix;
 }
 
-Matrix<int> postSobel(Matrix<int> sobelResult)
+Matrix<int> postFilter(Matrix<int> sobelResult)
 {
 	int rows = sobelResult.getRows();
 	int cols = sobelResult.getCols();
@@ -232,30 +232,6 @@ Matrix<int> postSobel(Matrix<int> sobelResult)
 		}
 	}
 
-	/*
-	 * maximum in region 3x3
-	 */
-	/*int avg = values / (rows * cols);
-	 for (int r = 1; r < rows - 1; r++)
-	 {
-	 for (int c = 1; c < cols - 1; c++)
-	 {
-	 int value = sobelResult.getAtPosition(r, c);
-	 int value1 = sobelResult.getAtPosition(r - 1, c);
-	 int value2 = sobelResult.getAtPosition(r + 1, c);
-	 int value3 = sobelResult.getAtPosition(r, c - 1);
-	 int value4 = sobelResult.getAtPosition(r, c + 1);
-	 int value5 = sobelResult.getAtPosition(r - 1, c - 1);
-	 int value6 = sobelResult.getAtPosition(r - 1, c + 1);
-	 int value7 = sobelResult.getAtPosition(r + 1, c - 1);
-	 int value8 = sobelResult.getAtPosition(r + 1, c + 1);
-	 if (value <= value1 && value <= value2 && value <= value3
-	 && value <= value4)
-	 sobelResult.setAtPosition(r, c, 0);
-	 else
-	 sobelResult.setAtPosition(r, c, 255);
-	 }
-	 }*/
 	return sobelResult;
 }
 

@@ -10,7 +10,7 @@
 
 vector<Point> detectLine(Line line);
 
-void drawingCircle(Matrix<RGB> &mat, Point center, int radius, RGB color);
-void fillCircle(Matrix<RGB> &mat, Point center, int radius, RGB color);
-void drawingLine(Matrix<RGB> &mat, Line line, RGB color);
+Matrix<RGB> drawingCircle(Matrix<RGB> mat, Point center, int radius, RGB color);
+Matrix<RGB> fillCircle(Matrix<RGB> mat, Point center, int radius, RGB color);
+Matrix<RGB> drawingLine(Matrix<RGB> mat, Line line, RGB color);
 #endif /* DRAWING_H_ */

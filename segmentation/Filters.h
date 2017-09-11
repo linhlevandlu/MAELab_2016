@@ -7,12 +7,15 @@
 
 #ifndef FILTERS_H_
 #define FILTERS_H_
+
+const int KERNEL_SIZE_DEFAULT = 3;
+
 Matrix<double> getGaussianKernel(int ksize, double sigma);
 Matrix<int> gaussianBlur(Matrix<int> inputMatrix, Matrix<double> kernel);
 Matrix<double> gaussianBlur_Double(Matrix<int> inputMatrix, Matrix<double> kernel);
 Matrix<int> RobertOperation(ptr_IntMatrix grayMatrix);
 Matrix<int> SobelOperation(ptr_IntMatrix grayMatrix);
-Matrix<int> postSobel(Matrix<int> sobelResult);
+Matrix<int> postFilter(Matrix<int> sobelResult);
 ptr_IntMatrix erode(ptr_IntMatrix binMatrix, int kernelSize);
 ptr_IntMatrix dilate(ptr_IntMatrix binMatrix, int kernelSize);
 ptr_IntMatrix openBinary(ptr_IntMatrix binMatrix, int kernelSize);

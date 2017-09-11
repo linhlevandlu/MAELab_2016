@@ -360,7 +360,7 @@ ptr_IntMatrix doubleThreshold(ptr_IntMatrix nonMaxImage, int low, int high)
 	}
 	return edgeMatrix;
 }
-
+/*
 int threshCut(ptr_IntMatrix inputMatrix)
 {
 	int array[256] =
@@ -399,6 +399,7 @@ int threshCut(ptr_IntMatrix inputMatrix)
 	}
 	return imin;
 }
+*/
 // ========================== Process to find the edges in image =============================================
 ptr_IntMatrix cannyProcess(ptr_IntMatrix binaryImage, int lowThreshold,
 	int highThreshold, vector<Point> &contourPoints)
