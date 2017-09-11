@@ -81,12 +81,14 @@ struct comparextheny
 		return false;
 	}
 } xtheny;
+
 struct comparex
 {
 	bool operator()(Point p1, Point p2)
 	{
 		return p1.getX() < p2.getX();
 	}
+
 } cX;
 struct comparey
 {

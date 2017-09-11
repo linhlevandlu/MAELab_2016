@@ -146,7 +146,7 @@ string Image::getName()
 		}
 		i++;
 	}
-	return str;
+	return str+".JPG";
 }
 void Image::setMLandmarks(string tpsFile)
 {

@@ -60,7 +60,7 @@ int* histogramProjection(ptr_IntMatrix binaryMatrix, PROJECTION_TYPE pType,
 	int bcols = binaryMatrix->getCols(); // number of columns of input matrix
 
 	int rows, cols; // rows and cols for process
-	if (pType == Vertical) // vertical projection
+	if (pType == Vertical_Projection) // vertical projection
 	{
 		rows = bcols;
 		cols = brows;
@@ -81,7 +81,7 @@ int* histogramProjection(ptr_IntMatrix binaryMatrix, PROJECTION_TYPE pType,
 		count = 0;
 		for (int r = 0; r < rows; ++r)
 		{
-			if (pType == Horizontal)
+			if (pType == Horizontal_Projection)
 			{
 				tvalue = binaryMatrix->getAtPosition(r, c);
 
@@ -199,12 +199,12 @@ vector<Point> boundingBoxDetection(ptr_IntMatrix grayMatrix)
 	vector<Point> corners;
 	ptr_IntMatrix quanMatrix = quantization(grayMatrix, 1);
 	int hpsize = 0;
-	int* hProjection = histogramProjection(quanMatrix, Horizontal, hpsize);
+	int* hProjection = histogramProjection(quanMatrix, Horizontal_Projection, hpsize);
 	int left = 0, right = 0;
 	analysisProjection(hProjection, hpsize, left, right);
 
 	int vpsize = 0;
-	int* vProjection = histogramProjection(quanMatrix, Vertical, vpsize);
+	int* vProjection = histogramProjection(quanMatrix, Vertical_Projection, vpsize);
 	int top = 0, bottom = 0;
 	analysisProjection(vProjection, vpsize, top, bottom);
 
