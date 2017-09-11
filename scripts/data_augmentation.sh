@@ -1,16 +1,16 @@
 #!/bin/bash
 # SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linh/Desktop/data/pronotum_data_5/val/*"
+SCENEJPGFOLDER="/home/linh/Desktop/data/pronotum_data_5/data_aug/train_org/*"
 SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/pronotum/landmarks/*"
-SAVEFOLDER="/home/linh/Desktop/data/pronotum_data_5/val_red/"
+SAVEFOLDER="/home/linh/Desktop/data/pronotum_data_5/data_aug/train_blue/"
 XRATIO=12.75
 YRATIO=12.75
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
 tpsarray=(${SCENETPSFOLDER})
 total=${#jpgarray[@]}
-rpby="_r."
+rpby="_b."
 for (( i=0; i< $total; i++))
 do
 	SCENEJPG="${jpgarray[$i]}"

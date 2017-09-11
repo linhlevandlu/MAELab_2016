@@ -10,8 +10,8 @@
 
 enum PROJECTION_TYPE
 {
-	Horizontal = 1,
-	Vertical = 2
+	Horizontal_Projection = 1,
+	Vertical_Projection = 2
 };
 ptr_IntMatrix quantization(ptr_IntMatrix grayMatrix, int graylevel);
 
