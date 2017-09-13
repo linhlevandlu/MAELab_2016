@@ -490,7 +490,7 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			outfile << image.getFileName();
 
 			// write the coordinate of manual bounding box (left right top bottom)
-			Line bbox = manual_BBox(mLandmarks, 50);
+			Line bbox = manual_BBox(mLandmarks, 20);
 			Point lr = bbox.getBegin();
 			outfile << " " << lr.getX() << " " << lr.getY();
 			Point tb = bbox.getEnd();
