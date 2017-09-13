@@ -1199,9 +1199,9 @@ int main(int argc, char* argv[]) {
 //calculateSIFT(filename,lm_file,9,save_folder);
 //resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
 //data_Augmentation(filename, lm_file, INCREASE_BLUE, 10, save_folder);
-//read_Image_Landmarks("/home/linh/Desktop/data/pronotum_data_5/val_green",
-//	"/home/linh/Desktop/data/pronotum_data_5/landmarks/val", "results/val_green.txt");
-	vector<Point> list;
-	list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
+read_Image_Landmarks("/home/linh/Desktop/data/pronotum_data_5/data_aug/val_green",
+	"/home/linh/Desktop/data/pronotum_data_5/landmarks/val", "results/val_green.txt");
+	//vector<Point> list;
+	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
 }
