@@ -466,9 +466,9 @@ void data_Augmentation(string filename, string lm_file, AUGMENTATION aug,
 }
 
 // calculating the bounding box from manual landmarks
-Line manual_BBox(vector<Point> mLandmarks, int margin = 50)
+Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
 {
-	cout << "\nMargin: " << margin << "\n";
+	cout << "\nMargin: " << marginSize << "\n";
 	int minX = DBL_MAX, maxX = DBL_MIN, minY = DBL_MAX, maxY = DBL_MIN;
 	for (size_t i = 0; i < mLandmarks.size(); i++)
 	{
@@ -485,7 +485,7 @@ Line manual_BBox(vector<Point> mLandmarks, int margin = 50)
 	int dx = abs(minX - maxX);
 	int dy = abs(minY - maxY);
 	int distance = 0, move = 0;
-	if (dx > dy)
+	/*if (dx > dy)
 	{
 		distance = dx - dy;
 		move = distance / 2;
@@ -498,12 +498,22 @@ Line manual_BBox(vector<Point> mLandmarks, int margin = 50)
 		move = distance / 2;
 		minX -= move;
 		maxX += move;
-	}
-	move = margin / 2;
+	}*/
+
+	move = (marginSize - dx) / 2;
 
 	minX -= move;
 	maxX += move;
+
+	move = (marginSize - dy) / 2;
 	minY -= move;
+	if(minY < 0)
+	{
+		distance = 0 - minY;
+		minY = 0;
+	}
+	if(distance != 0 )
+		move += distance;
 	maxY += move;
 	return Line(Point(minX, maxX), Point(minY, maxY));
 }
@@ -564,17 +574,18 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			outfile << image.getFileName();
 
 			// write the coordinate of manual bounding box (left right top bottom)
-			/*Line bbox = manual_BBox(mLandmarks, 0);
+			Line bbox = manual_BBox(mLandmarks, 180);
 			Point lr = bbox.getBegin();
 			outfile << " " << lr.getX() << " " << lr.getY();
 			Point tb = bbox.getEnd();
-			outfile << " " << tb.getX() << " " << tb.getY();*/
+			outfile << " " << tb.getX() << " " << tb.getY();
 
+			/*
 			int width = image.getRGBMatrix().getCols();
 			int height = image.getRGBMatrix().getRows();
 			outfile << " " <<width - height<<" "<<width;
 			outfile << " " <<0<<" "<<height;
-
+			 */
 			// write the coordinate of landmarks
 			for (int k = 0; k < mLandmarks.size(); ++k)
 			{
@@ -1360,9 +1371,9 @@ int main(int argc, char* argv[])
 //resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
 //data_Augmentation(filename, lm_file, INCREASE_BLUE, 10, save_folder);
 	read_Image_Landmarks(
-		"/home/linh/Desktop/data/pronotum_data_5/data_aug/test",
-		"/home/linh/Desktop/data/pronotum_data_5/landmarks/test",
-		"results/test.txt");
+		"/home/linh/Desktop/data/pronotum_data_5/data_aug/val_blue",
+		"/home/linh/Desktop/data/pronotum_data_5/landmarks/val",
+		"results/val_blue.txt");
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
