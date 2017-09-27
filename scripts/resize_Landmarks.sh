@@ -1,9 +1,9 @@
 #!/bin/bash
 # SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linh/Datasets/Morphometrics/pronotum/Images_without_grid_2/*"
-SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/pronotum/landmarks/*"
-SAVEFOLDER="/home/linh/Desktop/results/2017/pronotum/landmarks_256x192/"
+SCENEJPGFOLDER="/home/linh/Datasets/Morphometrics/elytre/Images_without_grid/*"
+SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/elytre/landmarks/*"
+SAVEFOLDER="/home/linh/Desktop/results/2017/elytre/landmarks_256x192/"
 XRATIO=12.75
 YRATIO=12.75
 EXECUTE="./MAELab_CI"

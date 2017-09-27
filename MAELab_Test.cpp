@@ -411,12 +411,11 @@ enum AUGMENTATION
 {
 	INCREASE_RED = 1, INCREASE_GREEN = 2, INCREASE_BLUE = 3, GRAY_SCALE = 4,
 };
-void data_Augmentation(string filename, string lm_file, AUGMENTATION aug,
+void data_Augmentation(string filename, AUGMENTATION aug,
 	int v_increase, string save_file)
 {
 	cout << "\nData augmentation";
 	Image image(filename);
-	image.readManualLandmarks(lm_file);
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	if (aug == GRAY_SCALE)
 	{
@@ -486,19 +485,19 @@ Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
 	int dy = abs(minY - maxY);
 	int distance = 0, move = 0;
 	/*if (dx > dy)
-	{
-		distance = dx - dy;
-		move = distance / 2;
-		minY -= move;
-		maxY += move;
-	}
-	else
-	{
-		distance = dy - dx;
-		move = distance / 2;
-		minX -= move;
-		maxX += move;
-	}*/
+	 {
+	 distance = dx - dy;
+	 move = distance / 2;
+	 minY -= move;
+	 maxY += move;
+	 }
+	 else
+	 {
+	 distance = dy - dx;
+	 move = distance / 2;
+	 minX -= move;
+	 maxX += move;
+	 }*/
 
 	move = (marginSize - dx) / 2;
 
@@ -507,12 +506,12 @@ Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
 
 	move = (marginSize - dy) / 2;
 	minY -= move;
-	if(minY < 0)
+	if (minY < 0)
 	{
 		distance = 0 - minY;
 		minY = 0;
 	}
-	if(distance != 0 )
+	if (distance != 0)
 		move += distance;
 	maxY += move;
 	return Line(Point(minX, maxX), Point(minY, maxY));
@@ -571,30 +570,87 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			image.readManualLandmarks(lmfile);
 			vector<Point> mLandmarks = image.getListOfManualLandmarks();
 			// write file name
-			outfile << image.getFileName();
+			//outfile << image.getFileName();
 
 			// write the coordinate of manual bounding box (left right top bottom)
-			Line bbox = manual_BBox(mLandmarks, 180);
-			Point lr = bbox.getBegin();
-			outfile << " " << lr.getX() << " " << lr.getY();
-			Point tb = bbox.getEnd();
-			outfile << " " << tb.getX() << " " << tb.getY();
+			/*Line bbox = manual_BBox(mLandmarks, 180);
+			 Point lr = bbox.getBegin();
+			 outfile << " " << lr.getX() << " " << lr.getY();
+			 Point tb = bbox.getEnd();
+			 outfile << " " << tb.getX() << " " << tb.getY();*/
 
 			/*
-			int width = image.getRGBMatrix().getCols();
-			int height = image.getRGBMatrix().getRows();
-			outfile << " " <<width - height<<" "<<width;
-			outfile << " " <<0<<" "<<height;
+			 int width = image.getRGBMatrix().getCols();
+			 int height = image.getRGBMatrix().getRows();
+			 outfile << " " <<width - height<<" "<<width;
+			 outfile << " " <<0<<" "<<height;
 			 */
 			// write the coordinate of landmarks
 			for (int k = 0; k < mLandmarks.size(); ++k)
 			{
 				Point p = mLandmarks.at(k);
-				outfile << " " << p.getX() << " " << p.getY();
+				outfile << p.getX() << "\t" << p.getY() << "\t";
 			}
+			outfile << image.getFileName();
 			outfile << "\n";
 		}
 		outfile.close();
+	}
+}
+
+void split_Save_Channels(string folderPath, string saveFolder, int cIndex)
+{
+	DIR *dir;
+	struct dirent *ent;
+
+	// read image directory
+	vector<string> images;
+	if ((dir = opendir(folderPath.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
+				images.push_back(folderPath + "/" + ent->d_name);
+		}
+	}
+	std::sort(images.begin(), images.end());
+	vector<Matrix<int> > channels;
+	Matrix<int> channel;
+	for (size_t i = 0; i < images.size(); ++i)
+	{
+		string imgfile = images.at(i);
+		Image *image = new Image(imgfile);
+		//gray = image->getGrayMatrix();
+		string filename = image->getName();
+		size_t loff = filename.find_last_of('.');
+		filename = filename.substr(0, loff);
+		channels = image->splitChannels();
+		string cname = "";
+		if (cIndex <= 2)
+			channel = channels.at(cIndex);
+		else
+			channel = image->getGrayMatrix();
+		switch (cIndex)
+		{
+		case 0:
+			cname = "_red";
+			break;
+		case 1:
+			cname = "_green";
+			break;
+		case 2:
+			cname = "_blue";
+			break;
+		case 3:
+			cname = "_gray";
+			break;
+		default:
+			cname = "_red";
+			break;
+		}
+		filename += cname + ".JPG";
+		saveGrayScale((saveFolder + "/" + filename).c_str(), &channel);
+		delete image;
 	}
 }
 
@@ -1357,6 +1413,7 @@ int main(int argc, char* argv[])
 		cout << "\nWith parameters !!" << endl;
 		filename = argv[1];
 //savename = argv[2];
+		//lm_file = argv[2];
 		save_folder = argv[2];
 //width = atoi(argv[3]);
 //height = atoi(argv[4]);
@@ -1369,11 +1426,14 @@ int main(int argc, char* argv[])
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 //resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
-//data_Augmentation(filename, lm_file, INCREASE_BLUE, 10, save_folder);
+//data_Augmentation(filename, INCREASE_BLUE, 10, save_folder);
 	read_Image_Landmarks(
-		"/home/linh/Desktop/data/pronotum_data_5/data_aug/val_blue",
-		"/home/linh/Desktop/data/pronotum_data_5/landmarks/val",
-		"results/val_blue.txt");
+		"/home/linh/Desktop/data/elytre/i192x256/original/train",
+		"/home/linh/Desktop/data/elytre/i192x256/landmarks/train",
+		"results/train.txt");
+	//split_Save_Channels(
+	//	"/home/linh/Desktop/data/elytre/i192x256/original/train",
+	//	"/home/linh/Desktop/data/elytre/i192x256/split_channels/c_blue/train", 2);
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);

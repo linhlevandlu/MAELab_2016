@@ -1,16 +1,11 @@
 #!/bin/bash
-# SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
-# THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linh/Desktop/data/pronotum_data_5/val/*"
-SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/pronotum/landmarks/*"
-SAVEFOLDER="/home/linh/Desktop/data/pronotum_data_5/val_green/"
-XRATIO=12.75
-YRATIO=12.75
+# SCRIPT TO AUGEMTATION DATA (INCREASE 10)
+SCENEJPGFOLDER="/home/linh/Desktop/data/elytre/i192x256/original/val/*"
+SAVEFOLDER="/home/linh/Desktop/data/elytre/i192x256/gray_scale/val/"
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
-tpsarray=(${SCENETPSFOLDER})
 total=${#jpgarray[@]}
-rpby="_r."
+rpby="_gray."
 for (( i=0; i< $total; i++))
 do
 	SCENEJPG="${jpgarray[$i]}"
@@ -24,7 +19,7 @@ do
 	saveImg="$SAVEFOLDER$(basename "${jpgarray[$i]}"/)"
 	saveImg2=${saveImg/./$rpby}
 	echo $saveImg2
-	$EXECUTE "$SCENEJPG" "$SCENETPS" "$PATCHSIZE" "0" "$saveImg2"
+	$EXECUTE "$SCENEJPG" "$saveImg2"
 done
 
 #EXECUTE="./MAELab_CI"
