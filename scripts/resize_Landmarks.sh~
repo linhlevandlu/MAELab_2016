@@ -3,7 +3,7 @@
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
 SCENEJPGFOLDER="/home/linh/Datasets/Morphometrics/mandibule-droite/Images_without_grid/*"
 SCENETPSFOLDER="/home/linh/Datasets/Morphometrics/mandibule-droite/landmarks/*"
-SAVEFOLDER="/home/linh/Desktop/results/2017/md/landmarks_256x192/"
+SAVEFOLDER="/home/linh/Desktop/results/2017/mg/landmarks_256x192/"
 XRATIO=12.75
 YRATIO=12.75
 EXECUTE="./MAELab_CI"
