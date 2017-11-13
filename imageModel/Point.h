@@ -20,6 +20,14 @@ struct RGB
 		result.B = color.B + B;
 		return result;
 	}
+	RGB operator-(const RGB& color) const
+	{
+		RGB result;
+		result.R = color.R - R;
+		result.G = color.G - G;
+		result.B = color.B - B;
+		return result;
+	}
 	RGB operator*(const RGB& color) const
 	{
 		RGB result;

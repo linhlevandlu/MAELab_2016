@@ -80,6 +80,7 @@ void Matrix<T>::setAtPosition(int r, int c, T value)
 template<typename T>
 void Matrix<T>::printMatrix()
 {
+
 	for (int i = 0; i < rows; i++)
 	{
 		for (int j = 0; j < cols; j++)
@@ -88,6 +89,7 @@ void Matrix<T>::printMatrix()
 		}
 		cout << endl;
 	}
+
 }
 template<typename T>
 void Matrix<T>::operator=(const Matrix<T> &tMatrix)
@@ -207,6 +209,53 @@ Matrix<T> Matrix<T>::transposition(T defaultValue)
 	}
 	return result;
 }
+
+template<typename T>
+Matrix<T> Matrix<T>::add(Matrix<T> object, T defaultValue)
+{
+	int objRows = object.rows;
+	int objCols = object.cols;
+	Matrix<T> result(objRows, objCols);
+	result.InitWithValue(defaultValue);
+	if (rows != objRows || cols != objCols)
+		return result;
+	for (int row = 0; row < rows; row++)
+	{
+		for (int col = 0; col < cols; col++)
+		{
+			T sum = defaultValue;
+			T value1 = data[row][col];
+			T value2 = object.data[row][col];
+			sum = value1 + value2;
+
+			result.data[row][col] = sum;
+		}
+	}
+	return result;
+}
+template<typename T>
+Matrix<T> Matrix<T>::subtract(Matrix<T> object, T defaultValue)
+{
+	int objRows = object.rows;
+	int objCols = object.cols;
+	Matrix<T> result(objRows, objCols);
+	result.InitWithValue(defaultValue);
+	if (rows != objRows || cols != objCols)
+		return result;
+	for (int row = 0; row < rows; row++)
+	{
+		for (int col = 0; col < cols; col++)
+		{
+			T sum = defaultValue;
+			T value1 = data[row][col];
+			T value2 = object.data[row][col];
+			sum = value1 - value2;
+
+			result.data[row][col] = sum;
+		}
+	}
+	return result;
+}
 template<typename T>
 Matrix<T> Matrix<T>::multiply(Matrix<T> object, T defaultValue)
 {
@@ -230,8 +279,26 @@ Matrix<T> Matrix<T>::multiply(Matrix<T> object, T defaultValue)
 			result.data[row][col] = sum;
 		}
 	}
+	return result;
 }
 
+template<typename T>
+Matrix<T> Matrix<T>::multiplyScalar(T defaultValue, T scalar)
+{
+
+	Matrix<T> result(rows, cols);
+	result.InitWithValue(defaultValue);
+	for (int row = 0; row < rows; row++)
+	{
+		for (int col = 0; col < cols; col++)
+		{
+			T value = data[row][col];
+			T svalue = scalar * value;
+			result.data[row][col] = svalue;
+		}
+	}
+	return result;
+}
 template<typename T>
 Matrix<T> Matrix<T>::extractPatch(int width, int height, int rowIndex,
 	int colIndex, T initValue)

@@ -41,7 +41,7 @@ void Point::setColor(RGB rgb)
 
 void Point::toString()
 {
-	cout << "\n" << x << "\t" << y << endl;
+	cout << "\n" << x << "\t" << y;
 }
 
 void Point::reset()

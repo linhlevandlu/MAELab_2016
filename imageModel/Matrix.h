@@ -61,6 +61,9 @@ public:
 	Matrix<T> translate(int dx, int dy, T defaultValue);
 	Matrix<T> transposition(T defaultValue);
 	Matrix<T> multiply(Matrix<T> object, T defaultValue);
+	Matrix<T> multiplyScalar(T defaultValue, T scalar);
+	Matrix<T> add(Matrix<T> object, T defaultValue);
+	Matrix<T> subtract(Matrix<T> object, T defaultValue);
 	Matrix<T> extractPatch(int width, int height, int rowIndex, int colIndex,
 			T initValue);
 };
