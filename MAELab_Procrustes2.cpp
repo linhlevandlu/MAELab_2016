@@ -102,18 +102,26 @@ Matrix<int> parse_Matrix_From_File(string txtfile)
 	}
 	return pMatrix;
 }
-void printMatrix(Matrix<double> mMatrix)
+
+/*
+ * Find the closet point of p on list points cPoints
+ */
+Point landmark_On_Curve(Point lmPoint, vector<Point> cPoints)
 {
-	cout << "\nThe values of the matrix: \n";
-	for (int r = 0; r < mMatrix.getRows(); r++)
+	double minDistance = DBL_MAX;
+	Point landmark = lmPoint;
+	for (size_t i = 0; i < cPoints.size(); i++)
 	{
-		cout << "\n";
-		for (int c = 0; c < mMatrix.getCols(); c++)
+		Point pi = cPoints.at(i);
+		Line line(lmPoint, pi);
+		if (line.getLength() < minDistance)
 		{
-			cout << "\t" << mMatrix.getAtPosition(r, c);
+			landmark = pi;
+			minDistance = line.getLength();
 		}
 	}
-	cout << "\n";
+	return landmark;
+
 }
 /*
  * Finding the points in cPoints that have the same x-coordinate with p
@@ -162,6 +170,48 @@ vector<Point> reduce_Contours_Points(vector<Point> cPoints)
 	 }*/
 	return result;
 }
+vector<Point> point_Equal_Y(Point p, vector<Point> &cPoints)
+{
+	vector<Point> result;
+	for (size_t i = 0; i < cPoints.size(); i++)
+	{
+		Point pi = cPoints.at(i);
+		if (pi.getX() != p.getX() && pi.getY() == p.getY())
+		{
+			result.push_back(pi);
+			cPoints.erase(cPoints.begin() + i);
+		}
+	}
+	return result;
+}
+vector<Point> reduce_Contours_Points2(vector<Point> cPoints)
+{
+	vector<Point> result;
+	size_t nPoints = cPoints.size();
+	for (size_t i = 0; i < cPoints.size(); i++)
+	{
+		Point pi = cPoints.at(i);
+		vector<Point> equalPoints = point_Equal_Y(pi, cPoints);
+		if (equalPoints.size() == 0)
+		{
+			result.push_back(pi);
+		}
+		else
+		{
+			int totalX = pi.getX();
+			for (size_t j = 0; j < equalPoints.size(); j++)
+			{
+				Point pj = equalPoints.at(j);
+				totalX += pj.getX();
+			}
+			result.push_back(
+				Point(round((double) totalX / ((double) equalPoints.size() + 1)),
+					pi.getY()));
+		}
+	}
+
+	return result;
+}
 /**
  * Extract the pixels belong to the contours and store into the list
  */
@@ -185,6 +235,32 @@ vector<Point> extract_Contours(Matrix<int> mapContours)
 		ctPoints = reduce_Contours_Points(ctPoints);
 	}
 	std::sort(ctPoints.begin(), ctPoints.end(), xComparationTest);
+	return ctPoints;
+}
+/*
+ * Applied for 4th, 6th landmark
+ */
+vector<Point> extract_Contours2(Matrix<int> mapContours)
+{
+	vector<Point> ctPoints;
+	int rows = mapContours.getRows();
+	int cols = mapContours.getCols();
+	for (int r = 0; r <= rows / 2; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			if (mapContours.getAtPosition(r, c) != 0)
+			{
+				ctPoints.push_back(Point(c, r));
+			}
+		}
+	}
+	if (ctPoints.size() > 0)
+	{
+		ctPoints = reduce_Contours_Points2(ctPoints);
+	}
+	cout << "\nNumber of points: " << ctPoints.size();
+	std::sort(ctPoints.begin(), ctPoints.end(), yComparationTest);
 	return ctPoints;
 }
 /*
@@ -217,14 +293,14 @@ vector<Point> parse_Folder(string folderPath)
 	{ 0 };
 
 	int count = 0;
-	for (size_t i = 0; i < txtFiles.size(); ++i)
+	for (size_t i = 0; i < txtFiles.size(); i++)
 	{
 		string fileName = folderPath + "/" + txtFiles.at(i);
 		//cout << fileName << endl;
 		Matrix<int> pMatrix = parse_Matrix_From_File(fileName);
-		vector<Point> cPoints = extract_Contours(pMatrix);
+		vector<Point> cPoints = extract_Contours2(pMatrix);
 		//cout << "\nNumber of contour points: " << cPoints.size() << endl;
-		if (cPoints.size() == 7)
+		if (cPoints.size() == 4)
 		{
 			count++;
 
@@ -239,7 +315,7 @@ vector<Point> parse_Folder(string folderPath)
 	cout << "\n Count: " << count;
 	vector<Point> result;
 	int x = 0, y = 0;
-	for (int k = 0; k < 7; k++)
+	for (int k = 0; k < 4; k++)
 	{
 		x = xarr[k] / count;
 		y = yarr[k] / count;
@@ -284,18 +360,19 @@ vector<vector<Point> > extract_Shape_Manual_Landmark(Image matImage,
 	vector<Point> cPoints = mae_Canny_Algorithm(&matImage);
 
 	// find the point on the curve that have the minimum distance with estLandmark
-	double minDistance = DBL_MAX;
-	Point landmark = estLandmark;
-	for (size_t i = 0; i < cPoints.size(); i++)
-	{
-		Point pi = cPoints.at(i);
-		Line line(estLandmark, pi);
-		if (line.getLength() < minDistance)
-		{
-			landmark = pi;
-			minDistance = line.getLength();
-		}
-	}
+	//double minDistance = DBL_MAX;
+	Point landmark = landmark_On_Curve(estLandmark, cPoints);
+	/*
+	 for (size_t i = 0; i < cPoints.size(); i++)
+	 {
+	 Point pi = cPoints.at(i);
+	 Line line(estLandmark, pi);
+	 if (line.getLength() < minDistance)
+	 {
+	 landmark = pi;
+	 minDistance = line.getLength();
+	 }
+	 }*/
 
 	landmark.toString();
 
@@ -336,8 +413,8 @@ double measure_Distance(vector<Point> meanPoints, vector<Point> cpPoints)
 	}
 	return totalDistance;
 }
-Point checkList(vector<vector<Point> > lcpPoints,
-	vector<Point> meanPoints)
+//vector<Point>
+Point checkList(vector<vector<Point> > lcpPoints, vector<Point> meanPoints)
 {
 	vector<Point> result;
 	double minDistance = DBL_MAX;
@@ -355,6 +432,14 @@ Point checkList(vector<vector<Point> > lcpPoints,
 		for (size_t i = 0; i < lcpPoints.size(); i++)
 		{
 			vector<Point> icpPoints = lcpPoints.at(i);
+			//cout<<"\nPoints points: "<<icpPoints.size();
+			if (icpPoints.size() >= 4)
+			{
+				std::sort(icpPoints.begin(), icpPoints.end(), yComparationTest);
+				icpPoints = reduce_Contours_Points2(icpPoints);
+				icpPoints.assign(icpPoints.begin(), icpPoints.begin() + 4);
+			}
+			//cout<<"\nPoints points --- : "<<icpPoints.size();
 			double distance = measure_Distance(meanPoints, icpPoints);
 			if (distance < minDistance)
 			{
@@ -362,11 +447,13 @@ Point checkList(vector<vector<Point> > lcpPoints,
 				minDistance = distance;
 				index = i;
 			}
+			//break;
 		}
 	}
 	Point pResult;
 	cout << "\nIndex: " << index << endl;
-	if (index != -1){
+	if (index != -1)
+	{
 		pResult = originalList.at(index);
 		originalList.at(index).toString();
 	}
@@ -403,9 +490,9 @@ int main(int argc, char* argv[])
 	 Point centroid2 = cal_Centroid(cMap2);
 	 cout << "\n" << centroid2.getX() << "\t" << centroid2.getY() << "\n";*/
 	string folderpath =
-		"/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm3";
-	vector<Point> meanCurve = parse_Folder(folderpath);
-
+		"/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm4";
+	//vector<Point> meanCurve = parse_Folder(folderpath);
+	//cout << "\nMean curve: " << meanCurve.size();
 	/*string imagePath =
 	 "/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/Prono_003.JPG";
 	 Image image(imagePath);
@@ -421,84 +508,111 @@ int main(int argc, char* argv[])
 
 	// run on the list
 	vector<Point> listPoints;
-	listPoints.push_back(Point(214,23));
-	listPoints.push_back(Point(219,22));
-	listPoints.push_back(Point(216,34));
-	listPoints.push_back(Point(217,32));
-	listPoints.push_back(Point(218,46));
-	listPoints.push_back(Point(202,46));
-	listPoints.push_back(Point(209,18));
-	listPoints.push_back(Point(217,13));
-	listPoints.push_back(Point(219,40));
-	listPoints.push_back(Point(212,34));
-	listPoints.push_back(Point(216,28));
-	listPoints.push_back(Point(213,61));
-	listPoints.push_back(Point(207,28));
-	listPoints.push_back(Point(215,44));
-	listPoints.push_back(Point(212,51));
-	listPoints.push_back(Point(211,33));
-	listPoints.push_back(Point(207,41));
-	listPoints.push_back(Point(210,38));
-	listPoints.push_back(Point(213,46));
-	listPoints.push_back(Point(219,34));
-	listPoints.push_back(Point(234,30));
-	listPoints.push_back(Point(214,44));
-	listPoints.push_back(Point(218,36));
-	listPoints.push_back(Point(209,36));
-	listPoints.push_back(Point(217,43));
-	listPoints.push_back(Point(223,50));
-	listPoints.push_back(Point(218,46));
-	listPoints.push_back(Point(225,45));
-	listPoints.push_back(Point(221,52));
-
+	listPoints.push_back(Point(244, 166));
+	listPoints.push_back(Point(238, 171));
+	listPoints.push_back(Point(240, 159));
+	listPoints.push_back(Point(243, 154));
+	listPoints.push_back(Point(240, 167));
+	listPoints.push_back(Point(228, 154));
+	listPoints.push_back(Point(241, 162));
+	listPoints.push_back(Point(248, 142));
+	listPoints.push_back(Point(242, 164));
+	listPoints.push_back(Point(237, 168));
+	listPoints.push_back(Point(246, 143));
+	listPoints.push_back(Point(243, 157));
+	listPoints.push_back(Point(243, 163));
+	listPoints.push_back(Point(239, 165));
+	listPoints.push_back(Point(241, 160));
+	listPoints.push_back(Point(240, 169));
+	listPoints.push_back(Point(236, 171));
+	listPoints.push_back(Point(236, 178));
+	listPoints.push_back(Point(232, 175));
+	listPoints.push_back(Point(238, 156));
+	listPoints.push_back(Point(241, 167));
+	listPoints.push_back(Point(241, 167));
+	listPoints.push_back(Point(237, 151));
+	listPoints.push_back(Point(242, 162));
+	listPoints.push_back(Point(244, 158));
+	listPoints.push_back(Point(236, 163));
+	listPoints.push_back(Point(233, 153));
+	listPoints.push_back(Point(238, 159));
+	listPoints.push_back(Point(239, 156));
+	listPoints.push_back(Point(235, 172));
+	listPoints.push_back(Point(237, 173));
+	listPoints.push_back(Point(244, 159));
+	listPoints.push_back(Point(239, 157));
 
 	string imgsFolder =
 		"/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/";
 	vector<string> listImages;
-	listImages.push_back("Prono_265.JPG");
-	listImages.push_back("Prono_266.JPG");
-	listImages.push_back("Prono_267.JPG");
-	listImages.push_back("Prono_268.JPG");
-	listImages.push_back("Prono_269.JPG");
-	listImages.push_back("Prono_270.JPG");
-	listImages.push_back("Prono_271.JPG");
-	listImages.push_back("Prono_272.JPG");
-	listImages.push_back("Prono_273.JPG");
-	listImages.push_back("Prono_274.JPG");
-	listImages.push_back("Prono_275.JPG");
-	listImages.push_back("Prono_276.JPG");
-	listImages.push_back("Prono_277.JPG");
-	listImages.push_back("Prono_278.JPG");
-	listImages.push_back("Prono_279.JPG");
-	listImages.push_back("Prono_280.JPG");
-	listImages.push_back("Prono_281.JPG");
-	listImages.push_back("Prono_282.JPG");
-	listImages.push_back("Prono_283.JPG");
-	listImages.push_back("Prono_284.JPG");
-	listImages.push_back("Prono_285.JPG");
-	listImages.push_back("Prono_286.JPG");
-	listImages.push_back("Prono_287.JPG");
-	listImages.push_back("Prono_288.JPG");
-	listImages.push_back("Prono_289.JPG");
-	listImages.push_back("Prono_290.JPG");
-	listImages.push_back("Prono_291.JPG");
-	listImages.push_back("Prono_292.JPG");
-	listImages.push_back("Prono_293.JPG");
+	listImages.push_back("Prono_001.JPG");
+	listImages.push_back("Prono_002.JPG");
+	listImages.push_back("Prono_003.JPG");
+	listImages.push_back("Prono_004.JPG");
+	listImages.push_back("Prono_005.JPG");
+	listImages.push_back("Prono_006.JPG");
+	listImages.push_back("Prono_007.JPG");
+	listImages.push_back("Prono_008.JPG");
+	listImages.push_back("Prono_009.JPG");
+	listImages.push_back("Prono_010.JPG");
+	listImages.push_back("Prono_011.JPG");
+	listImages.push_back("Prono_012.JPG");
+	listImages.push_back("Prono_013.JPG");
+	listImages.push_back("Prono_014.JPG");
+	listImages.push_back("Prono_015.JPG");
+	listImages.push_back("Prono_016.JPG");
+	listImages.push_back("Prono_017.JPG");
+	listImages.push_back("Prono_018.JPG");
+	listImages.push_back("Prono_019.JPG");
+	listImages.push_back("Prono_020.JPG");
+	listImages.push_back("Prono_021.JPG");
+	listImages.push_back("Prono_022.JPG");
+	listImages.push_back("Prono_023.JPG");
+	listImages.push_back("Prono_024.JPG");
+	listImages.push_back("Prono_025.JPG");
+	listImages.push_back("Prono_026.JPG");
+	listImages.push_back("Prono_027.JPG");
+	listImages.push_back("Prono_028.JPG");
+	listImages.push_back("Prono_029.JPG");
+	listImages.push_back("Prono_030.JPG");
+	listImages.push_back("Prono_031.JPG");
+	listImages.push_back("Prono_032.JPG");
+	listImages.push_back("Prono_033.JPG");
 
+	/*vector<Point> result;
+	 for (int i = 0; i < listPoints.size(); i++)
+	 {
+	 Point estLM = listPoints.at(i);
+	 string filename = imgsFolder + listImages.at(i);
+	 Image img(filename);
+	 vector<vector<Point> > points = extract_Shape_Manual_Landmark(img, estLM,
+	 12, 7);
+	 Point rs = checkList(points, meanCurve);
+	 result.push_back(rs);
+	 }
+	 cout << "\nResults: \n";
+	 for (int i = 0; i < result.size(); i++)
+	 {
+	 (result.at(i)).toString();
+	 }*/
 
 	vector<Point> result;
-	for (int i = 0; i < listPoints.size(); i++)
+	for (size_t i = 0; i < listPoints.size(); i++)
 	{
 		Point estLM = listPoints.at(i);
 		string filename = imgsFolder + listImages.at(i);
-		Image img(filename);
-		vector<vector<Point> > points = extract_Shape_Manual_Landmark(img, estLM,
-			12, 7);
-		Point rs = checkList(points, meanCurve);
-		result.push_back(rs);
+		ptr_Image img = new Image(filename);
+		vector<Point> cPoints = mae_Canny_Algorithm(img);
+
+		// find the point on the curve that have the minimum distance with estLandmark
+		double minDistance = DBL_MAX;
+		Point landmark = landmark_On_Curve(estLM, cPoints);
+		result.push_back(landmark);
+		delete img;
 	}
-	cout<<"\nResults: \n";
-	for (int i = 0; i < result.size(); i++) {
+	cout << "\nResults: \n";
+	for (int i = 0; i < result.size(); i++)
+	{
 		(result.at(i)).toString();
 	}
 }

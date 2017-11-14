@@ -48,6 +48,24 @@ using namespace std;
  * Extract the border shape via a manual landmark inside a box
  */
 
+Point landmark_On_Curve(Point lmPoint, vector<Point> cPoints)
+{
+	double minDistance = DBL_MAX;
+	Point landmark = lmPoint;
+	for (size_t i = 0; i < cPoints.size(); i++)
+	{
+		Point pi = cPoints.at(i);
+		Line line(lmPoint, pi);
+		if (line.getLength() < minDistance)
+		{
+			landmark = pi;
+			minDistance = line.getLength();
+		}
+	}
+	return landmark;
+
+}
+
 void extract_Shape_Manual_Landmark(Image matImage, string lmark, int lmIndex,
 	int bsize, string fSave)
 {
@@ -55,6 +73,7 @@ void extract_Shape_Manual_Landmark(Image matImage, string lmark, int lmIndex,
 	matImage.readManualLandmarks(lmark);
 	Point landmark = matImage.getListOfManualLandmarks().at(lmIndex);
 
+	landmark = landmark_On_Curve(landmark,cPoints);
 	//cout << "\nContours points: " << cPoints.size() << endl;
 	if (bsize % 2 == 0)
 		bsize += 1; // make the size is odd number
@@ -508,7 +527,7 @@ int main(int argc, char* argv[])
 		"/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/Prono_001.JPG";
 	string lmPath =
 		"/home/linh/Desktop/data/pronotum_data_5/landmarks/train/p_001.TPS";
-	int lmIndex = 1;
+	int lmIndex = 3;
 	string fSave = "/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm2/";
 	int bsize = 7;
 	if (argc == 6)
