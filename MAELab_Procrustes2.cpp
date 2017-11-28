@@ -360,20 +360,7 @@ vector<vector<Point> > extract_Shape_Manual_Landmark(Image matImage,
 	vector<Point> cPoints = mae_Canny_Algorithm(&matImage);
 
 	// find the point on the curve that have the minimum distance with estLandmark
-	//double minDistance = DBL_MAX;
 	Point landmark = landmark_On_Curve(estLandmark, cPoints);
-	/*
-	 for (size_t i = 0; i < cPoints.size(); i++)
-	 {
-	 Point pi = cPoints.at(i);
-	 Line line(estLandmark, pi);
-	 if (line.getLength() < minDistance)
-	 {
-	 landmark = pi;
-	 minDistance = line.getLength();
-	 }
-	 }*/
-
 	landmark.toString();
 
 	vector<vector<Point> > ppPoints;
@@ -437,14 +424,6 @@ Point checkList(vector<vector<Point> > lcpPoints, vector<Point> meanPoints)
 		for (size_t i = 0; i < lcpPoints.size(); i++)
 		{
 			vector<Point> icpPoints = lcpPoints.at(i);
-			//cout<<"\nPoints points: "<<icpPoints.size();
-			/*if (icpPoints.size() >= 4)
-			{
-				std::sort(icpPoints.begin(), icpPoints.end(), yComparationTest);
-				icpPoints = reduce_Contours_Points2(icpPoints);
-				icpPoints.assign(icpPoints.begin(), icpPoints.begin() + 4);
-			}*/
-			//cout<<"\nPoints points --- : "<<icpPoints.size();
 			double distance = measure_Distance(meanPoints, icpPoints);
 			if (distance < minDistance)
 			{
@@ -491,19 +470,153 @@ void mean_Distance_MeanCurve(string folderPath, vector<Point> meanPoints)
 	}
 }
 
+double bhattacharyya_coefficient(Matrix<int> mt1, Matrix<int> mt2)
+{
+	if (mt1.getRows() != mt2.getRows() || mt1.getCols() != mt2.getCols())
+		return 0; // not match
+	double sum = 0;
+	for (int r = 0; r < mt1.getRows(); r++)
+	{
+		for (int c = 0; c < mt1.getCols(); c++)
+		{
+			double p1 = (double) mt1.getAtPosition(r, c);
+			double p2 = (double) mt2.getAtPosition(r, c);
+			sum += sqrt(p1 * p2);
+		}
+	}
+	return sum;
+}
+Matrix<int> list_Points_To_Matrix(vector<Point> listPoints)
+{
+	Matrix<int> result(7, 7, 0);
+	for (size_t i = 0; i < listPoints.size(); i++)
+	{
+		Point pi = listPoints.at(i);
+		result.setAtPosition(pi.getY(), pi.getX(), 1);
+	}
+	return result;
+}
+
+Point checkList_Matrices(vector<vector<Point> > lcpPoints,
+	Matrix<int> meanMatrix)
+{
+	/*double maxDistance = DBL_MIN;
+	 Matrix<int> maxMatrix;
+	 for (int i = 0; i < listMatrices.size(); i++)
+	 {
+	 Matrix<int> mi = listMatrices.at(i);
+	 double distance = bhattacharyya_coefficient(meanMatrix, mi);
+	 if (distance > maxDistance)
+	 {
+	 maxDistance = distance;
+	 maxMatrix = mi;
+	 }
+	 }*/
+
+	vector<Point> result;
+	double maxDistance = DBL_MIN;
+	int index = -1;
+	vector<Point> originalList;
+	for (size_t i = 0; i < lcpPoints.size(); i++)
+	{
+		vector<Point> lpi = lcpPoints.at(i);
+		Point pi = lpi.at(lpi.size() - 1);
+		lcpPoints.at(i).erase(lcpPoints.at(i).begin() + lpi.size() - 1);
+		originalList.push_back(pi);
+	}
+	if (lcpPoints.size() == originalList.size())
+	{
+		for (size_t i = 0; i < lcpPoints.size(); i++)
+		{
+			vector<Point> icpPoints = lcpPoints.at(i);
+			Matrix<int> piMatrix = list_Points_To_Matrix(icpPoints);
+			double distance = bhattacharyya_coefficient(meanMatrix, piMatrix);
+			if (distance > maxDistance)
+			{
+				result = icpPoints;
+				maxDistance = distance;
+				index = i;
+			}
+			//break;
+		}
+	}
+	Point pResult;
+	cout << "\nIndex: " << index << endl;
+	if (index != -1)
+	{
+		pResult = originalList.at(index);
+		originalList.at(index).toString();
+	}
+	else
+	{
+		cout << "\n0\t0";
+		pResult.setX(0);
+		pResult.setY(0);
+	}
+	return pResult;
+
+}
+
+void segmentation_Folder(string folderPath, string saveFolder)
+{
+	// read directory
+	vector<string> txtFiles = readDirectory(folderPath.c_str());
+
+	int count = 0;
+	for (size_t i = 0; i < txtFiles.size(); i++)
+	{
+		string fileName = folderPath + "/" + txtFiles.at(i);
+		ptr_Image imgPtr = new Image(fileName);
+		vector<Point> cPoints;
+
+		imgPtr->cannyAlgorithm(cPoints); //= mae_Canny_Algorithm(imgPtr);
+		Matrix<RGB> rgbMatrix = imgPtr->getRGBMatrix();
+
+		ptr_RGBMatrix saveMatrix = new Matrix<RGB>(rgbMatrix.getRows(),
+			rgbMatrix.getCols(), rgbMatrix.getAtPosition(0, 0));
+		*saveMatrix = rgbMatrix;
+		RGB red;
+		red.R = 255;
+		red.G = red.B = 0;
+		for (size_t i = 0; i < cPoints.size(); i++)
+		{
+			Point pi = cPoints.at(i);
+			saveMatrix->setAtPosition(pi.getY(), pi.getX(), red);
+		}
+		string savefile = saveFolder + "/" + txtFiles.at(i);
+		saveRGB(savefile.c_str(), saveMatrix);
+		//delete saveMatrix;
+		//delete imgPtr;
+	}
+	cout << "\nDone!\n";
+}
+/*
+ * This program try to improve the location of a specific landmark (i.e lm7, lm3)
+ * Step 1: Extract the patch around the manual landmark of all images
+ * Step 2: Calculate the mean curve of the manual landmarks (mean patch)
+ * Step 3: Extract a patch around predicted landmark, extract the curve inside the patch
+ * Step 4: For each pixel of curve, extract a patch and calculate the measure with mean patch
+ */
+
 int main(int argc, char* argv[])
 {
 	cout << "\n Procrustes analysis helper !!!" << endl;
-
-	/*string folderpath =
-	 "/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct";
-	 vector<Point> meanCurve = parse_Folder(folderpath);
-	 cout << "\nMean curve: " << meanCurve.size();
-	 for (int i = 0; i < meanCurve.size(); ++i) {
-	 meanCurve.at(i).toString();
-	 }
-	 mean_Distance_MeanCurve(folderpath,meanCurve);*/
-
+// ================================================================================================
+// Try to extract contours for every images
+	/*string imageFolder = "/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original";
+	 string saveFolder = "/home/linh/Desktop/results/2017/pronotum/256x192_segmentation";
+	 segmentation_Folder(imageFolder,saveFolder);*/
+// ================================================================================================
+	string folderpath =
+		"/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm7";
+	vector<Point> meanCurve = parse_Folder(folderpath);
+	cout << "\nMean curve: " << meanCurve.size();
+	for (int i = 0; i < meanCurve.size(); ++i)
+	{
+		Point pi = meanCurve.at(i);
+		pi.toString();
+	}
+	//mean_Distance_MeanCurve(folderpath, meanCurve);
 	/*string imagePath =
 	 "/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/Prono_003.JPG";
 	 Image image(imagePath);
@@ -517,85 +630,61 @@ int main(int argc, char* argv[])
 	 cout << "\n" << pi.getX() << "\t" << pi.getY();
 	 }*/
 
-	// the mean curve is selected by a user
-	string fileName =
-		"/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm3/Prono_084.txt";
-	Matrix<int> pMatrix = parse_Matrix_From_File(fileName);
-	vector<Point> meanCurve = extract_Contours(pMatrix);
-	cout<<"\nNumber of points: "<<meanCurve.size();
-	// run on the list
+	// =================================== the mean curve is selected by a user ========================================
+	/*string fileName =
+	 "/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm3/Prono_084.txt";
+	 Matrix<int> pMatrix = parse_Matrix_From_File(fileName);
+	 vector<Point> meanCurve = extract_Contours(pMatrix);
+	 cout<<"\nNumber of points: "<<meanCurve.size();*/
+
+	// ============================================= run on the list ============================================================
 	vector<Point> listPoints;
 
-	listPoints.push_back(Point(214,23));
-	listPoints.push_back(Point(219,22));
-	listPoints.push_back(Point(216,34));
-	listPoints.push_back(Point(217,32));
-	listPoints.push_back(Point(218,46));
-	listPoints.push_back(Point(202,46));
-	listPoints.push_back(Point(209,18));
-	listPoints.push_back(Point(217,13));
-	listPoints.push_back(Point(219,40));
-	listPoints.push_back(Point(212,34));
-	listPoints.push_back(Point(216,28));
-	listPoints.push_back(Point(213,61));
-	listPoints.push_back(Point(207,28));
-	listPoints.push_back(Point(215,44));
-	listPoints.push_back(Point(212,51));
-	listPoints.push_back(Point(211,33));
-	listPoints.push_back(Point(207,41));
-	listPoints.push_back(Point(210,38));
-	listPoints.push_back(Point(213,46));
-	listPoints.push_back(Point(219,34));
-	listPoints.push_back(Point(234,30));
-	listPoints.push_back(Point(214,44));
-	listPoints.push_back(Point(218,36));
-	listPoints.push_back(Point(209,36));
-	listPoints.push_back(Point(217,43));
-	listPoints.push_back(Point(223,50));
-	listPoints.push_back(Point(218,46));
-	listPoints.push_back(Point(225,45));
-	listPoints.push_back(Point(221,52));
-
-
-
+	listPoints.push_back(Point(107, 51));
+	listPoints.push_back(Point(104, 52));
+	listPoints.push_back(Point(110, 47));
+	listPoints.push_back(Point(106, 36));
+	listPoints.push_back(Point(111, 51));
+	listPoints.push_back(Point(108, 40));
+	listPoints.push_back(Point(111, 41));
+	listPoints.push_back(Point(111, 28));
+	listPoints.push_back(Point(109, 49));
+	listPoints.push_back(Point(105, 49));
+	listPoints.push_back(Point(101, 19));
+	listPoints.push_back(Point(110, 41));
+	listPoints.push_back(Point(107, 48));
+	listPoints.push_back(Point(111, 42));
+	listPoints.push_back(Point(107, 38));
+	listPoints.push_back(Point(107, 47));
+	listPoints.push_back(Point(106, 51));
+	listPoints.push_back(Point(105, 53));
+	listPoints.push_back(Point(108, 49));
+	listPoints.push_back(Point(106, 35));
 
 	string imgsFolder =
 		"/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/";
 	vector<string> listImages;
 
-	listImages.push_back("Prono_265.JPG");
-	listImages.push_back("Prono_266.JPG");
-	listImages.push_back("Prono_267.JPG");
-	listImages.push_back("Prono_268.JPG");
-	listImages.push_back("Prono_269.JPG");
-	listImages.push_back("Prono_270.JPG");
-	listImages.push_back("Prono_271.JPG");
-	listImages.push_back("Prono_272.JPG");
-	listImages.push_back("Prono_273.JPG");
-	listImages.push_back("Prono_274.JPG");
-	listImages.push_back("Prono_275.JPG");
-	listImages.push_back("Prono_276.JPG");
-	listImages.push_back("Prono_277.JPG");
-	listImages.push_back("Prono_278.JPG");
-	listImages.push_back("Prono_279.JPG");
-	listImages.push_back("Prono_280.JPG");
-	listImages.push_back("Prono_281.JPG");
-	listImages.push_back("Prono_282.JPG");
-	listImages.push_back("Prono_283.JPG");
-	listImages.push_back("Prono_284.JPG");
-	listImages.push_back("Prono_285.JPG");
-	listImages.push_back("Prono_286.JPG");
-	listImages.push_back("Prono_287.JPG");
-	listImages.push_back("Prono_288.JPG");
-	listImages.push_back("Prono_289.JPG");
-	listImages.push_back("Prono_290.JPG");
-	listImages.push_back("Prono_291.JPG");
-	listImages.push_back("Prono_292.JPG");
-	listImages.push_back("Prono_293.JPG");
-
-
-
-
+	listImages.push_back("Prono_001.JPG");
+	listImages.push_back("Prono_002.JPG");
+	listImages.push_back("Prono_003.JPG");
+	listImages.push_back("Prono_004.JPG");
+	listImages.push_back("Prono_005.JPG");
+	listImages.push_back("Prono_006.JPG");
+	listImages.push_back("Prono_007.JPG");
+	listImages.push_back("Prono_008.JPG");
+	listImages.push_back("Prono_009.JPG");
+	listImages.push_back("Prono_010.JPG");
+	listImages.push_back("Prono_011.JPG");
+	listImages.push_back("Prono_012.JPG");
+	listImages.push_back("Prono_013.JPG");
+	listImages.push_back("Prono_014.JPG");
+	listImages.push_back("Prono_015.JPG");
+	listImages.push_back("Prono_016.JPG");
+	listImages.push_back("Prono_017.JPG");
+	listImages.push_back("Prono_018.JPG");
+	listImages.push_back("Prono_019.JPG");
+	listImages.push_back("Prono_020.JPG");
 
 	vector<Point> result;
 	for (int i = 0; i < listPoints.size(); i++)
@@ -604,7 +693,7 @@ int main(int argc, char* argv[])
 		string filename = imgsFolder + listImages.at(i);
 		ptr_Image img = new Image(filename);
 		vector<vector<Point> > points = extract_Shape_Manual_Landmark(*img, estLM,
-			12, 7);
+			16, 7);
 		Point rs = checkList(points, meanCurve);
 		result.push_back(rs);
 		delete img;
@@ -614,24 +703,4 @@ int main(int argc, char* argv[])
 	{
 		(result.at(i)).toString();
 	}
-
-	/*vector<Point> result;
-	 for (size_t i = 0; i < listPoints.size(); i++)
-	 {
-	 Point estLM = listPoints.at(i);
-	 string filename = imgsFolder + listImages.at(i);
-	 ptr_Image img = new Image(filename);
-	 vector<Point> cPoints = mae_Canny_Algorithm(img);
-
-	 // find the point on the curve that have the minimum distance with estLandmark
-	 double minDistance = DBL_MAX;
-	 Point landmark = landmark_On_Curve(estLM, cPoints);
-	 result.push_back(landmark);
-	 delete img;
-	 }
-	 cout << "\nResults: \n";
-	 for (int i = 0; i < result.size(); i++)
-	 {
-	 (result.at(i)).toString();
-	 }*/
 }
