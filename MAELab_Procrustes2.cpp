@@ -57,6 +57,58 @@ struct compareyTest
 		return p1.getY() < p2.getY();
 	}
 } yComparationTest;
+
+/*
+ * Extract the curve points via landmark and store into txt file
+ */
+void extract_Shape_Manual_Landmark(Image matImage, string lmark, int lmIndex,
+	int bsize, string fSave)
+{
+	vector<Point> cPoints = mae_Canny_Algorithm(&matImage);
+	matImage.readManualLandmarks(lmark);
+	Point landmark = matImage.getListOfManualLandmarks().at(lmIndex);
+
+	//cout << "\nContours points: " << cPoints.size() << endl;
+	if (bsize % 2 == 0)
+		bsize += 1; // make the size is odd number
+	int hsize = bsize / 2;
+	int xbegin = landmark.getX() - hsize;
+	int xend = landmark.getX() + hsize;
+	int ybegin = landmark.getY() - hsize;
+	int yend = landmark.getY() + hsize;
+
+	vector<Point> pinBox;
+	for (size_t t = 0; t < cPoints.size(); t++)
+	{
+		Point pi = cPoints.at(t);
+		if (pi.getX() >= xbegin && pi.getX() <= xend && pi.getY() >= ybegin
+			&& pi.getY() <= yend)
+			pinBox.push_back(pi);
+	}
+	cout << "\nNumber of pixel: " << pinBox.size() << endl;
+	Matrix<int> patch(bsize, bsize, 0);
+	for (size_t i = 0; i < pinBox.size(); i++)
+	{
+		Point pi = pinBox.at(i);
+		int x = pi.getX() - xbegin;
+		int y = pi.getY() - ybegin;
+		patch.setAtPosition(y, x, 1);
+	}
+	string name = matImage.getName();
+	name = name.substr(0, name.length() - 3);
+	string savefile = fSave + name + "txt";
+	ofstream outfile(savefile.c_str());
+	for (int i = 0; i < bsize; i++)
+	{
+		for (int j = 0; j < bsize; j++)
+		{
+			outfile << patch.getAtPosition(i, j) << "\t";
+		}
+		outfile << endl;
+	}
+	outfile.close();
+}
+
 /*
  * Parse the matrix from a text file
  */
@@ -287,9 +339,9 @@ vector<Point> parse_Folder(string folderPath)
 {
 	// read directory
 	vector<string> txtFiles = readDirectory(folderPath.c_str());
-	int xarr[7] =
+	int xarr[15] =
 	{ 0 };
-	int yarr[7] =
+	int yarr[15] =
 	{ 0 };
 
 	int count = 0;
@@ -300,7 +352,7 @@ vector<Point> parse_Folder(string folderPath)
 		Matrix<int> pMatrix = parse_Matrix_From_File(fileName);
 		vector<Point> cPoints = extract_Contours(pMatrix);
 		//cout << "\nNumber of contour points: " << cPoints.size() << endl;
-		if (cPoints.size() == 7)
+		if (cPoints.size() == 15)
 		{
 			count++;
 
@@ -315,7 +367,7 @@ vector<Point> parse_Folder(string folderPath)
 	cout << "\n Count: " << count;
 	vector<Point> result;
 	int x = 0, y = 0;
-	for (int k = 0; k < 7; k++)
+	for (int k = 0; k < 15; k++)
 	{
 		x = xarr[k] / count;
 		y = yarr[k] / count;
@@ -354,7 +406,7 @@ vector<Point> extract_BBox(vector<Point> cPoints, Point center, int bsize,
  * bsize2: size to extract the point and to compare with mean curve
  * bsize1 >= bsize2
  */
-vector<vector<Point> > extract_Shape_Manual_Landmark(Image matImage,
+vector<vector<Point> > extract_Shape_Predicted_Landmark(Image matImage,
 	Point estLandmark, int bsize1, int bsize2)
 {
 	vector<Point> cPoints = mae_Canny_Algorithm(&matImage);
@@ -488,7 +540,7 @@ double bhattacharyya_coefficient(Matrix<int> mt1, Matrix<int> mt2)
 }
 Matrix<int> list_Points_To_Matrix(vector<Point> listPoints)
 {
-	Matrix<int> result(7, 7, 0);
+	Matrix<int> result(15, 15, 0);
 	for (size_t i = 0; i < listPoints.size(); i++)
 	{
 		Point pi = listPoints.at(i);
@@ -556,40 +608,6 @@ Point checkList_Matrices(vector<vector<Point> > lcpPoints,
 	return pResult;
 
 }
-
-void segmentation_Folder(string folderPath, string saveFolder)
-{
-	// read directory
-	vector<string> txtFiles = readDirectory(folderPath.c_str());
-
-	int count = 0;
-	for (size_t i = 0; i < txtFiles.size(); i++)
-	{
-		string fileName = folderPath + "/" + txtFiles.at(i);
-		ptr_Image imgPtr = new Image(fileName);
-		vector<Point> cPoints;
-
-		imgPtr->cannyAlgorithm(cPoints); //= mae_Canny_Algorithm(imgPtr);
-		Matrix<RGB> rgbMatrix = imgPtr->getRGBMatrix();
-
-		ptr_RGBMatrix saveMatrix = new Matrix<RGB>(rgbMatrix.getRows(),
-			rgbMatrix.getCols(), rgbMatrix.getAtPosition(0, 0));
-		*saveMatrix = rgbMatrix;
-		RGB red;
-		red.R = 255;
-		red.G = red.B = 0;
-		for (size_t i = 0; i < cPoints.size(); i++)
-		{
-			Point pi = cPoints.at(i);
-			saveMatrix->setAtPosition(pi.getY(), pi.getX(), red);
-		}
-		string savefile = saveFolder + "/" + txtFiles.at(i);
-		saveRGB(savefile.c_str(), saveMatrix);
-		//delete saveMatrix;
-		//delete imgPtr;
-	}
-	cout << "\nDone!\n";
-}
 /*
  * This program try to improve the location of a specific landmark (i.e lm7, lm3)
  * Step 1: Extract the patch around the manual landmark of all images
@@ -602,13 +620,31 @@ int main(int argc, char* argv[])
 {
 	cout << "\n Procrustes analysis helper !!!" << endl;
 // ================================================================================================
-// Try to extract contours for every images
-	/*string imageFolder = "/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original";
-	 string saveFolder = "/home/linh/Desktop/results/2017/pronotum/256x192_segmentation";
-	 segmentation_Folder(imageFolder,saveFolder);*/
+	/**
+	 * Extract the contours around the landmark and save to the file
+	 */
+	/*string imagePath =
+	 "/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/Prono_001.JPG";
+	 string lmPath =
+	 "/home/linh/Desktop/data/pronotum_data_5/landmarks/train/p_001.TPS";
+	 int lmIndex = 1;
+	 string fSave =
+	 "/home/linh/Desktop/results/2017/pronotum/procrustes_lm3_size15/";
+	 int bsize = 7;
+	 if (argc == 6)
+	 {
+	 cout << "\nWith parameters...";
+	 imagePath = argv[1];
+	 lmPath = argv[2];
+	 lmIndex = atoi(argv[3]);
+	 bsize = atoi(argv[4]);
+	 fSave = argv[5];
+	 }
+	 Image image(imagePath);
+	 extract_Shape_Manual_Landmark(image, lmPath, lmIndex, bsize, fSave);*/
 // ================================================================================================
 	string folderpath =
-		"/home/linh/Desktop/results/2017/pronotum/procrustes_27Oct_lm7";
+		"/home/linh/Desktop/results/2017/pronotum/procrustes_lm3_size15";
 	vector<Point> meanCurve = parse_Folder(folderpath);
 	cout << "\nMean curve: " << meanCurve.size();
 	for (int i = 0; i < meanCurve.size(); ++i)
@@ -639,52 +675,202 @@ int main(int argc, char* argv[])
 
 	// ============================================= run on the list ============================================================
 	vector<Point> listPoints;
+	listPoints.push_back(Point(217,28));
+	listPoints.push_back(Point(215,24));
+	listPoints.push_back(Point(211,30));
+	listPoints.push_back(Point(197,40));
+	listPoints.push_back(Point(226,37));
+	listPoints.push_back(Point(214,47));
+	listPoints.push_back(Point(209,50));
+	listPoints.push_back(Point(222,46));
+	listPoints.push_back(Point(223,37));
+	listPoints.push_back(Point(215,35));
+	listPoints.push_back(Point(218,23));
+	listPoints.push_back(Point(210,40));
+	listPoints.push_back(Point(208,41));
+	listPoints.push_back(Point(215,45));
+	listPoints.push_back(Point(221,8));
+	listPoints.push_back(Point(211,27));
+	listPoints.push_back(Point(204,31));
+	listPoints.push_back(Point(220,26));
+	listPoints.push_back(Point(223,55));
+	listPoints.push_back(Point(223,26));
+	listPoints.push_back(Point(211,23));
+	listPoints.push_back(Point(222,28));
+	listPoints.push_back(Point(213,35));
+	listPoints.push_back(Point(215,11));
+	listPoints.push_back(Point(211,29));
+	listPoints.push_back(Point(212,45));
+	listPoints.push_back(Point(210,40));
+	listPoints.push_back(Point(214,44));
+	listPoints.push_back(Point(216,36));
+	listPoints.push_back(Point(215,53));
+	listPoints.push_back(Point(220,58));
+	listPoints.push_back(Point(213,38));
+	listPoints.push_back(Point(215,40));
+	listPoints.push_back(Point(219,37));
+	listPoints.push_back(Point(213,24));
+	listPoints.push_back(Point(217,38));
+	listPoints.push_back(Point(220,35));
+	listPoints.push_back(Point(209,39));
+	listPoints.push_back(Point(212,45));
+	listPoints.push_back(Point(217,39));
+	listPoints.push_back(Point(222,46));
+	listPoints.push_back(Point(222,18));
+	listPoints.push_back(Point(209,16));
+	listPoints.push_back(Point(216,21));
+	listPoints.push_back(Point(215,15));
+	listPoints.push_back(Point(218,24));
+	listPoints.push_back(Point(218,35));
+	listPoints.push_back(Point(220,29));
+	listPoints.push_back(Point(216,37));
+	listPoints.push_back(Point(215,40));
+	listPoints.push_back(Point(216,43));
+	listPoints.push_back(Point(217,41));
+	listPoints.push_back(Point(211,39));
+	listPoints.push_back(Point(217,28));
+	listPoints.push_back(Point(212,37));
+	listPoints.push_back(Point(215,17));
+	listPoints.push_back(Point(219,34));
+	listPoints.push_back(Point(218,40));
+	listPoints.push_back(Point(215,51));
+	listPoints.push_back(Point(219,46));
+	listPoints.push_back(Point(220,40));
+	listPoints.push_back(Point(222,39));
+	listPoints.push_back(Point(212,30));
+	listPoints.push_back(Point(224,48));
+	listPoints.push_back(Point(214,23));
+	listPoints.push_back(Point(219,22));
+	listPoints.push_back(Point(216,34));
+	listPoints.push_back(Point(217,32));
+	listPoints.push_back(Point(218,46));
+	listPoints.push_back(Point(202,46));
+	listPoints.push_back(Point(209,18));
+	listPoints.push_back(Point(217,13));
+	listPoints.push_back(Point(219,40));
+	listPoints.push_back(Point(212,34));
+	listPoints.push_back(Point(216,28));
+	listPoints.push_back(Point(213,61));
+	listPoints.push_back(Point(207,28));
+	listPoints.push_back(Point(215,44));
+	listPoints.push_back(Point(212,51));
+	listPoints.push_back(Point(211,33));
+	listPoints.push_back(Point(207,41));
+	listPoints.push_back(Point(210,38));
+	listPoints.push_back(Point(213,46));
+	listPoints.push_back(Point(219,34));
+	listPoints.push_back(Point(234,30));
+	listPoints.push_back(Point(214,44));
+	listPoints.push_back(Point(218,36));
+	listPoints.push_back(Point(209,36));
+	listPoints.push_back(Point(217,43));
+	listPoints.push_back(Point(223,50));
+	listPoints.push_back(Point(218,46));
+	listPoints.push_back(Point(225,45));
+	listPoints.push_back(Point(221,52));
 
-	listPoints.push_back(Point(107, 51));
-	listPoints.push_back(Point(104, 52));
-	listPoints.push_back(Point(110, 47));
-	listPoints.push_back(Point(106, 36));
-	listPoints.push_back(Point(111, 51));
-	listPoints.push_back(Point(108, 40));
-	listPoints.push_back(Point(111, 41));
-	listPoints.push_back(Point(111, 28));
-	listPoints.push_back(Point(109, 49));
-	listPoints.push_back(Point(105, 49));
-	listPoints.push_back(Point(101, 19));
-	listPoints.push_back(Point(110, 41));
-	listPoints.push_back(Point(107, 48));
-	listPoints.push_back(Point(111, 42));
-	listPoints.push_back(Point(107, 38));
-	listPoints.push_back(Point(107, 47));
-	listPoints.push_back(Point(106, 51));
-	listPoints.push_back(Point(105, 53));
-	listPoints.push_back(Point(108, 49));
-	listPoints.push_back(Point(106, 35));
+
+
 
 	string imgsFolder =
 		"/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/";
 	vector<string> listImages;
+	listImages.push_back("Prono_201.JPG");
+	listImages.push_back("Prono_202.JPG");
+	listImages.push_back("Prono_203.JPG");
+	listImages.push_back("Prono_204.JPG");
+	listImages.push_back("Prono_205.JPG");
+	listImages.push_back("Prono_206.JPG");
+	listImages.push_back("Prono_207.JPG");
+	listImages.push_back("Prono_208.JPG");
+	listImages.push_back("Prono_209.JPG");
+	listImages.push_back("Prono_210.JPG");
+	listImages.push_back("Prono_211.JPG");
+	listImages.push_back("Prono_212.JPG");
+	listImages.push_back("Prono_213.JPG");
+	listImages.push_back("Prono_214.JPG");
+	listImages.push_back("Prono_215.JPG");
+	listImages.push_back("Prono_216.JPG");
+	listImages.push_back("Prono_217.JPG");
+	listImages.push_back("Prono_218.JPG");
+	listImages.push_back("Prono_219.JPG");
+	listImages.push_back("Prono_220.JPG");
+	listImages.push_back("Prono_221.JPG");
+	listImages.push_back("Prono_222.JPG");
+	listImages.push_back("Prono_223.JPG");
+	listImages.push_back("Prono_224.JPG");
+	listImages.push_back("Prono_225.JPG");
+	listImages.push_back("Prono_226.JPG");
+	listImages.push_back("Prono_227.JPG");
+	listImages.push_back("Prono_228.JPG");
+	listImages.push_back("Prono_229.JPG");
+	listImages.push_back("Prono_230.JPG");
+	listImages.push_back("Prono_231.JPG");
+	listImages.push_back("Prono_232.JPG");
+	listImages.push_back("Prono_233.JPG");
+	listImages.push_back("Prono_234.JPG");
+	listImages.push_back("Prono_235.JPG");
+	listImages.push_back("Prono_236.JPG");
+	listImages.push_back("Prono_237.JPG");
+	listImages.push_back("Prono_238.JPG");
+	listImages.push_back("Prono_239.JPG");
+	listImages.push_back("Prono_240.JPG");
+	listImages.push_back("Prono_241.JPG");
+	listImages.push_back("Prono_242.JPG");
+	listImages.push_back("Prono_243.JPG");
+	listImages.push_back("Prono_244.JPG");
+	listImages.push_back("Prono_245.JPG");
+	listImages.push_back("Prono_246.JPG");
+	listImages.push_back("Prono_247.JPG");
+	listImages.push_back("Prono_248.JPG");
+	listImages.push_back("Prono_249.JPG");
+	listImages.push_back("Prono_250.JPG");
+	listImages.push_back("Prono_251.JPG");
+	listImages.push_back("Prono_252.JPG");
+	listImages.push_back("Prono_253.JPG");
+	listImages.push_back("Prono_254.JPG");
+	listImages.push_back("Prono_255.JPG");
+	listImages.push_back("Prono_256.JPG");
+	listImages.push_back("Prono_257.JPG");
+	listImages.push_back("Prono_258.JPG");
+	listImages.push_back("Prono_259.JPG");
+	listImages.push_back("Prono_260.JPG");
+	listImages.push_back("Prono_261.JPG");
+	listImages.push_back("Prono_262.JPG");
+	listImages.push_back("Prono_263.JPG");
+	listImages.push_back("Prono_264.JPG");
+	listImages.push_back("Prono_265.JPG");
+	listImages.push_back("Prono_266.JPG");
+	listImages.push_back("Prono_267.JPG");
+	listImages.push_back("Prono_268.JPG");
+	listImages.push_back("Prono_269.JPG");
+	listImages.push_back("Prono_270.JPG");
+	listImages.push_back("Prono_271.JPG");
+	listImages.push_back("Prono_272.JPG");
+	listImages.push_back("Prono_273.JPG");
+	listImages.push_back("Prono_274.JPG");
+	listImages.push_back("Prono_275.JPG");
+	listImages.push_back("Prono_276.JPG");
+	listImages.push_back("Prono_277.JPG");
+	listImages.push_back("Prono_278.JPG");
+	listImages.push_back("Prono_279.JPG");
+	listImages.push_back("Prono_280.JPG");
+	listImages.push_back("Prono_281.JPG");
+	listImages.push_back("Prono_282.JPG");
+	listImages.push_back("Prono_283.JPG");
+	listImages.push_back("Prono_284.JPG");
+	listImages.push_back("Prono_285.JPG");
+	listImages.push_back("Prono_286.JPG");
+	listImages.push_back("Prono_287.JPG");
+	listImages.push_back("Prono_288.JPG");
+	listImages.push_back("Prono_289.JPG");
+	listImages.push_back("Prono_290.JPG");
+	listImages.push_back("Prono_291.JPG");
+	listImages.push_back("Prono_292.JPG");
+	listImages.push_back("Prono_293.JPG");
 
-	listImages.push_back("Prono_001.JPG");
-	listImages.push_back("Prono_002.JPG");
-	listImages.push_back("Prono_003.JPG");
-	listImages.push_back("Prono_004.JPG");
-	listImages.push_back("Prono_005.JPG");
-	listImages.push_back("Prono_006.JPG");
-	listImages.push_back("Prono_007.JPG");
-	listImages.push_back("Prono_008.JPG");
-	listImages.push_back("Prono_009.JPG");
-	listImages.push_back("Prono_010.JPG");
-	listImages.push_back("Prono_011.JPG");
-	listImages.push_back("Prono_012.JPG");
-	listImages.push_back("Prono_013.JPG");
-	listImages.push_back("Prono_014.JPG");
-	listImages.push_back("Prono_015.JPG");
-	listImages.push_back("Prono_016.JPG");
-	listImages.push_back("Prono_017.JPG");
-	listImages.push_back("Prono_018.JPG");
-	listImages.push_back("Prono_019.JPG");
-	listImages.push_back("Prono_020.JPG");
+
+
 
 	vector<Point> result;
 	for (int i = 0; i < listPoints.size(); i++)
@@ -692,11 +878,11 @@ int main(int argc, char* argv[])
 		Point estLM = listPoints.at(i);
 		string filename = imgsFolder + listImages.at(i);
 		ptr_Image img = new Image(filename);
-		vector<vector<Point> > points = extract_Shape_Manual_Landmark(*img, estLM,
-			16, 7);
+		vector<vector<Point> > points = extract_Shape_Predicted_Landmark(*img,
+			estLM, 15, 15);
 		Point rs = checkList(points, meanCurve);
 		result.push_back(rs);
-		delete img;
+		//delete img;
 	}
 	cout << "\nResults: \n";
 	for (int i = 0; i < result.size(); i++)
