@@ -17,4 +17,4 @@ HEADERS += io/*.h io/LibJpeg/*.h imageModel/*.h \
 SOURCES += io/*.cpp io/LibJpeg/*.c imageModel/*.cpp \
 		 segmentation/*.cpp \
 		 histograms/*.cpp pht/*.cpp pointInterest/*.cpp correlation/*.cpp \
-		 utils/*.cpp ui/*.cpp MAELab.cpp MAELab_Test.cpp 
+		 utils/*.cpp ui/*.cpp MAELab.cpp MAELab_CI.cpp 
