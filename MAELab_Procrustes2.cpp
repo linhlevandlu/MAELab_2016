@@ -644,7 +644,7 @@ int main(int argc, char* argv[])
 	 extract_Shape_Manual_Landmark(image, lmPath, lmIndex, bsize, fSave);*/
 // ================================================================================================
 	string folderpath =
-		"/home/linh/Desktop/results/2017/pronotum/procrustes_lm3_size15";
+		"/home/linhpc/Results/previous/results/2017/pronotum/procrustes_lm3_size15";
 	vector<Point> meanCurve = parse_Folder(folderpath);
 	cout << "\nMean curve: " << meanCurve.size();
 	for (int i = 0; i < meanCurve.size(); ++i)
@@ -773,7 +773,7 @@ int main(int argc, char* argv[])
 
 
 	string imgsFolder =
-		"/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/";
+		"/home/linhpc/data_CNN/linhlv/pronotum/v1/original/";
 	vector<string> listImages;
 	listImages.push_back("Prono_201.JPG");
 	listImages.push_back("Prono_202.JPG");
