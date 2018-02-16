@@ -1,11 +1,11 @@
 #!/bin/bash
-# SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
-# THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linh/Desktop/data/pronotum_data_5/data_aug/_combine_data/original/*"
-SCENETPSFOLDER="/home/linh/Desktop/data/pronotum_data_5/exlm/*"
-SAVEFOLDER="/home/linh/Desktop/results/2017/pronotum/procrustes_lm3_size15/"
-LMINDEX=2
-BSIZE=15
+# SCRIPT EXTRACT THE PATCH AROUND THE LANDMARK TO CALCULATE THE PROCRUSTES
+# THE OUTPUT IS A MATRIX 7X7 FOR EACH LANDMARK
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/pronotum/v1/original/*"
+SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/pronotum/v1/landmarks/*"
+SAVEFOLDER="/home/linhpc/Results/2018/pronotum/procrustes/landmark_8/"
+LMINDEX=7
+BSIZE=7
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
 tpsarray=(${SCENETPSFOLDER})
