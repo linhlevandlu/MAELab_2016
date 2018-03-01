@@ -1393,14 +1393,15 @@ int main(int argc, char* argv[])
 	if (argc == 1)
 	{
 		cout << "\nWithout parameters !!" << endl;
-		//filename = "data/Prono 001.JPG";
-		filename =
-			"/home/linh/Datasets/Morphometrics/pronotum/Images_without_grid_2/Prono 001.JPG";
-		savename = "results/md028.jpg";
-		lm_file = "data/landmarks/Md 028.TPS";
+		//filename =
+		//	"/home/linh/Datasets/Morphometrics/pronotum/Images_without_grid_2/Prono 001.JPG";
+		filename="/media/vanlinh/Data/Biogical_Images/pronotum/Images_without_grid_2/Prono_001.JPG";
+		savename = "results/Prono_001_resize.jpg";
+		//lm_file = "data/landmarks/Md 028.TPS";
+		lm_file = "/media/vanlinh/Data/Biogical_Images/pronotum/landmarks/p 001.TPS";
 		width = 121;
 		height = 121;
-		save_folder = "results";
+		save_folder = "results/result.tps";
 	}
 	else
 	{
@@ -1419,11 +1420,11 @@ int main(int argc, char* argv[])
 //colorThreshold(filename, savename);
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
-//resize_Landmarks(filename,lm_file,12.75,12.75,save_folder);
+resize_Landmarks(filename,lm_file,8,8,save_folder);
 //data_Augmentation(filename, INCREASE_RED, 10, save_folder);
-	read_Image_Landmarks("/home/linh/Desktop/data/mg/original",
-		"/home/linh/Desktop/data/mg/landmarks",
-		"/home/linh/Desktop/data/mg_landmarks.txt");
+	//read_Image_Landmarks("/home/linh/Desktop/data/mg/original",
+	//	"/home/linh/Desktop/data/mg/landmarks",
+	//	"/home/linh/Desktop/data/mg_landmarks.txt");
 	//split_Save_Channels(
 	//	"/home/linh/Desktop/data/mg/original",
 	//	"/home/linh/Desktop/data/mg/channel_green", 1);
