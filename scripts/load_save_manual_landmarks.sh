@@ -1,9 +1,9 @@
 #!/bin/bash
 # SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/train/*"
-SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/*"
-SAVEFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i326x245/landmarks/"
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i326x245/images/*"
+SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i326x245/landmarks/*"
+SAVEFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i326x245/crop_224x224_landmarks/"
 XRATIO=10
 YRATIO=10
 EXECUTE="./MAELab_CI"
@@ -22,7 +22,9 @@ do
 	#tps=${SCENETPS:${#tpspath}-10}
 	#SAVETPS="$SAVEFOLDER$tps"
 	echo $SCENETPS
-	saveTPS="$SAVEFOLDER$(basename "${tpsarray[$i]}"/)"
+	#saveJPG="$SAVEFOLDER$(basename "${jpgarray[$i]}"/)"
+	#saveJPG2=${saveJPG/ /$rpby}
+    saveTPS="$SAVEFOLDER$(basename "${tpsarray[$i]}"/)"
 	saveTPS2=${saveTPS/ /$rpby}
 	$EXECUTE "$SCENEJPG" "$SCENETPS" "$PATCHSIZE" "0" "$saveTPS2"
 done
