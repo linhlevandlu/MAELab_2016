@@ -583,13 +583,13 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			image.readManualLandmarks(lmfile);
 			vector<Point> mLandmarks = image.getListOfManualLandmarks();
 			// write file name
-			//outfile << image.getFileName();
-			for (int k = 0; k < mLandmarks.size(); ++k)
+			outfile << image.getName();
+			for (int k = 0; k < mLandmarks.size(); k++)
 			{
 				Point p = mLandmarks.at(k);
-				outfile << "\n" << p.getX() << "\t" << p.getY();
+				outfile << "\t" << p.getX() << "\t" << p.getY();
 			}
-			//outfile << "\n";
+			outfile << "\n";
 			// write the coordinate of landmarks
 			/*for (int k = 0; k < mLandmarks.size(); ++k)
 			 {
@@ -1570,9 +1570,9 @@ int main(int argc, char* argv[])
 //calculateSIFT(filename,lm_file,9,save_folder);
 	//resize_Landmarks(filename, lm_file, 10, 10, save_folder);
 //data_Augmentation(filename, INCREASE_RED, 10, save_folder);
-	//read_Image_Landmarks("/home/linh/Desktop/data/mg/original",
-	//	"/home/linh/Desktop/data/mg/landmarks",
-	//	"/home/linh/Desktop/data/mg_landmarks.txt");
+	read_Image_Landmarks("/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224",
+		"/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224_landmarks",
+		"results/cnn_data.txt");
 	//split_Save_Channels(
 	//	"/home/linh/Desktop/data/mg/original",
 	//	"/home/linh/Desktop/data/mg/channel_green", 1);
@@ -1580,5 +1580,5 @@ int main(int argc, char* argv[])
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
 	/*Test load manual landmarks and save into file*/
-	load_Landmarks_Save(filename, lm_file, save_folder);
+	//load_Landmarks_Save(filename, lm_file, save_folder);
 }
