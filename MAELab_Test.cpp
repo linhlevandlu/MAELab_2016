@@ -1551,6 +1551,31 @@ void crop_Image(string filename, int n_width, int n_height, string savepath)
 	}
 	saveRGB(savepath.c_str(), &newImage);
 }
+
+vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
+		double cropY, string save_file)
+{
+	Image image(file_name);
+	image.readManualLandmarks(lm_file);
+	vector<Point> landmarks = image.getListOfManualLandmarks();
+	cout << "\nNumber of landmarks: " << landmarks.size();
+	vector<Point> result;
+	ofstream outfile(save_file.c_str());
+	outfile << "LM=" << landmarks.size() << "\n";
+	for (int i = 0; i < landmarks.size(); i++)
+	{
+		Point pi = landmarks.at(i);
+		int x_new =  pi.getX() - cropX;
+		int y_new = pi.getY() - cropY;
+		result.push_back(Point(x_new, y_new));
+		outfile << x_new << " "
+				<< 2448 - y_new << "\n";
+	}
+	outfile << "IMAGE=" << image.getName();
+	outfile.close();
+	return result;
+}
+
 int main(int argc, char* argv[])
 {
 	cout << "\n Test a function !!!" << endl;
@@ -1565,7 +1590,7 @@ int main(int argc, char* argv[])
 		filename = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
 		//filename="/media/vanlinh/Data/Biogical_Images/pronotum/Images_without_grid_2/Prono_001.JPG";
 		savename = "results/Prono_001_resize.jpg";
-		lm_file = "results/result.tps";
+		lm_file = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
 		//lm_file = "/media/vanlinh/Data/Biogical_Images/pronotum/landmarks/p 001.TPS";
 		width = 121;
 		height = 121;
@@ -1580,7 +1605,7 @@ int main(int argc, char* argv[])
 //save_folder = argv[2];
 //width = atoi(argv[3]);
 //height = atoi(argv[4]);
-//save_folder = argv[5];
+save_folder = argv[5];
 	}
 	//holeFill(filename, save_folder);
 //removelegMain(filename, savename);
@@ -1601,8 +1626,8 @@ int main(int argc, char* argv[])
 	//	"/home/linhpc/data_CNN/linhlv/tdata/i224x224/split_blue", 2);
 
 
-	crop_Image(filename,2448,2448,lm_file);
-
+	//crop_Image(filename,2448,2448,lm_file);
+	crop_Landmarks(filename, lm_file, 3264-2448,0, save_folder);
 
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
