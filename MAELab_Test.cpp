@@ -1520,8 +1520,7 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 		int newX = pi.getX() - x1_limit;
 		int newY = pi.getY() - y1_limit;
 		//saveImg = fillCircle(saveImg, Point(newX, newY), 2, color);
-		outfile << newX << " "
-						<< 224 - newY << "\n";
+		outfile << newX << " " << 224 - newY << "\n";
 	}
 	//saveRGB(fsave.c_str(), &saveImg);
 
@@ -1530,7 +1529,28 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
 }
-
+void crop_Image(string filename, int n_width, int n_height, string savepath)
+{
+	Image image(filename);
+	Matrix<RGB> rgbImage = image.getRGBMatrix();
+	int rows = rgbImage.getRows();
+	int cols = rgbImage.getCols();
+	cout<<"\n rows - cols: "<<rows <<"\t" << cols;
+	RGB color;
+	color.R=color.G=color.B = 0;
+	int i=0, j=0;
+	Matrix<RGB> newImage(n_height,n_width,color);
+	for (int r = rows - n_height; r < rows; r++) {
+		j = 0;
+		for (int c = cols - n_width; c < cols; c++) {
+			color = rgbImage.getAtPosition(r,c);
+			newImage.setAtPosition(i,j,color);
+			j++;
+		}
+		i++;
+	}
+	saveRGB(savepath.c_str(), &newImage);
+}
 int main(int argc, char* argv[])
 {
 	cout << "\n Test a function !!!" << endl;
@@ -1542,7 +1562,7 @@ int main(int argc, char* argv[])
 	if (argc == 1)
 	{
 		cout << "\nWithout parameters !!" << endl;
-		filename = "/home/linhpc/Desktop/imgsTemp/Prono_001_rs.JPG";
+		filename = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
 		//filename="/media/vanlinh/Data/Biogical_Images/pronotum/Images_without_grid_2/Prono_001.JPG";
 		savename = "results/Prono_001_resize.jpg";
 		lm_file = "results/result.tps";
@@ -1557,7 +1577,7 @@ int main(int argc, char* argv[])
 		filename = argv[1];
 //savename = argv[2];
 		lm_file = argv[2];
-		save_folder = argv[5];
+//save_folder = argv[2];
 //width = atoi(argv[3]);
 //height = atoi(argv[4]);
 //save_folder = argv[5];
@@ -1569,13 +1589,21 @@ int main(int argc, char* argv[])
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 	//resize_Landmarks(filename, lm_file, 10, 10, save_folder);
-//data_Augmentation(filename, INCREASE_RED, 10, save_folder);
-	read_Image_Landmarks("/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224",
-		"/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224_landmarks",
-		"results/cnn_data.txt");
+	//data_Augmentation(filename, INCREASE_BLUE, 10, save_folder);
+	/*
+	 * read two folders (image and landamrk) to export data for CNN
+	 */
+	//read_Image_Landmarks("/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224",
+	//	"/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224_landmarks",
+	//	"results/cnn_data.txt");
 	//split_Save_Channels(
-	//	"/home/linh/Desktop/data/mg/original",
-	//	"/home/linh/Desktop/data/mg/channel_green", 1);
+	//	"/home/linhpc/data_CNN/linhlv/tdata/i224x224/images",
+	//	"/home/linhpc/data_CNN/linhlv/tdata/i224x224/split_blue", 2);
+
+
+	crop_Image(filename,2448,2448,lm_file);
+
+
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
