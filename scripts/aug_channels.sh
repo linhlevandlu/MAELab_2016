@@ -1,10 +1,10 @@
 #!/bin/bash
-SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i224x224/images/*"
-SAVEFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i224x224/add_blue/"
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/original/*"
+SAVEFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/add_green/"
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
 total=${#jpgarray[@]}
-rpby="_b."
+rpby="_g."
 for (( i=0; i< $total; i++))
 do
 	SCENEJPG="${jpgarray[$i]}"

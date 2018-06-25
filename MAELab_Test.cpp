@@ -442,30 +442,75 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 		int rows = rgbImage.getRows();
 		int cols = rgbImage.getCols();
 		Matrix<RGB> result(rows, cols, color);
+		int count = 0;
+		int temp = 0;
 		for (int r = 0; r < rows; r++)
 		{
 			for (int c = 0; c < cols; c++)
 			{
+				temp = 0;
 				color = rgbImage.getAtPosition(r, c);
 				switch (aug)
 				{
 				case INCREASE_RED:
-					if (color.R < 255 - v_increase)
-						color.R += v_increase;
-					else
+					temp = color.R;
+					temp += v_increase;
+					if (temp >= 255)
+					{
 						color.R = 255;
+					}
+					else
+					{
+						if (temp <= 0)
+						{
+							color.R = 0;
+							count++;
+						}
+						else
+						{
+							color.R = temp;
+						}
+					}
 					break;
 				case INCREASE_GREEN:
-					if (color.G < 255 - v_increase)
-						color.G += v_increase;
-					else
+					temp = color.G;
+					temp += v_increase;
+					if (temp >= 255)
+					{
 						color.G = 255;
+					}
+					else
+					{
+						if (temp <= 0)
+						{
+							color.G = 0;
+							count++;
+						}
+						else
+						{
+							color.G = temp;
+						}
+					}
 					break;
 				case INCREASE_BLUE:
-					if (color.B < 255 - v_increase)
-						color.B += v_increase;
-					else
+					temp = color.B;
+					temp += v_increase;
+					if (temp >= 255)
+					{
 						color.B = 255;
+					}
+					else
+					{
+						if (temp <= 0)
+						{
+							color.B = 0;
+							count++;
+						}
+						else
+						{
+							color.B = temp;
+						}
+					}
 					break;
 				default:
 					break;
@@ -473,6 +518,7 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 				result.setAtPosition(r, c, color);
 			}
 		}
+		cout << "\n Number of over pixels: " << count << "\n";
 		saveRGB(save_file.c_str(), &result);
 	}
 }
@@ -1535,16 +1581,19 @@ void crop_Image(string filename, int n_width, int n_height, string savepath)
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	int rows = rgbImage.getRows();
 	int cols = rgbImage.getCols();
-	cout<<"\n rows - cols: "<<rows <<"\t" << cols;
+	cout << "\n rows - cols: " << rows << "\t" << cols;
 	RGB color;
-	color.R=color.G=color.B = 0;
-	int i=0, j=0;
-	Matrix<RGB> newImage(n_height,n_width,color);
-	for (int r = rows - n_height; r < rows; r++) {
+	color.R = color.G = color.B = 0;
+	int i = 0, j = 0;
+	int temp = (cols - n_width) / 2;
+	Matrix<RGB> newImage(n_height, n_width, color);
+	for (int r = rows - n_height; r < rows; r++)
+	{
 		j = 0;
-		for (int c = cols - n_width; c < cols; c++) {
-			color = rgbImage.getAtPosition(r,c);
-			newImage.setAtPosition(i,j,color);
+		for (int c = temp; c < cols - temp; c++)
+		{
+			color = rgbImage.getAtPosition(r, c);
+			newImage.setAtPosition(i, j, color);
 			j++;
 		}
 		i++;
@@ -1565,11 +1614,10 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 	for (int i = 0; i < landmarks.size(); i++)
 	{
 		Point pi = landmarks.at(i);
-		int x_new =  pi.getX() - cropX;
+		int x_new = pi.getX() - cropX;
 		int y_new = pi.getY() - cropY;
 		result.push_back(Point(x_new, y_new));
-		outfile << x_new << " "
-				<< 2448 - y_new << "\n";
+		outfile << x_new << " " << 2448 - y_new << "\n";
 	}
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
@@ -1579,7 +1627,9 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 int main(int argc, char* argv[])
 {
 	cout << "\n Test a function !!!" << endl;
-
+	unsigned int a = 100;
+	unsigned int b = 180;
+	cout << "Test: " << a + b;
 // ================================================================ Test hole fill =================================================
 	string filename, savename, lm_file;
 	int width, height;
@@ -1587,10 +1637,12 @@ int main(int argc, char* argv[])
 	if (argc == 1)
 	{
 		cout << "\nWithout parameters !!" << endl;
-		filename = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
+		filename =
+				"/home/linhpc/data_CNN/linhlv/pronotum/v2/original/Prono_001.JPG";
 		//filename="/media/vanlinh/Data/Biogical_Images/pronotum/Images_without_grid_2/Prono_001.JPG";
-		savename = "results/Prono_001_resize.jpg";
-		lm_file = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
+		savename = "results/Prono_001_add100.jpg";
+		lm_file =
+				"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
 		//lm_file = "/media/vanlinh/Data/Biogical_Images/pronotum/landmarks/p 001.TPS";
 		width = 121;
 		height = 121;
@@ -1605,7 +1657,7 @@ int main(int argc, char* argv[])
 //save_folder = argv[2];
 //width = atoi(argv[3]);
 //height = atoi(argv[4]);
-save_folder = argv[5];
+		save_folder = argv[5];
 	}
 	//holeFill(filename, save_folder);
 //removelegMain(filename, savename);
@@ -1613,22 +1665,19 @@ save_folder = argv[5];
 //colorThreshold(filename, savename);
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
-	//resize_Landmarks(filename, lm_file, 10, 10, save_folder);
-	//data_Augmentation(filename, INCREASE_BLUE, 10, save_folder);
+	//resize_Landmarks(filename, lm_file, 24, 24, save_folder);
+	//data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
-	//read_Image_Landmarks("/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224",
-	//	"/media/vanlinh/Data/Biogical_Images/tdata/i326x245/crop_224x224_landmarks",
-	//	"results/cnn_data.txt");
+	read_Image_Landmarks("/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original",
+		"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks",
+		"results/cnn_data_pronotum_i3264x2448.txt");
 	//split_Save_Channels(
-	//	"/home/linhpc/data_CNN/linhlv/tdata/i224x224/images",
-	//	"/home/linhpc/data_CNN/linhlv/tdata/i224x224/split_blue", 2);
-
-
+	//	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/original",
+	//	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/split_green", 1);
 	//crop_Image(filename,2448,2448,lm_file);
-	crop_Landmarks(filename, lm_file, 3264-2448,0, save_folder);
-
+	//crop_Landmarks(filename, lm_file, (3264-2448)/2,0, save_folder);
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
