@@ -1657,7 +1657,11 @@ int main(int argc, char* argv[])
 //save_folder = argv[2];
 //width = atoi(argv[3]);
 //height = atoi(argv[4]);
+<<<<<<< HEAD
 		save_folder = argv[5];
+=======
+save_folder = argv[2];
+>>>>>>> 2b427de4420c8be2d8c47b73edbe445e7f0b9f5e
 	}
 	//holeFill(filename, save_folder);
 //removelegMain(filename, savename);
@@ -1665,6 +1669,7 @@ int main(int argc, char* argv[])
 //colorThreshold(filename, savename);
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
+<<<<<<< HEAD
 	//resize_Landmarks(filename, lm_file, 24, 24, save_folder);
 	//data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	/*
@@ -1678,6 +1683,24 @@ int main(int argc, char* argv[])
 	//	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/split_green", 1);
 	//crop_Image(filename,2448,2448,lm_file);
 	//crop_Landmarks(filename, lm_file, (3264-2448)/2,0, save_folder);
+=======
+	//resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
+	//data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);
+	/*
+	 * read two folders (image and landamrk) to export data for CNN
+	 */
+	read_Image_Landmarks("/home/vanlinh/data_CNN/i96x96/original",
+		"/home/vanlinh/data_CNN/i96x96/landmarks",
+		"results/cnn_data_i96x96.txt");
+	//split_Save_Channels(
+	//	"/home/vanlinh/data_CNN/i96x96/original",
+	//	"/home/vanlinh/data_CNN/i96x96/split_blue", 2);
+
+
+	//crop_Image(filename,2448,2448,lm_file);
+	//crop_Landmarks(filename, lm_file, 3264-2448,0, save_folder);
+
+>>>>>>> 2b427de4420c8be2d8c47b73edbe445e7f0b9f5e
 	//vector<Point> list;
 	//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
 	//list = bounding_Box2(filename, save_folder, list, 10);
