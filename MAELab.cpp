@@ -126,11 +126,12 @@ Matrix<int> mae_Robert_Filter(Image* inputImage)
 	rbResult = postFilter(rbResult);
 	return rbResult;
 }
-Matrix<int> mae_Sobel_Filter(Image* inputImage)
+Matrix<double> mae_Sobel_Filter(Image* inputImage)
 {
 	Matrix<int> grayData = inputImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postFilter(sbResult);
+	//Matrix<int> sbResult = SobelOperation(&grayData);
+	Matrix<double> sbResult = SobelOperation_Double(&grayData);
+	//sbResult = postFilter(sbResult);
 	return sbResult;
 }
 Matrix<int> mae_Erode(Image* inputImage)

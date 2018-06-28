@@ -67,7 +67,8 @@ using namespace std;
 
 #include "ImageViewer.h"
 
-void ImageViewer::createFileMenu() {
+void ImageViewer::createFileMenu()
+{
 	openAct = new QAction(QIcon("./resources/ico/open.png"), tr("&Open..."),
 			this);
 	openAct->setShortcuts(QKeySequence::Open);
@@ -97,7 +98,8 @@ void ImageViewer::createFileMenu() {
 	connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
 }
-void ImageViewer::createViewMenu() {
+void ImageViewer::createViewMenu()
+{
 	zoomInAct = new QAction(QIcon("./resources/ico/1uparrow.png"),
 			tr("Zoom &In (25%)"), this);
 	zoomInAct->setShortcut(tr("Ctrl++"));
@@ -145,13 +147,15 @@ void ImageViewer::createViewMenu() {
 			SLOT(displayAutoLandmarks()));
 
 }
-void ImageViewer::viewMenuUpdateActions() {
+void ImageViewer::viewMenuUpdateActions()
+{
 	zoomInAct->setEnabled(!fitToWindowAct->isChecked());
 	zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
 	normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 }
 
-void ImageViewer::scaleImage(double factor) {
+void ImageViewer::scaleImage(double factor)
+{
 	Q_ASSERT(imageLabel->pixmap());
 	scaleFactor *= factor;
 	imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
@@ -162,14 +166,16 @@ void ImageViewer::scaleImage(double factor) {
 	zoomInAct->setEnabled(scaleFactor < 3.0);
 	zoomOutAct->setEnabled(scaleFactor > 0.333);
 }
-void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor) {
+void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
+{
 	scrollBar->setValue(
 			int(
 					factor * scrollBar->value()
 							+ ((factor - 1) * scrollBar->pageStep() / 2)));
 }
 
-void ImageViewer::createHelpMenu() {
+void ImageViewer::createHelpMenu()
+{
 	aboutAct = new QAction(tr("&About MAELab"), this);
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
@@ -177,7 +183,8 @@ void ImageViewer::createHelpMenu() {
 	testAct->setEnabled(false);
 	connect(testAct, SIGNAL(triggered()), this, SLOT(testMethod()));
 }
-void ImageViewer::createSegmentationMenu() {
+void ImageViewer::createSegmentationMenu()
+{
 	binaryThresholdAct = new QAction(tr("&Binary threshold"), this);
 	binaryThresholdAct->setEnabled(false);
 	connect(binaryThresholdAct, SIGNAL(triggered()), this,
@@ -197,7 +204,8 @@ void ImageViewer::createSegmentationMenu() {
 			SLOT(lineSegmentation()));
 }
 
-void ImageViewer::createFilterMenu() {
+void ImageViewer::createFilterMenu()
+{
 	gauAct = new QAction(tr("&Gaussian filter"), this);
 	gauAct->setEnabled(false);
 	connect(gauAct, SIGNAL(triggered()), this, SLOT(gauFilter()));
@@ -226,7 +234,8 @@ void ImageViewer::createFilterMenu() {
 	closeBinaryAct->setEnabled(false);
 	connect(closeBinaryAct, SIGNAL(triggered()), this, SLOT(closeOperation()));
 }
-void ImageViewer::createLandmarksMenu() {
+void ImageViewer::createLandmarksMenu()
+{
 	/*phtAct = new QAction(tr("&Probabilistic Hough Transform"), this);
 	 phtAct->setEnabled(false);
 	 phtAct->setShortcut(tr("Ctrl+P"));
@@ -291,7 +300,8 @@ void ImageViewer::createLandmarksMenu() {
  connect(icpAct, SIGNAL(triggered()), this, SLOT(icpMethodViewer()));
  }*/
 
-void ImageViewer::createActions() {
+void ImageViewer::createActions()
+{
 	createFileMenu();
 	createViewMenu();
 	createHelpMenu();
@@ -299,7 +309,8 @@ void ImageViewer::createActions() {
 	createLandmarksMenu();
 	createFilterMenu();
 }
-void ImageViewer::createMenus() {
+void ImageViewer::createMenus()
+{
 	fileMenu = new QMenu(tr("&File"), this);
 	fileMenu->addAction(openAct);
 	fileMenu->addAction(saveAct);
@@ -358,6 +369,10 @@ void ImageViewer::createMenus() {
 	menuDirectory->addAction(dirCentroidMeasureAct);
 	menuDirectory->addAction(dirGenerateDataAct);
 
+	//helpMenu = new QMenu(tr("&Filters"), this);
+	//helpMenu->addAction(Gaussian filter);
+	//helpMenu->addAction(Median_filter"");
+
 	//registrationMenu = new QMenu(tr("&Registration"), this);
 	//registrationMenu->addAction(icpAct);
 
@@ -370,7 +385,8 @@ void ImageViewer::createMenus() {
 	//menuBar()->addMenu(registrationMenu);
 	menuBar()->addMenu(helpMenu);
 }
-void ImageViewer::createToolBars() {
+void ImageViewer::createToolBars()
+{
 	fileToolBar = addToolBar(tr("File"));
 	fileToolBar->addAction(openAct);
 	fileToolBar->addAction(saveAct);
@@ -379,10 +395,12 @@ void ImageViewer::createToolBars() {
 	viewToolBar->addAction(zoomInAct);
 	viewToolBar->addAction(zoomOutAct);
 }
-void ImageViewer::createStatusBar() {
+void ImageViewer::createStatusBar()
+{
 	statusBar()->showMessage(tr("Ready"));
 }
-void ImageViewer::activeFunction() {
+void ImageViewer::activeFunction()
+{
 	openAct->setEnabled(true);
 	saveAct->setEnabled(true);
 	saveAsAct->setEnabled(true);
@@ -432,7 +450,8 @@ void ImageViewer::activeFunction() {
 		imageLabel->adjustSize();
 }
 
-ImageViewer::ImageViewer() {
+ImageViewer::ImageViewer()
+{
 	imageLabel = new QLabel;
 	imageLabel->setBackgroundRole(QPalette::Base);
 	imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -456,7 +475,8 @@ ImageViewer::ImageViewer() {
 
 }
 
-ImageViewer::~ImageViewer() {
+ImageViewer::~ImageViewer()
+{
 	/*delete matImage;
 	 delete parameterAction;
 	 delete parameterDialog;
@@ -516,7 +536,8 @@ ImageViewer::~ImageViewer() {
 	 delete sobelAndSIFTAct;
 	 delete cannyAndSIFTAct;*/
 }
-void ImageViewer::closeEvent(QCloseEvent *event) {
+void ImageViewer::closeEvent(QCloseEvent *event)
+{
 	QMessageBox::StandardButtons ret;
 	ret = QMessageBox::warning(this, tr("Warning"),
 			tr("Do you want exit the program?"),
@@ -531,7 +552,8 @@ void ImageViewer::closeEvent(QCloseEvent *event) {
 	else
 		event->ignore();
 }
-void ImageViewer::loadImage(QString fn) {
+void ImageViewer::loadImage(QString fn)
+{
 
 	matImage = new Image(fn.toStdString());
 	qImage.load(fn);
@@ -546,7 +568,8 @@ void ImageViewer::loadImage(QString fn) {
 	setWindowTitle(tr("Image Viewer - ") + fileName);
 	statusBar()->showMessage(tr("File loaded"), 2000);
 }
-void ImageViewer::loadImage(Image *_matImage, QImage _qImage, QString tt) {
+void ImageViewer::loadImage(Image *_matImage, QImage _qImage, QString tt)
+{
 	matImage = _matImage;
 	qImage = _qImage;
 	imageLabel->setPixmap(QPixmap::fromImage(qImage));
@@ -559,10 +582,12 @@ void ImageViewer::loadImage(Image *_matImage, QImage _qImage, QString tt) {
 	statusBar()->showMessage(tr("Finished"), 2000);
 }
 
-void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color) {
+void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color)
+{
 	Point lm;
 	Matrix<RGB> imgWithLM = image->getRGBMatrix();
-	for (size_t i = 0; i < lms.size(); i++) {
+	for (size_t i = 0; i < lms.size(); i++)
+	{
 		lm = lms.at(i);
 		cout << "\nManual landmark: " << lm.getX() << "\t" << lm.getY();
 		imgWithLM = fillCircle(imgWithLM, lm, 7, color);
@@ -570,13 +595,15 @@ void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color) {
 	image->setRGBMatrix(imgWithLM);
 }
 // =========================== Slots =======================================
-void ImageViewer::about() {
+void ImageViewer::about()
+{
 	QMessageBox::about(this, tr("About MAELab"),
 			tr(
 					"<p><b>MAELab</b> is a software in Computer Vision. It provides the function to "
 							"segmentation and detection dominant points.</p>"));
 }
-void ImageViewer::testMethod() {
+void ImageViewer::testMethod()
+{
 	cout << "\nTest a method ..." << endl;
 	RGB df;
 	df.R = df.G = df.B = 0;
@@ -636,31 +663,39 @@ void ImageViewer::testMethod() {
 	cout << "\nFinish.\n";
 	cout << "\n End test method!" << endl;
 }
-void ImageViewer::open() {
+void ImageViewer::open()
+{
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
 			QDir::currentPath());
 	cout << fileName.toStdString() << endl;
-	if (!fileName.isEmpty()) {
+	if (!fileName.isEmpty())
+	{
 		QImage image(fileName);
-		if (image.isNull()) {
+		if (image.isNull())
+		{
 			QMessageBox::information(this, tr("MAELab"),
 					tr("Cannot load %1.").arg(fileName));
 			return;
 		}
-		if (!this->fileName.isEmpty()) {
+		if (!this->fileName.isEmpty())
+		{
 			ImageViewer* other = new ImageViewer;
 			other->loadImage(fileName);
 			other->move(x() + 40, y() + 40);
 			other->show();
-		} else {
+		}
+		else
+		{
 			this->loadImage(fileName);
 		}
 	}
 }
-void ImageViewer::save() {
+void ImageViewer::save()
+{
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save image"), ".",
 			tr("Image Files (*.jpg)"));
-	if (fileName.isEmpty()) {
+	if (fileName.isEmpty())
+	{
 		cout << "\nCan not save the image !!";
 		return;
 	}
@@ -678,10 +713,12 @@ void ImageViewer::save() {
 	statusBar()->showMessage(tr("File saved"), 2000);
 	return;
 }
-void ImageViewer::saveAs() {
+void ImageViewer::saveAs()
+{
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save as image"),
 			".", tr("Image Files (*.jpg)"));
-	if (fileName.isEmpty()) {
+	if (fileName.isEmpty())
+	{
 		cout << "\nCan not save the image !!";
 		return;
 	}
@@ -694,31 +731,38 @@ void ImageViewer::saveAs() {
 	statusBar()->showMessage(tr("File saved"), 2000);
 	return;
 }
-void ImageViewer::zoomIn() {
+void ImageViewer::zoomIn()
+{
 	scaleImage(1.25);
 }
-void ImageViewer::zoomOut() {
+void ImageViewer::zoomOut()
+{
 	scaleImage(0.8);
 }
-void ImageViewer::normalSize() {
+void ImageViewer::normalSize()
+{
 	imageLabel->adjustSize();
 	scaleFactor = 1.0;
 }
-void ImageViewer::fitToWindow() {
+void ImageViewer::fitToWindow()
+{
 
 	bool fitToWindow = fitToWindowAct->isChecked();
 	scrollArea->setWidgetResizable(fitToWindow);
-	if (!fitToWindow) {
+	if (!fitToWindow)
+	{
 		normalSize();
 	}
 	viewMenuUpdateActions();
 }
-void ImageViewer::gScaleHistogram() {
+void ImageViewer::gScaleHistogram()
+{
 	cout << "\n Gray scale histogram." << endl;
 	//Matrix<int> grayHist = mae_get_Gray_Histogram(matImage);//matImage->getGrayHistogram();
 	ptr_IntMatrix histogram = mae_get_Gray_Histogram(matImage);
 	int max = -1;
-	for (int c = 0; c < histogram->getCols(); c++) {
+	for (int c = 0; c < histogram->getCols(); c++)
+	{
 		if (histogram->getAtPosition(0, c) > max)
 			max = histogram->getAtPosition(0, c);
 	}
@@ -727,7 +771,8 @@ void ImageViewer::gScaleHistogram() {
 	ptr_RGBMatrix hDisplay = new Matrix<RGB>(240, 300, color);
 	Point pbegin, pend;
 	color.R = color.G = color.B = 255;
-	for (int c = 0; c < histogram->getCols(); c++) {
+	for (int c = 0; c < histogram->getCols(); c++)
+	{
 		pbegin.setX(c);
 		pbegin.setY(239);
 		pend.setX(c);
@@ -748,12 +793,14 @@ void ImageViewer::gScaleHistogram() {
 	cout << "\nFinished." << endl;
 }
 
-void ImageViewer::rgbHistogramCalc() {
+void ImageViewer::rgbHistogramCalc()
+{
 	cout << "\n RGB histogram." << endl;
 
 	ptr_RGBMatrix histogram = mae_get_RGB_Histogram(matImage);
 	double maxR = -1, maxG = -1, maxB = -1;
-	for (int c = 0; c < histogram->getCols(); c++) {
+	for (int c = 0; c < histogram->getCols(); c++)
+	{
 		RGB color = histogram->getAtPosition(0, c);
 		if (color.R > maxR)
 			maxR = color.R;
@@ -770,7 +817,8 @@ void ImageViewer::rgbHistogramCalc() {
 	ptr_RGBMatrix blueDisplay = new Matrix<RGB>(240, 300, color);
 
 	Point pbegin, pend;
-	for (int c = 0; c < histogram->getCols(); c++) {
+	for (int c = 0; c < histogram->getCols(); c++)
+	{
 		RGB cvalue = histogram->getAtPosition(0, c);
 		pbegin.setX(c);
 		pbegin.setY(239);
@@ -819,12 +867,15 @@ void ImageViewer::rgbHistogramCalc() {
 	cout << "\nFinished." << endl;
 }
 
-void ImageViewer::displayManualLandmarks() {
+void ImageViewer::displayManualLandmarks()
+{
 	cout << "\n Display the manual landmarks.\n";
 
 	bool currentState = displayMLandmarksAct->isChecked();
-	if (currentState) {
-		if (matImage->getListOfManualLandmarks().size() <= 0) {
+	if (currentState)
+	{
+		if (matImage->getListOfManualLandmarks().size() <= 0)
+		{
 			QMessageBox msgbox;
 			msgbox.setText("Select the manual landmarks file.");
 			msgbox.exec();
@@ -841,15 +892,19 @@ void ImageViewer::displayManualLandmarks() {
 		displayLandmarks(matImage, mLandmarks, color);
 		displayMLandmarksAct->setChecked(true);
 		measureMBaryAct->setEnabled(true);
-	} else {
+	}
+	else
+	{
 		Image *img = new Image(fileName.toStdString());
 		matImage->setRGBMatrix(img->getRGBMatrix());
 		displayMLandmarksAct->setChecked(false);
 	}
 
-	if (displayALandmarksAct->isChecked()) {
+	if (displayALandmarksAct->isChecked())
+	{
 		vector<Point> aLM = matImage->getListOfAutoLandmarks();
-		if (aLM.size() > 0) {
+		if (aLM.size() > 0)
+		{
 			RGB color;
 			color.R = 255;
 			color.G = 255;
@@ -864,31 +919,40 @@ void ImageViewer::displayManualLandmarks() {
 	this->show();
 	cout << "\nFinish.\n";
 }
-void ImageViewer::displayAutoLandmarks() {
+void ImageViewer::displayAutoLandmarks()
+{
 	vector<Point> autoLM = matImage->getListOfAutoLandmarks();
 	QMessageBox message;
-	if (autoLM.size() <= 0) {
+	if (autoLM.size() <= 0)
+	{
 		message.setText(
 				"Automatic landmarks do not exists. You need to compute them.");
 		message.exec();
-	} else {
+	}
+	else
+	{
 		bool currentState = displayALandmarksAct->isChecked();
-		if (currentState) {
+		if (currentState)
+		{
 			RGB color;
 			color.R = 255;
 			color.G = 255;
 			color.B = 0;
 			displayLandmarks(matImage, autoLM, color);
 			displayALandmarksAct->setChecked(true);
-		} else {
+		}
+		else
+		{
 			Image *img = new Image(fileName.toStdString());
 			matImage->setRGBMatrix(img->getRGBMatrix());
 			displayALandmarksAct->setChecked(false);
 		}
 
-		if (displayMLandmarksAct->isChecked()) {
+		if (displayMLandmarksAct->isChecked())
+		{
 			vector<Point> mLM = matImage->getListOfManualLandmarks();
-			if (mLM.size() > 0) {
+			if (mLM.size() > 0)
+			{
 				RGB color;
 				color.R = 255;
 				color.G = 0;
@@ -902,7 +966,8 @@ void ImageViewer::displayAutoLandmarks() {
 	}
 
 }
-void ImageViewer::binThreshold() {
+void ImageViewer::binThreshold()
+{
 	cout << "\nBinary thresholding...\n";
 	ptr_IntMatrix rsMatrix = mae_Binary_Threshold(matImage);
 	//rsMatrix = postProcess(rsMatrix, 255);
@@ -913,7 +978,8 @@ void ImageViewer::binThreshold() {
 	other->show();
 
 }
-void ImageViewer::cannyAlgorithm() {
+void ImageViewer::cannyAlgorithm()
+{
 	cout << "\nCanny Algorithm...\n";
 
 	vector<Point> cPoints = mae_Canny_Algorithm(matImage);
@@ -928,7 +994,8 @@ void ImageViewer::cannyAlgorithm() {
 	Point pi;
 	cout << endl << "Number of points: " << cPoints.size() << endl;
 	Matrix<RGB> sImage = matImage->getRGBMatrix();
-	for (size_t i = 0; i < cPoints.size(); i++) {
+	for (size_t i = 0; i < cPoints.size(); i++)
+	{
 		pi = cPoints.at(i);
 		sImage.setAtPosition(pi.getY(), pi.getX(), color);
 	}
@@ -938,7 +1005,8 @@ void ImageViewer::cannyAlgorithm() {
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
-void ImageViewer::suzukiAlgorithm() {
+void ImageViewer::suzukiAlgorithm()
+{
 	cout << "\nSuzuki Algorithm...\n";
 	vector<Edge> edges = mae_Suzuki_Algorithm(matImage);
 	/*Segmentation tr;
@@ -953,9 +1021,11 @@ void ImageViewer::suzukiAlgorithm() {
 	/*int rows = matImage->getGrayMatrix().getRows();
 	 int cols = matImage->getGrayMatrix().getCols();*/
 	Matrix<RGB> sImage = matImage->getRGBMatrix();
-	for (size_t i = 0; i < edges.size(); i++) {
+	for (size_t i = 0; i < edges.size(); i++)
+	{
 		edgei = edges.at(i);
-		for (size_t k = 0; k < edgei.getPoints().size(); k++) {
+		for (size_t k = 0; k < edgei.getPoints().size(); k++)
+		{
 			pi = edgei.getPoints().at(k);
 			sImage.setAtPosition(pi.getY(), pi.getX(), color);
 		}
@@ -965,30 +1035,34 @@ void ImageViewer::suzukiAlgorithm() {
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
-void ImageViewer::lineSegmentation() {
+void ImageViewer::lineSegmentation()
+{
 	cout << "\nDisplay the list of lines." << endl;
 	vector<Line> listOfLines = mae_Line_Segment(matImage);
 	RGB color;
 	color.R = 255;
 	color.G = color.B = 0;
 	Line linei;
-	cout<<"\nBegin draw the lines...\n";
+	cout << "\nBegin draw the lines...\n";
 	Matrix<RGB> sImage = matImage->getRGBMatrix();
-	for (size_t i = 0; i < listOfLines.size(); i++) {
+	for (size_t i = 0; i < listOfLines.size(); i++)
+	{
 		linei = listOfLines.at(i);
 		sImage = drawingLine(sImage, linei, color);
 	}
 
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrRGBToQImage(sImage), "Line segmentation result");
+	other->loadImage(matImage, ptrRGBToQImage(sImage),
+			"Line segmentation result");
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
 // ==================================================== Filter menu =========================================
-void ImageViewer::gauFilter() {
+void ImageViewer::gauFilter()
+{
 	cout << "\n Gaussian filter." << endl;
 	Matrix<double> kernel = getGaussianKernel(3, 1);
-	Matrix<RGB> gsResult = mae_Gaussian_Filter(matImage,kernel);
+	Matrix<RGB> gsResult = mae_Gaussian_Filter(matImage, kernel);
 	//Matrix<int> gsResult = gaussianBlur(matImage->getGrayMatrix(), kernel);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrRGBToQImage(gsResult),
@@ -997,11 +1071,12 @@ void ImageViewer::gauFilter() {
 	other->show();
 }
 
-void ImageViewer::robertFilter() {
+void ImageViewer::robertFilter()
+{
 	cout << "\n Robert filter." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> rbResult = RobertOperation(&grayData);
-	rbResult = postSobel(rbResult);*/
+	 Matrix<int> rbResult = RobertOperation(&grayData);
+	 rbResult = postSobel(rbResult);*/
 	Matrix<int> rbResult = mae_Robert_Filter(matImage);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(rbResult),
@@ -1010,25 +1085,27 @@ void ImageViewer::robertFilter() {
 	other->show();
 }
 
-void ImageViewer::sobelFilter() {
+void ImageViewer::sobelFilter()
+{
 	cout << "\n Sobel filter." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postSobel(sbResult);*/
-	Matrix<int> sbResult = mae_Sobel_Filter(matImage);
+	 Matrix<int> sbResult = SobelOperation(&grayData);
+	 sbResult = postSobel(sbResult);*/
+	Matrix<double> sbResult = mae_Sobel_Filter(matImage);
 	ImageViewer *other = new ImageViewer;
-	other->loadImage(matImage, ptrIntToQImage(sbResult), "Sobel filter result");
+	other->loadImage(matImage, ptrDoubleToQImage(sbResult), "Sobel filter result");
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
 
-void ImageViewer::erosionOperation() {
+void ImageViewer::erosionOperation()
+{
 	cout << "\n Erosion operation." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postFilter(sbResult);
+	 Matrix<int> sbResult = SobelOperation(&grayData);
+	 sbResult = postFilter(sbResult);
 
-	ptr_IntMatrix erResult = erode(&sbResult, 3);*/
+	 ptr_IntMatrix erResult = erode(&sbResult, 3);*/
 	Matrix<int> erResult = mae_Erode(matImage);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(erResult),
@@ -1037,13 +1114,14 @@ void ImageViewer::erosionOperation() {
 	other->show();
 }
 
-void ImageViewer::dilationOperation() {
+void ImageViewer::dilationOperation()
+{
 	cout << "\n Dilation operation." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postFilter(sbResult);
+	 Matrix<int> sbResult = SobelOperation(&grayData);
+	 sbResult = postFilter(sbResult);
 
-	ptr_IntMatrix dlResult = dilate(&sbResult, 3);*/
+	 ptr_IntMatrix dlResult = dilate(&sbResult, 3);*/
 	Matrix<int> dlResult = mae_Dilate(matImage);
 
 	ImageViewer *other = new ImageViewer;
@@ -1053,12 +1131,13 @@ void ImageViewer::dilationOperation() {
 	other->show();
 }
 
-void ImageViewer::openOperation() {
+void ImageViewer::openOperation()
+{
 	cout << "\n Open operation." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postFilter(sbResult);
-	ptr_IntMatrix dlResult = openBinary(&sbResult, 3);*/
+	 Matrix<int> sbResult = SobelOperation(&grayData);
+	 sbResult = postFilter(sbResult);
+	 ptr_IntMatrix dlResult = openBinary(&sbResult, 3);*/
 	Matrix<int> dlResult = mae_Open_Binary(matImage);
 	ImageViewer *other = new ImageViewer;
 	other->loadImage(matImage, ptrIntToQImage(dlResult),
@@ -1067,12 +1146,13 @@ void ImageViewer::openOperation() {
 	other->show();
 }
 
-void ImageViewer::closeOperation() {
+void ImageViewer::closeOperation()
+{
 	cout << "\n Close operation." << endl;
 	/*Matrix<int> grayData = matImage->getGrayMatrix();
-	Matrix<int> sbResult = SobelOperation(&grayData);
-	sbResult = postFilter(sbResult);
-	ptr_IntMatrix dlResult = closeBinary(&sbResult, 3);*/
+	 Matrix<int> sbResult = SobelOperation(&grayData);
+	 sbResult = postFilter(sbResult);
+	 ptr_IntMatrix dlResult = closeBinary(&sbResult, 3);*/
 
 	Matrix<int> clResult = mae_Close_Binary(matImage);
 	ImageViewer *other = new ImageViewer;
@@ -1082,7 +1162,8 @@ void ImageViewer::closeOperation() {
 	other->show();
 }
 // ======================================================= Landmarks points ===============================
-void ImageViewer::gHoughTransform() {
+void ImageViewer::gHoughTransform()
+{
 	cout << "\n Generalizing hough transform." << endl;
 	QMessageBox msgbox;
 
@@ -1118,14 +1199,16 @@ void ImageViewer::gHoughTransform() {
 	qpainter.setPen(Qt::yellow);
 	qpainter.setBrush(Qt::yellow);
 	qpainter.setFont(QFont("Arial", 15));
-	for (size_t i = 0; i < estLandmarks.size(); i++) {
+	for (size_t i = 0; i < estLandmarks.size(); i++)
+	{
 		lm = estLandmarks.at(i);
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
 		//fillCircle(*(matImage->getRGBMatrix()), lm, 5, color);
 		if (lm.getX() >= 0 && lm.getX() < matImage->getRGBMatrix().getCols()
 				&& lm.getY() >= 0
-				&& lm.getY() < matImage->getRGBMatrix().getRows()) {
+				&& lm.getY() < matImage->getRGBMatrix().getRows())
+		{
 			qpainter.drawEllipse(lm.getX(), lm.getY(), 4, 4);
 			qpainter.drawText(lm.getX() + 6, lm.getY(),
 					QString::number((int) i));
@@ -1149,7 +1232,8 @@ void ImageViewer::gHoughTransform() {
 
 }
 
-void ImageViewer::extractLandmarks() {
+void ImageViewer::extractLandmarks()
+{
 	cout << "\n Automatic extraction the landmarks.\n";
 	QMessageBox msgbox;
 	msgbox.setText("Select the model image.");
@@ -1180,7 +1264,8 @@ void ImageViewer::extractLandmarks() {
 	color.B = 0;
 	Point lm;
 	matImage->rotate(ePoint, angleDiff, 1);
-	for (size_t i = 0; i < lms.size(); i++) {
+	for (size_t i = 0; i < lms.size(); i++)
+	{
 		lm = lms.at(i);
 		drawingCircle(matImage->getRGBMatrix(), lm, 5, color);
 	}
@@ -1195,10 +1280,12 @@ void ImageViewer::extractLandmarks() {
 	msgbox.setText("Finish");
 	msgbox.exec();
 }
-void ImageViewer::measureMBary() {
+void ImageViewer::measureMBary()
+{
 	QMessageBox qmessage;
 	vector<Point> mLandmarks = matImage->getListOfManualLandmarks();
-	if (mLandmarks.size() > 0) {
+	if (mLandmarks.size() > 0)
+	{
 		Point ebary(0, 0);
 		double mCentroid = measureCentroidPoint(mLandmarks, ebary);
 
@@ -1207,15 +1294,19 @@ void ImageViewer::measureMBary() {
 						+ ", " + QString::number(ebary.getY()) + ")</p>"
 								"<p>Centroid value: "
 						+ QString::number(mCentroid) + "</p");
-	} else {
+	}
+	else
+	{
 		qmessage.setText("The image has not the manual landmarks.");
 	}
 	qmessage.exec();
 }
-void ImageViewer::measureEBary() {
+void ImageViewer::measureEBary()
+{
 	QMessageBox qmessage;
 	vector<Point> mLandmarks = matImage->getListOfAutoLandmarks();
-	if (mLandmarks.size() > 0) {
+	if (mLandmarks.size() > 0)
+	{
 		Point ebary(0, 0);
 		double mCentroid = measureCentroidPoint(mLandmarks, ebary);
 
@@ -1224,12 +1315,15 @@ void ImageViewer::measureEBary() {
 						+ ", " + QString::number(ebary.getY()) + ")</p>"
 								"<p>Centroid value: "
 						+ QString::number(mCentroid) + "</p");
-	} else {
+	}
+	else
+	{
 		qmessage.setText("The image has not the automatic landmarks.");
 	}
 	qmessage.exec();
 }
-void ImageViewer::dirAutoLandmarks() {
+void ImageViewer::dirAutoLandmarks()
+{
 	cout << "\n Automatic estimated landmarks on directory." << endl;
 	QMessageBox msgbox;
 
@@ -1255,19 +1349,22 @@ void ImageViewer::dirAutoLandmarks() {
 	tr.setRefImage(*matImage);
 
 	string fileName;
-	for (size_t i = 0; i < fileNames.size(); i++) {
+	for (size_t i = 0; i < fileNames.size(); i++)
+	{
 		fileName = folder.toStdString() + "/" + fileNames.at(i);
 		cout << "\n" << fileName << endl;
 		Image sceneimage(fileName);
 
 		esLandmarks = tr.landmarksAutoDectect(sceneimage, Degree, 500, 400, 500,
 				ePoint, angleDiff);
-		if (savefolder != NULL || savefolder != "") {
+		if (savefolder != NULL || savefolder != "")
+		{
 			string saveFile = savefolder.toStdString() + "/" + fileNames.at(i)
 					+ ".TPS";
 			ofstream inFile(saveFile.c_str());
 			inFile << "LM=" << esLandmarks.size() << "\n";
-			for (size_t k = 0; k < esLandmarks.size(); k++) {
+			for (size_t k = 0; k < esLandmarks.size(); k++)
+			{
 				pk = esLandmarks.at(k);
 				inFile << pk.getX() << "\t" << pk.getY() << "\n";
 			}
@@ -1280,7 +1377,8 @@ void ImageViewer::dirAutoLandmarks() {
 	msgbox.exec();
 
 }
-void ImageViewer::dirCentroidMeasure() {
+void ImageViewer::dirCentroidMeasure()
+{
 	cout << "\n Compute centroid on directory." << endl;
 
 	QMessageBox qmessage;
@@ -1295,28 +1393,35 @@ void ImageViewer::dirCentroidMeasure() {
 	vector < string > fileNames = readDirectory(lmfolder.toStdString().c_str());
 	string saveFile;
 	ofstream inFile;
-	if (fileName != NULL || fileName != "") {
+	if (fileName != NULL || fileName != "")
+	{
 		string saveFile = fileName.toStdString();
 		inFile.open(saveFile.c_str(), std::ofstream::out);
 	}
-	for (size_t i = 0; i < fileNames.size(); i++) {
+	for (size_t i = 0; i < fileNames.size(); i++)
+	{
 		string filePath = lmfolder.toStdString() + "/" + fileNames.at(i);
 		//vector<Point> mLandmarks = readTPSFile(filePath.c_str());
 
 		//matImage->setMLandmarks(filePath);
 		vector<Point> mLandmarks = matImage->readManualLandmarks(filePath);
-		if (mLandmarks.size() > 0) {
+		if (mLandmarks.size() > 0)
+		{
 			Point ebary(0, 0);
 			double mCentroid = 0;
 			mCentroid = measureCentroidPoint(mLandmarks, ebary);
 
-			if (fileName != NULL || fileName != "") {
+			if (fileName != NULL || fileName != "")
+			{
 				inFile << fileNames.at(i) << "\t" << ebary.getX() << "\t"
 						<< ebary.getY() << "\t" << mCentroid << "\n";
 
 			}
-		} else {
-			if (fileName != NULL || fileName != "") {
+		}
+		else
+		{
+			if (fileName != NULL || fileName != "")
+			{
 				inFile << fileNames.at(i) << "\t" << 0 << "\t" << 0 << "\t" << 0
 						<< "\n";
 
@@ -1369,7 +1474,8 @@ void ImageViewer::dirCentroidMeasure() {
  msgbox.exec();
  }*/
 // GHT with points
-void ImageViewer::dirGenerateData() {
+void ImageViewer::dirGenerateData()
+{
 	cout << "\n Automatic generate data on directory." << endl;
 	QMessageBox msgbox;
 
@@ -1408,7 +1514,8 @@ void ImageViewer::dirGenerateData() {
 	msgbox.exec();
 }
 // ================================================ Registration ========================================
-void ImageViewer::pcaiMethodViewer() {
+void ImageViewer::pcaiMethodViewer()
+{
 	cout << "\nLandmarks with image registration" << endl;
 	QMessageBox msgbox;
 
@@ -1437,7 +1544,8 @@ void ImageViewer::pcaiMethodViewer() {
 	qpainter.setPen(Qt::yellow);
 	qpainter.setBrush(Qt::yellow);
 	qpainter.setFont(QFont("Arial", 20));
-	for (size_t i = 0; i < estLandmarks.size(); i++) {
+	for (size_t i = 0; i < estLandmarks.size(); i++)
+	{
 		lm = estLandmarks.at(i);
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
@@ -1471,7 +1579,8 @@ void ImageViewer::pcaiMethodViewer() {
 	msgbox.exec();
 }
 
-void ImageViewer::sobelAndSIFT() {
+void ImageViewer::sobelAndSIFT()
+{
 	cout << "\nLandmarks with contours (Sobel) and SIFT" << endl;
 	QMessageBox msgbox;
 
@@ -1495,22 +1604,31 @@ void ImageViewer::sobelAndSIFT() {
 	int tValue = 6; //thresholdOtsu(sbResult);
 	cout << "\n Otsu threshold: " << tValue << endl;
 	vector<Point> contours;
-	for (int r = 0; r < sbResult.getRows(); r++) {
-		for (int c = 0; c < sbResult.getCols(); c++) {
+	for (int r = 0; r < sbResult.getRows(); r++)
+	{
+		for (int c = 0; c < sbResult.getCols(); c++)
+		{
 			int value = sbResult.getAtPosition(r, c);
-			if (value == 0) {
+			if (value == 0)
+			{
 				sbResult.setAtPosition(r, c, 0);
-			} else {
-				if (value >= tValue) {
+			}
+			else
+			{
+				if (value >= tValue)
+				{
 					sbResult.setAtPosition(r, c, 255);
-				} else
+				}
+				else
 					sbResult.setAtPosition(r, c, 0);
 			}
 		}
 	}
 	ptr_IntMatrix dlResult = closeBinary(&sbResult, 3);
-	for (int r = 0; r < dlResult->getRows(); r++) {
-		for (int c = 0; c < dlResult->getCols(); c++) {
+	for (int r = 0; r < dlResult->getRows(); r++)
+	{
+		for (int c = 0; c < dlResult->getCols(); c++)
+		{
 			if (dlResult->getAtPosition(r, c) == 255)
 				contours.push_back(Point(c, r));
 		}
@@ -1528,7 +1646,8 @@ void ImageViewer::sobelAndSIFT() {
 	color.G = 0;
 	color.B = 0;
 	Point lm;
-	for (size_t i = 0; i < estLandmarks.size(); i++) {
+	for (size_t i = 0; i < estLandmarks.size(); i++)
+	{
 		lm = estLandmarks.at(i);
 		fillCircle(matImage->getRGBMatrix(), lm, 7, color);
 	}
@@ -1539,7 +1658,8 @@ void ImageViewer::sobelAndSIFT() {
 	other->move(x() - 40, y() - 40);
 	other->show();
 }
-void ImageViewer::cannyAndSIFT() {
+void ImageViewer::cannyAndSIFT()
+{
 	cout << "\nLandmarks with contours (Sobel) and SIFT" << endl;
 	QMessageBox msgbox;
 
@@ -1570,7 +1690,8 @@ void ImageViewer::cannyAndSIFT() {
 	color.G = 0;
 	color.B = 0;
 	Point lm;
-	for (size_t i = 0; i < estLandmarks.size(); i++) {
+	for (size_t i = 0; i < estLandmarks.size(); i++)
+	{
 		lm = estLandmarks.at(i);
 		fillCircle(matImage->getRGBMatrix(), lm, 7, color);
 	}

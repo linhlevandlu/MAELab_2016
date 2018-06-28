@@ -9,5 +9,6 @@
 #define IMAGECONVERT_H_
 
 QImage ptrIntToQImage(Matrix<int> inputMatrix);
+QImage ptrDoubleToQImage(Matrix<double> inputMatrix);
 QImage ptrRGBToQImage(Matrix<RGB> inputMatrix);
 #endif /* IMAGECONVERT_H_ */

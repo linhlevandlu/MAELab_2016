@@ -208,6 +208,66 @@ Matrix<int> SobelOperation(ptr_IntMatrix grayMatrix)
 	}
 	return dMatrix;
 }
+Matrix<double> SobelOperation_Double(ptr_IntMatrix grayMatrix)
+{
+	int rows = grayMatrix->getRows();
+	int cols = grayMatrix->getCols();
+	cout<<"rows - cols: "<<rows <<"\t"<<cols<<endl;
+	Matrix<double> dMatrix(rows, cols, 0.0);
+	int v1 = 0, v2 = 0, v3 = 0;
+	int v4 = 0, v5 = 0, v6 = 0;
+	int v7 = 0, v8 = 0, v9 = 0;
+	double gx = 0, gy = 0, gxy = 0;
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			v1 = v2 = v3 = v4 = v5 = v6 = 0;
+			v7 = v8 = v9 = gx = gy = gxy = 0;
+
+			v5 = grayMatrix->getAtPosition(r, c);
+			if (r - 1 >= 0)
+			{
+				v2 = grayMatrix->getAtPosition(r - 1, c);
+				if (c - 1 >= 0)
+				{
+					v1 = grayMatrix->getAtPosition(r - 1, c - 1);
+				}
+				if (c + 1 < cols)
+				{
+					v3 = grayMatrix->getAtPosition(r - 1, c + 1);
+				}
+			}
+			if (r + 1 < rows)
+			{
+				v8 = grayMatrix->getAtPosition(r + 1, c);
+				if (c - 1 >= 0)
+				{
+					v7 = grayMatrix->getAtPosition(r + 1, c - 1);
+				}
+				if (c + 1 < cols)
+				{
+					v9 = grayMatrix->getAtPosition(r + 1, c + 1);
+				}
+			}
+			if (c - 1 >= 0)
+			{
+				v4 = grayMatrix->getAtPosition(r, c - 1);
+			}
+			if (c + 1 < cols)
+			{
+				v6 = grayMatrix->getAtPosition(r, c + 1);
+			}
+			gx = (double)(((v7 + 2 * v8 + v9) - (v1 + 2 * v2 + v3))) / 4;
+			gy = double(((v3 + 2 * v6 + v9) - (v1 + 2 * v4 + v7))) / 4;
+			gxy = abs(gx) + abs(gy);
+			dMatrix.setAtPosition(r, c, gxy);
+			cout<<"\t"<<round(atan(gy/gx) * 180/M_PI);
+		}
+		cout<<"\n";
+	}
+	return dMatrix;
+}
 
 Matrix<int> postFilter(Matrix<int> sobelResult)
 {

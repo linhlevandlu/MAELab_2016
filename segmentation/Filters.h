@@ -15,6 +15,8 @@ Matrix<int> gaussianBlur(Matrix<int> inputMatrix, Matrix<double> kernel);
 Matrix<double> gaussianBlur_Double(Matrix<int> inputMatrix, Matrix<double> kernel);
 Matrix<int> RobertOperation(ptr_IntMatrix grayMatrix);
 Matrix<int> SobelOperation(ptr_IntMatrix grayMatrix);
+Matrix<double> SobelOperation_Double(ptr_IntMatrix grayMatrix);
+
 Matrix<int> postFilter(Matrix<int> sobelResult);
 ptr_IntMatrix erode(ptr_IntMatrix binMatrix, int kernelSize);
 ptr_IntMatrix dilate(ptr_IntMatrix binMatrix, int kernelSize);

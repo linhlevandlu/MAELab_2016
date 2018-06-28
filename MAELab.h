@@ -16,7 +16,7 @@ vector<Edge> mae_Suzuki_Algorithm(Image* inputImage);
 vector<Line> mae_Line_Segment(Image* inputImage);
 Matrix<RGB> mae_Gaussian_Filter(Image* inputImage, Matrix<double> kernel);
 Matrix<int> mae_Robert_Filter(Image* inputImage);
-Matrix<int> mae_Sobel_Filter(Image* inputImage);
+Matrix<double> mae_Sobel_Filter(Image* inputImage);
 Matrix<int> mae_Erode(Image* inputImage);
 Matrix<int> mae_Dilate(Image* inputImage);
 Matrix<int> mae_Open_Binary(Image* inputImage);
