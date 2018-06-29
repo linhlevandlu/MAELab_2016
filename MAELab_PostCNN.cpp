@@ -94,17 +94,15 @@ void Print_List_Of_Landmarks(vector<Point> list) {
 	}
 }
 
-void LBP_C_General(string imgPath, string lmPath, int lmIndex) {
+void LBP_C_General(string imgPath, Point pcenter) {
 	Image image(imgPath);
-	vector<Point> mLandmarks = image.readManualLandmarks(lmPath);
-	Point lm = mLandmarks.at(lmIndex);
 	Matrix<int> grayImage = image.getGrayMatrix();
-	int cValue = grayImage.getAtPosition(lm.getY(), lm.getX());
+	int cValue = grayImage.getAtPosition(pcenter.getY(), pcenter.getX());
 	int i = 0, cg = 0, cl = 0;
 	double lbp = 0, vg = 0, vl = 0;
-	for (int y = lm.getY() - 1; y <= lm.getY() + 1; y++) {
-		for (int x = lm.getX() - 1; x <= lm.getX() + 1; x++) {
-			if (y != lm.getY() || x != lm.getX()) {
+	for (int y = pcenter.getY() - 1; y <= pcenter.getY() + 1; y++) {
+		for (int x = pcenter.getX() - 1; x <= pcenter.getX() + 1; x++) {
+			if (y != pcenter.getY() || x != pcenter.getX()) {
 				int tValue = grayImage.getAtPosition(y, x);
 				double ivalue = pow(2, i);
 				if (tValue >= cValue) {
@@ -142,14 +140,12 @@ int main(int argc, char* argv[]) {
 	 Print_List_Of_Landmarks(general_list);*/
 	// end the first test
 	// The second test (LBP/C)
-	//string imagePath = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
-	string imagePath =
-			"/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/original/train/Prono_001.JPG";
-	//string lmPath = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
-	string lmPath =
-			"/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/landmarks/p_001.TPS";
-	int lmIndex = 7;
-	LBP_C_General(imagePath, lmPath, lmIndex);
+	string imagePath = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
+	//string imagePath = "/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/original/train/Prono_001.JPG";
+	string lmPath = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
+	//string lmPath ="/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/landmarks/p_001.TPS";
+	Point pcenter(100,100);
+	LBP_C_General(imagePath, pcenter);
 	return 0;
 
 }
