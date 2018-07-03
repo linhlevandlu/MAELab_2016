@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iostream>
 #include <float.h>
+#include <numeric>
 
 using namespace std;
 
@@ -135,8 +136,11 @@ int LBP_C_General(Image image, Point pcenter, double &ct)
 			}
 		}
 	}
-	double contrast = vg / cg - vl / cl;
-	cout << endl << lbp << "\t" << contrast;
+	double highContrast = (cg != 0) ? vg / cg : 0;
+	double lowContrast = (cl != 0) ? vl / cl : 0;
+	double contrast = highContrast - lowContrast;
+	if (contrast < 0)
+		cout << endl << lbp << "\t" << contrast;
 	ct = contrast;
 	return lbp;
 }
@@ -147,11 +151,75 @@ int LBP_C_General_ImagePath(string imgPath, Point pcenter, double &ct)
 	return LBP_C_General(image, pcenter, ct);
 }
 
+Matrix<int> Create_Distribution(Image image, Point pcenter, int radius = 10,
+		int nBins = 8)
+{
+	Matrix<int> distribution(256, nBins, 0);
+	int px = pcenter.getX();
+	int py = pcenter.getY();
+	//Image image(imgPath);
+//Matrix<int> grayImage = image.getGrayMatrix();
+	vector<int> lbpArray;
+	vector<double> contrastArray;
+	for (int r = py - radius; r < py + radius; r++)
+	{
+		for (int c = px - radius; c < px + radius; c++)
+		{
+			Point pi(r, c);
+			int lbp = 0;
+			double ct = 0;
+			lbp = LBP_C_General(image, pi, ct);
+			lbpArray.push_back(lbp);
+			contrastArray.push_back(ct);
+		}
+	}
+	if (lbpArray.size() == contrastArray.size())
+	{
+		double sumContrast = std::accumulate(contrastArray.begin(),
+				contrastArray.end(), 0.0);
+		double sizeOfBin = sumContrast / nBins;
+		for (int i = 0; i < lbpArray.size(); i++)
+		{
+			int lbpV = lbpArray.at(i);
+			double cV = contrastArray.at(i);
+			int cIndex = -1;
+			if (cV >= 0)
+			{
+				if (std::fmod(cV, sizeOfBin) == 0.0)
+				{
+					cIndex = (int) (cV / sizeOfBin) - 1;
+				}
+				else
+				{
+					cIndex = (int) (cV / sizeOfBin);
+				}
+				int oldValue = distribution.getAtPosition(lbpV, cIndex);
+				distribution.setAtPosition(lbpV, cIndex, oldValue + 1);
+			}
+		}
+	}
+	return distribution;
+}
 
-/*void Create_Distribution(int lbp, double contrast, int b=8) {
- Matrix<int> distribution(256,b);
- }*/
-
+double BhattacharyyaMetric(Matrix<int> model, Matrix<int> sample)
+{
+	double distance = 0.0;
+	int rows = model.getRows();
+	int cols = model.getCols();
+	for (int c = 0; c < cols; c++)
+	{
+		for (int r = 0; r < rows; r++)
+		{
+			int mi = model.getAtPosition(r, c);
+			int si = sample.getAtPosition(r, c);
+			distance += sqrt(mi * si);
+		}
+	}
+	return distance;
+}
+/*
+ * Searching based on a pair of (LBP, Contrast)
+ */
 Point Searching_Landmark(string imgPath, Point plandmark, int radius, int lbp,
 		int contrast)
 {
@@ -181,6 +249,36 @@ Point Searching_Landmark(string imgPath, Point plandmark, int radius, int lbp,
 	}
 	return result;
 }
+Point Searching_Landmark_Distribution(string imgPath, Point plandmark,
+		int radiusPatch, int radius, int nBins, Matrix<int> modelDistr)
+{
+	int beginX = plandmark.getX() - radiusPatch;
+	int endX = plandmark.getX() + radiusPatch;
+	int beginY = plandmark.getY() - radiusPatch;
+	int endY = plandmark.getY() + radiusPatch;
+	Matrix<int> tempDistr;
+
+	double distance = 0, maxDistance = 3264;
+	Point result(0, 0);
+	Image image(imgPath);
+	for (int r = beginY; r < endY; r++)
+	{
+		for (int c = beginX; c < endX; c++)
+		{
+			Point pi(c, r);
+			tempDistr = Create_Distribution(image, pi, radius, nBins);
+			distance = BhattacharyyaMetric(modelDistr, tempDistr);
+			if (distance <= maxDistance)
+			{
+				maxDistance = distance;
+				result.setX(c);
+				result.setY(r);
+			}
+		}
+	}
+	cout<<endl<<"Max distance: "<<maxDistance;
+	return result;
+}
 
 int main(int argc, char* argv[])
 {
@@ -197,20 +295,63 @@ int main(int argc, char* argv[])
 	 Print_List_Of_Landmarks(general_list);*/
 	// end the first test
 	// The second test (LBP/C)
-	string imagePath =
+	string image_Reference =
+				"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_044.JPG";
+	string  imagePath=
 			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
 	//string imagePath = "/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/original/train/Prono_001.JPG";
 	string lmPath =
 			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
 	//string lmPath ="/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/landmarks/p_001.TPS";
-	Point pcenter(2136, 400);
-	int radius = 10 0, lbp;
-	double contrast;
-	lbp = LBP_C_General_ImagePath(imagePath, pcenter, contrast);
-	Point pLandmark(2088, 660), result;
 
-	result = Searching_Landmark(imagePath, pLandmark, radius, lbp, contrast);
+	/*
+	 * Second test: compute the LBP and contrast of a landmark reference (IMG 044.JPG),
+	 * Then, create a patch P around predicted landmark.
+	 * For each pixel in patch P, compute (LBP, contrast) and compare with reference value
+	 */
+	/*Point pcenter(2136, 400);
+	 int radius = 100, lbp;
+	 double contrast;
+	 lbp = LBP_C_General_ImagePath(imagePath, pcenter, contrast);
+	 Point pLandmark(2088, 660), result;
+
+	 result = Searching_Landmark(imagePath, pLandmark, radius, lbp, contrast);
+	 result.toString();*/
+	/*
+	 * End of the second test
+	 * The result is so far with the "target"
+	 */
+
+	/*
+	 * Third test: Compute the distribution (LBP, C) of a small patch around a reference landmark
+	 * Then, create a patch P around predicted landmark.
+	 * For each pixel in patch P, compute the distribution (LBP, contrast)
+	 * and compare with reference distribution
+	 */
+	Point pcenter(2136, 400);
+	int radius = 5;
+	int nBins = 16;
+
+	//Point pLandmark(2088, 660), result;
+	Image imageRef(image_Reference);
+	Matrix<int> ref_Distribution = Create_Distribution(imageRef, pcenter, radius,
+			nBins);
+	/*for (int r = 0; r < ref_Distribution.getRows(); r++)
+	 {
+	 cout << endl;
+	 for (int c = 0; c < ref_Distribution.getCols(); c++)
+	 {
+	 cout << ref_Distribution.getAtPosition(r, c) << " ";
+	 }
+	 }*/
+	//Image imageSample(imagePath);
+	Point pLandmark(2088, 660);
+	int radiusPatch = 100;
+	Point result = Searching_Landmark_Distribution(imagePath, pLandmark,radiusPatch,radius,nBins,ref_Distribution);
 	result.toString();
+	/*
+	 * End of the third test
+	 */
 	return 0;
 
 }
