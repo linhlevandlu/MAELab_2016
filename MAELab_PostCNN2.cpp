@@ -53,15 +53,15 @@ using namespace std;
 #include "pointInterest/LandmarkDetection.h"
 #include "MAELab.h"
 /*
-Steps of this test.
-1. Extract the patch around the preditected landmark
-2. Binary (threshold)
-3. Projection on X=0, y =0 or x=y
-4. Try with segmentation
-*/
+ Steps of this test.
+ 1. Extract the patch around the preditected landmark
+ 2. Binary (threshold)
+ 3. Projection on X=0, y =0 or x=y
+ 4. Try with segmentation
+ */
 
-Matrix<int> extractLandmarkPatch(string image_file, string landmark_file, int lmIndex, int width,
-		int height, string save_folder)
+Matrix<int> extractLandmarkPatch(string image_file, string landmark_file,
+		int lmIndex, int width, int height, string save_folder)
 {
 	Image matImage(image_file);
 	matImage.readManualLandmarks(landmark_file);
@@ -71,15 +71,15 @@ Matrix<int> extractLandmarkPatch(string image_file, string landmark_file, int lm
 	string sname = name.substr(0, found2);
 	Point pi = landmarks.at(lmIndex);
 	Matrix<int> grayImage = matImage.getGrayMatrix();
-	Matrix<int> patch = grayImage.extractPatch(width, height,
-				pi.getY(), pi.getX(), 0);
-	
+	Matrix<int> patch = grayImage.extractPatch(width, height, pi.getY(),
+			pi.getX(), 0);
+
 	std::stringstream ssname;
 	ssname << sname;
 	ssname << "_patch.jpg";
 	string savename = save_folder + "/" + ssname.str();
 	saveGrayScale(savename.c_str(), &patch);
-	
+
 	return patch;
 }
 
@@ -87,71 +87,93 @@ Point Exact_Landmark(Matrix<int> projection)
 {
 	int maximum = 0;
 	int lastc = 0, lastr;
-	for(int c = 0; c < projection.getCols();c++)
+	for (int c = 0; c < projection.getCols(); c++)
 	{
 		int countBlack = 0;
-		int temp_lastr=-1;
-		for(int r = 0; r < projection.getRows();r++)
+		int temp_lastr = -1;
+		for (int r = 0; r < projection.getRows(); r++)
 		{
-			if(projection.getAtPosition(r,c) == 0)
+			if (projection.getAtPosition(r, c) == 0)
 			{
 				countBlack++;
-				if(temp_lastr == -1)
+				if (temp_lastr == -1)
 					temp_lastr = r;
 			}
 		}
-		cout<<endl<<maximum<<" - "<<countBlack;
-		if(countBlack >= maximum)
+		//cout << endl << maximum << " - " << countBlack;
+		if (countBlack >= maximum)
 		{
 			maximum = countBlack;
 			lastc = c;
 			lastr = temp_lastr;
 		}
 	}
-	return Point(lastc,lastr);
+	return Point(lastc, lastr);
 }
 
 int main(int argc, char* argv[])
 {
 
-	string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
-	string landmarkPath = "/home/linhpc/Data/predicted_landmarks/prono_32.TPS";
+	//string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
+	//string landmarkPath = "/home/linhpc/Data/predicted_landmarks/prono_32.TPS";
+	string imagePath =
+			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
+	string landmarkPath =
+			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/predicted_landmarks/prono_001.TPS";
+	if (argc == 3)
+	{
+		imagePath = argv[1];
+		landmarkPath = argv[2];
+	}
+	else
+	{
+		cout << "Default!" << endl;
+	}
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 2, wPatch = 200, hPatch = 200;
+	int lmIndex = 5, wPatch = 150, hPatch = 200;
 	Point cLandmark = list_Landmarks.at(lmIndex);
+	Point originPatch(cLandmark.getX() - wPatch / 2,
+			cLandmark.getY() - hPatch / 2);
 
-	extractLandmarkPatch(imagePath,landmarkPath,lmIndex,wPatch,hPatch,"results");
-	string step2Image = "results/Prono_032_patch.jpg";
-	Image patch(step2Image);
-	
+	extractLandmarkPatch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+			"results/lm6");
+	//string step2Image = "results/patch.jpg";
+	//Image patch(step2Image);
+
+	/* Apply a Gaussian filter before computing */
+	/*Matrix<double> kernel = getGaussianKernel(5, 1.0);
+	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
+	patch.setRGBMatrix(imageGBlur);*/
+
 	/* Extract and compare by projection */
 	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
-	saveGrayScale("results/Prono_032_patch_bin.jpg",thresh_matrix);
+	saveGrayScale("results/patch_bin.jpg", thresh_matrix);
 	Point p = Exact_Landmark(*thresh_matrix);
-	p.toString();*/
+	cout << p.getX() + originPatch.getX() << "\t"
+			<< p.getY() + originPatch.getY() << endl;*/
 
 	/* Extract and compare by line segment*/
-	Point originPatch(cLandmark.getX() - wPatch/2, cLandmark.getY() - hPatch/2);
-	Point exLandmark(cLandmark.getX() - originPatch.getX(), cLandmark.getY() - originPatch.getY());
-	vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
-	cout<<endl<<cannyPoints.size();
-	double minDistance = DBL_MAX;
-	Point result(0,0);
-	for(size_t i =0; i < cannyPoints.size(); i++)
-	{
-		Point pi = cannyPoints.at(i);
-		double distance = distancePoints(exLandmark,pi);
-		if(distance < minDistance)
-		{
-			minDistance = distance;
-			result.setX(pi.getX());
-			result.setY(pi.getY());
-		}
-	}
-	cout<<endl<<result.getX() + originPatch.getX() << " "<< result.getY() + originPatch.getY();
 
+	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
+	 cLandmark.getY() - originPatch.getY());
+	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
+	 double minDistance = DBL_MAX;
+	 Point result(0, 0);
+	 for (size_t i = 0; i < cannyPoints.size(); i++)
+	 {
+	 Point pi = cannyPoints.at(i);
+	 double distance = distancePoints(exLandmark, pi);
+	 if (distance < minDistance)
+	 {
+	 minDistance = distance;
+	 result.setX(pi.getX());
+	 result.setY(pi.getY());
+	 }
+	 }
+	 cout << result.getX() + originPatch.getX() << "\t"
+	 << result.getY() + originPatch.getY() << endl;*/
 
 	return 0;
 

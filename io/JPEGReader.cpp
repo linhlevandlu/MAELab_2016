@@ -23,7 +23,7 @@ using namespace std;
 #include "JPEGReader.h"
 
 Matrix<RGB> decompressJPEG(const char* filename, int &rows, int &cols) {
-	std::cout << "\nBegin decompress JPEG image.\n";
+	//std::cout << "\nBegin decompress JPEG image.\n";
 
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -69,11 +69,11 @@ Matrix<RGB> decompressJPEG(const char* filename, int &rows, int &cols) {
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 	fclose(infile);
-	std::cout << "\nFinished de-compress JPEG.\n";
+	//std::cout << "\nFinished de-compress JPEG.\n";
 	return rgbMatrix;
 }
 void saveJPEG(const char* filename, unsigned char *buffer, int width, int height,int components, J_COLOR_SPACE colorspace) {
-	std::cout << "\nBegin compress JPEG image.\n";
+	//std::cout << "\nBegin compress JPEG image.\n";
 
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -108,7 +108,7 @@ void saveJPEG(const char* filename, unsigned char *buffer, int width, int height
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 	fclose(outfile);
-	std::cout << "\nFinished compress JPEG.\n";
+	//std::cout << "\nFinished compress JPEG.\n";
 }
 void RGB2JPEG(const char* filename, ptr_RGBMatrix rgbMatrix) {
 

@@ -122,7 +122,7 @@ Image::Image(std::string filePath)
 
 	calThresholdValue();
 
-	cout << endl << "Threshold value: " << thresholdValue;
+	//cout << endl << "Threshold value: " << thresholdValue;
 }
 
 //===================================================== End constructor ================================================
@@ -161,6 +161,7 @@ void Image::setMLandmarks(string tpsFile)
 void Image::setRGBMatrix(Matrix<RGB> rgbMatrix)
 {
 	imgMatrix = rgbMatrix;
+	grayMatrix = convertRGBToGray(imgMatrix);
 }
 void Image::setGrayMatrix(Matrix<int> graymatrix)
 {
