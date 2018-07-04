@@ -314,10 +314,10 @@ Matrix<T> Matrix<T>::extractPatch(int width, int height, int rowIndex,
 	int hh = height / 2;
 	int i = 0, j = 0;
 
-	for (int r = rowIndex - hh; r <= rowIndex + hh; r++)
+	for (int r = rowIndex - hh; r < rowIndex + hh; r++)
 	{
 		j = 0;
-		for (int c = colIndex - wh; c <= colIndex + wh; c++)
+		for (int c = colIndex - wh; c < colIndex + wh; c++)
 		{
 			T value = initValue;
 			if (r >= 0 && c >= 0 && r < rows && c < cols)
