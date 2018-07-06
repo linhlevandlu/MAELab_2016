@@ -35,6 +35,7 @@ using namespace std;
 #include "imageModel/Matrix.h"
 #include "imageModel/Image.h"
 #include "io/Reader.h"
+#include "utils/Drawing.h"
 
 #include "histograms/ShapeHistogram.h"
 #include "pht/PHTEntry.h"
@@ -59,28 +60,72 @@ using namespace std;
  3. Projection on X=0, y =0 or x=y
  4. Try with segmentation
  */
+Matrix<int> Extract(Image image, Point pi, int width, int height,
+		string save_folder)
+{
+	Matrix<int> grayImage = image.getGrayMatrix();
+	Matrix<int> patch = grayImage.extractPatch(width, height, pi.getY(),
+			pi.getX(), 0);
 
-Matrix<int> extractLandmarkPatch(string image_file, string landmark_file,
+	string name = image.getName();
+	size_t found2 = name.find_last_of(".");
+	string sname = name.substr(0, found2);
+	std::stringstream ssname;
+	//ssname << sname;
+	ssname << "patch.jpg";
+	string savename = save_folder + "/" + ssname.str();
+	saveGrayScale(savename.c_str(), &patch);
+	return patch;
+}
+Matrix<int> Extract_Landmark_Patch(string image_file, string landmark_file,
 		int lmIndex, int width, int height, string save_folder)
 {
 	Image matImage(image_file);
 	matImage.readManualLandmarks(landmark_file);
 	vector<Point> landmarks = matImage.getListOfManualLandmarks();
-	string name = matImage.getName();
-	size_t found2 = name.find_last_of(".");
-	string sname = name.substr(0, found2);
 	Point pi = landmarks.at(lmIndex);
-	Matrix<int> grayImage = matImage.getGrayMatrix();
-	Matrix<int> patch = grayImage.extractPatch(width, height, pi.getY(),
-			pi.getX(), 0);
+	Matrix<int> patch = Extract(matImage, pi, width, height, save_folder);
+	/*
 
-	std::stringstream ssname;
-	ssname << sname;
-	ssname << "_patch.jpg";
-	string savename = save_folder + "/" + ssname.str();
-	saveGrayScale(savename.c_str(), &patch);
+	 string name = matImage.getName();
+	 size_t found2 = name.find_last_of(".");
+	 string sname = name.substr(0, found2);
+
+	 Matrix<int> grayImage = matImage.getGrayMatrix();
+	 Matrix<int> patch = grayImage.extractPatch(width, height, pi.getY(),
+	 pi.getX(), 0);
+
+	 std::stringstream ssname;
+	 ssname << sname;
+	 ssname << "_patch.jpg";
+	 string savename = save_folder + "/" + ssname.str();
+	 saveGrayScale(savename.c_str(), &patch);*/
 
 	return patch;
+}
+
+void ReadandSaveLandmarks(string imgpath, string lmPath, string savefolder)
+{
+	Image image(imgpath);
+	vector<Point> mLandmarks = image.readManualLandmarks(lmPath);
+	Matrix<RGB> imgWithLM = image.getRGBMatrix();
+	RGB color;
+	color.R = 255;
+	color.G = 0;
+	color.B = 0;
+	for (size_t i = 0; i < mLandmarks.size(); i++)
+	{
+		Point lm = mLandmarks.at(i);
+		imgWithLM = fillCircle(imgWithLM, lm, 7, color);
+	}
+	string name = image.getName();
+	size_t found2 = name.find_last_of(".");
+	string sname = name.substr(0, found2);
+	std::stringstream ssname;
+	ssname << sname;
+	ssname << "_plandmarks.jpg";
+	string savename = savefolder + "/" + ssname.str();
+	saveRGB(savename.c_str(), &imgWithLM);
 }
 
 Point Exact_Landmark(Matrix<int> projection)
@@ -111,6 +156,62 @@ Point Exact_Landmark(Matrix<int> projection)
 	return Point(lastc, lastr);
 }
 
+double SQDIFF(Matrix<int> temp, Matrix<int> image)
+{
+	int rows_temp = temp.getRows();
+	int cols_temp = temp.getCols();
+	int rows_image = image.getRows();
+	int cols_image = image.getCols();
+	//Matrix<double> result(rows_result,cols_result,0.0);
+	double metric = 0;
+
+	for (int r = 0; r < rows_temp; r++)
+	{
+		for (int c = 0; c < cols_temp; c++)
+		{
+			int t_value = temp.getAtPosition(r, c);
+			int i_value = image.getAtPosition(r, c);
+			metric += pow((t_value - i_value), 2);
+		}
+	}
+
+	return metric;
+}
+
+void Comparing_Histogram(Image sImage, Point pLandmark, int width1, int height1,
+		Matrix<int> model)
+{
+	Point begin(pLandmark.getX() - width1 / 2, pLandmark.getY() - height1 / 2);
+	Point end(pLandmark.getX() + width1 / 2, pLandmark.getY() + height1 / 2);
+	double maxMetric = 0;
+	Point presult(0, 0);
+	double minMetric = DBL_MAX;
+	Matrix<double> kernel = getGaussianKernel(5, 1.0);
+	Matrix<int> gray_matrix;
+	Matrix<RGB> imageGBlur;
+	for (int r = begin.getY(); r < end.getY(); r++)
+	{
+		for (int c = begin.getX(); c < end.getX(); c++)
+		{
+			Point pi(c, r);
+			Extract(sImage, pi, 50, 50, "results");
+			string refPatch = "results/patch.jpg";
+			Image patch(refPatch);
+			imageGBlur = mae_Gaussian_Filter(&patch, kernel);
+			patch.setRGBMatrix(imageGBlur);
+			gray_matrix = patch.getGrayMatrix();
+			double metric = SQDIFF(model, gray_matrix);
+			if (metric < minMetric)
+			{
+				minMetric = metric;
+				presult.setX(c);
+				presult.setY(r);
+			}
+		}
+	}
+	presult.toString();
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -129,33 +230,34 @@ int main(int argc, char* argv[])
 	{
 		cout << "Default!" << endl;
 	}
+
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 5, wPatch = 150, hPatch = 200;
+	int lmIndex = 2, wPatch = 300, hPatch = 300;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
 
-	extractLandmarkPatch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
-			"results/lm6");
-	//string step2Image = "results/patch.jpg";
-	//Image patch(step2Image);
+	Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+			"results");
+
+	string step2Image = "results/patch.jpg";
+	Image patch(step2Image);
 
 	/* Apply a Gaussian filter before computing */
-	/*Matrix<double> kernel = getGaussianKernel(5, 1.0);
+	Matrix<double> kernel = getGaussianKernel(5, 1.0);
 	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
-	patch.setRGBMatrix(imageGBlur);*/
+	patch.setRGBMatrix(imageGBlur);
 
 	/* Extract and compare by projection */
-	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
+	ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
 	saveGrayScale("results/patch_bin.jpg", thresh_matrix);
 	Point p = Exact_Landmark(*thresh_matrix);
 	cout << p.getX() + originPatch.getX() << "\t"
-			<< p.getY() + originPatch.getY() << endl;*/
+			<< p.getY() + originPatch.getY() << endl;
 
 	/* Extract and compare by line segment*/
-
 	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
 	 cLandmark.getY() - originPatch.getY());
 	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
@@ -174,6 +276,71 @@ int main(int argc, char* argv[])
 	 }
 	 cout << result.getX() + originPatch.getX() << "\t"
 	 << result.getY() + originPatch.getY() << endl;*/
+
+	/* Load predicted landmarks to the images and saving to the file */
+	/*string save_folder = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/pLandmarksOnImages";
+	 ReadandSaveLandmarks(imagePath,landmarkPath,save_folder);*/
+
+	/*
+	 * Combining test: gaussian blur + nearest points + projection
+	 */
+	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
+	 cLandmark.getY() - originPatch.getY());
+	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
+	 double minDistance = DBL_MAX;
+	 Point result(0, 0);
+	 for (size_t i = 0; i < cannyPoints.size(); i++)
+	 {
+	 Point pi = cannyPoints.at(i);
+	 double distance = distancePoints(exLandmark, pi);
+	 if (distance < minDistance)
+	 {
+	 minDistance = distance;
+	 result.setX(pi.getX());
+	 result.setY(pi.getY());
+	 }
+	 }
+
+	 result.setX(result.getX() + originPatch.getX());
+	 result.setY(result.getY() + originPatch.getY());
+	 if (result.getX() != 0 && result.getY() != 0)
+	 {
+	 //cout<<"Step 2..."<<endl;
+	 wPatch = 200;
+	 Extract(orgImage, result, wPatch, hPatch, "results");
+	 Point originPatch2(result.getX() - wPatch / 2,
+	 result.getY() - hPatch / 2);
+	 string step22Image = "results/patch.jpg";
+	 Image patch2(step22Image);
+	 ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch2);
+	 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
+	 Point p = Exact_Landmark(*thresh_matrix);
+	 cout << p.getX() + originPatch2.getX() << "\t"
+	 << p.getY() + originPatch2.getY() << endl;
+	 }*/
+
+	/*
+	 * Other test:
+	 * 1. Choose a reference image -> extract a reference patch of 50 x 50 around a manual landmark ??
+	 * 2. For each predicted landmark, create a patch of w x h.
+	 *    For each pixel, extract a patch of 150 x 100, then extract the small patch.
+	 *    Comparing with reference patch.
+	 *
+	 * Question: Size of patch?
+	 */
+
+	/*string refImgPath =
+	 "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_044.JPG";
+	 Image refImage(refImgPath);
+	 Point refLandmark(1443, 355);
+	 Extract(orgImage, refLandmark, 50, 50, "results"); // extract reference patch
+	 string refPatch = "results/patch.jpg";
+	 Image patch(refPatch);
+	 Matrix<double> kernel = getGaussianKernel(5, 1.0);
+	 Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
+	 patch.setRGBMatrix(imageGBlur);
+	 Matrix<int> gray_patch_matrix = patch.getGrayMatrix();
+	 Comparing_Histogram(orgImage, cLandmark, wPatch, hPatch, gray_patch_matrix);*/
 
 	return 0;
 
