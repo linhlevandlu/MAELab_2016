@@ -100,13 +100,17 @@ vector<Point> General_Landmarks(int nLandmarks, int nImages,
  */
 void Print_List_Of_Landmarks(vector<Point> list)
 {
-	for (int i = 0; i < list.size(); i++)
+	for (size_t i = 0; i < list.size(); i++)
 	{
 		Point pi = list.at(i);
 		cout << "Point " << (i + 1) << ": " << pi.getX() << " - " << pi.getY()
 				<< endl;
 	}
 }
+
+/*
+ * Compute the constrast of a patch of 3x3 around a point pcenter
+ */
 int LBP_C_General(Image image, Point pcenter, double &ct)
 {
 	Matrix<int> grayImage = image.getGrayMatrix();
@@ -276,82 +280,59 @@ Point Searching_Landmark_Distribution(string imgPath, Point plandmark,
 			}
 		}
 	}
-	cout<<endl<<"Max distance: "<<maxDistance;
+	cout << endl << "Max distance: " << maxDistance;
 	return result;
+}
+
+/*
+ * Split and merge patch 25x25
+ */
+void Split_Patches(Image image, int wSize, int hSize)
+{
+	Matrix<RGB> rgbImage = image.getRGBMatrix();
+	int rows = rgbImage.getRows();
+	int cols = rgbImage.getCols();
+	int nCPatch = cols / wSize;
+	int nRPatch = rows / hSize;
+	cout<<endl<<nRPatch<<"\t"<<nCPatch;
+	int rbegin = 0, cbegin = 0;
+	int rend = 0, cend = 0;
+	vector<Matrix<RGB> > patches;
+	for (int rPatch = 0; rPatch < nRPatch; rPatch++)
+	{
+		rbegin = (rPatch * hSize);
+		rend = rbegin + hSize;
+		for (int cPatch = 0; cPatch < nCPatch; cPatch++)
+		{
+			cbegin = (cPatch * wSize);
+			cend = cbegin + wSize;
+			Matrix<RGB> patch(hSize, wSize);
+			int i = 0, j = 0;
+			for (int r = rbegin; r < rend; r++)
+			{
+				j = 0;
+				for (int c = cbegin; c < cend; c++)
+				{
+					RGB color = rgbImage.getAtPosition(r, c);
+					patch.setAtPosition(i, j, color);
+					j++;
+				}
+				i++;
+			}
+			patches.push_back(patch);
+		}
+	}
+	cout << "\nnumber of patches: " << patches.size()<<endl;
 }
 
 int main(int argc, char* argv[])
 {
-	/*
-	 * The first test --> not work
-	 */
-	/*string imagefolder =
-	 "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original";
-	 string lmfolder = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks";
-	 int nLandmarks = 8;
-	 int nImages = 200;
-	 vector<Point> general_list = General_Landmarks(nLandmarks, nImages,
-	 imagefolder, lmfolder);
-	 Print_List_Of_Landmarks(general_list);*/
-	// end the first test
-	// The second test (LBP/C)
-	string image_Reference =
-				"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_044.JPG";
-	string  imagePath=
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
-	//string imagePath = "/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/original/train/Prono_001.JPG";
-	string lmPath =
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
-	//string lmPath ="/media/vanlinh/Data/Biogical_Images/tdata/i3264x2448/landmarks/p_001.TPS";
+	string imagePath =
+			"results/rgb/lm1/Prono_001.jpg";
+	int wSize = 25, hSize = 25;
+	Image inputImg(imagePath);
+	Split_Patches(inputImg,wSize,hSize);
 
-	/*
-	 * Second test: compute the LBP and contrast of a landmark reference (IMG 044.JPG),
-	 * Then, create a patch P around predicted landmark.
-	 * For each pixel in patch P, compute (LBP, contrast) and compare with reference value
-	 */
-	/*Point pcenter(2136, 400);
-	 int radius = 100, lbp;
-	 double contrast;
-	 lbp = LBP_C_General_ImagePath(imagePath, pcenter, contrast);
-	 Point pLandmark(2088, 660), result;
-
-	 result = Searching_Landmark(imagePath, pLandmark, radius, lbp, contrast);
-	 result.toString();*/
-	/*
-	 * End of the second test
-	 * The result is so far with the "target"
-	 */
-
-	/*
-	 * Third test: Compute the distribution (LBP, C) of a small patch around a reference landmark
-	 * Then, create a patch P around predicted landmark.
-	 * For each pixel in patch P, compute the distribution (LBP, contrast)
-	 * and compare with reference distribution
-	 */
-	Point pcenter(2136, 400);
-	int radius = 5;
-	int nBins = 16;
-
-	//Point pLandmark(2088, 660), result;
-	Image imageRef(image_Reference);
-	Matrix<int> ref_Distribution = Create_Distribution(imageRef, pcenter, radius,
-			nBins);
-	/*for (int r = 0; r < ref_Distribution.getRows(); r++)
-	 {
-	 cout << endl;
-	 for (int c = 0; c < ref_Distribution.getCols(); c++)
-	 {
-	 cout << ref_Distribution.getAtPosition(r, c) << " ";
-	 }
-	 }*/
-	//Image imageSample(imagePath);
-	Point pLandmark(2088, 660);
-	int radiusPatch = 100;
-	Point result = Searching_Landmark_Distribution(imagePath, pLandmark,radiusPatch,radius,nBins,ref_Distribution);
-	result.toString();
-	/*
-	 * End of the third test
-	 */
 	return 0;
-
 }
+

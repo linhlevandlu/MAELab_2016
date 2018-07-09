@@ -60,6 +60,31 @@ using namespace std;
  3. Projection on X=0, y =0 or x=y
  4. Try with segmentation
  */
+/*
+ * Extract patch from RGB matrix
+ */
+Matrix<RGB> Extract_RGB(Image image, Point pi, int width, int height,
+		string save_folder)
+{
+	Matrix<RGB> rgbImage = image.getRGBMatrix();
+	RGB color;
+	color.R = color.G = color.B = 255;
+	Matrix<RGB> patch = rgbImage.extractPatch(width, height, pi.getY(),
+			pi.getX(), color);
+
+	string name = image.getName();
+	size_t found2 = name.find_last_of(".");
+	string sname = name.substr(0, found2);
+	std::stringstream ssname;
+	ssname << sname;
+	ssname << ".jpg";
+	string savename = save_folder + "/" + ssname.str();
+	saveRGB(savename.c_str(), &patch);
+	return patch;
+}
+/*
+ * Extract patch from int matrix
+ */
 Matrix<int> Extract(Image image, Point pi, int width, int height,
 		string save_folder)
 {
@@ -234,28 +259,30 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 2, wPatch = 300, hPatch = 300;
+	int lmIndex = 7, wPatch = 300, hPatch = 300;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
+	Extract_RGB(orgImage,cLandmark,wPatch,hPatch,"results/rgb/lm8");
 
-	Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+	/*Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
 			"results");
 
 	string step2Image = "results/patch.jpg";
-	Image patch(step2Image);
+	Image patch(step2Image);*/
 
 	/* Apply a Gaussian filter before computing */
-	Matrix<double> kernel = getGaussianKernel(5, 1.0);
+	/*Matrix<double> kernel = getGaussianKernel(3, 1.0);
 	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
-	patch.setRGBMatrix(imageGBlur);
+	patch.setRGBMatrix(imageGBlur);*/
+
 
 	/* Extract and compare by projection */
-	ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
-	saveGrayScale("results/patch_bin.jpg", thresh_matrix);
-	Point p = Exact_Landmark(*thresh_matrix);
-	cout << p.getX() + originPatch.getX() << "\t"
-			<< p.getY() + originPatch.getY() << endl;
+	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
+	 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
+	 Point p = Exact_Landmark(*thresh_matrix);
+	 cout << p.getX() + originPatch.getX() << "\t"
+	 << p.getY() + originPatch.getY() << endl;*/
 
 	/* Extract and compare by line segment*/
 	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
@@ -341,6 +368,26 @@ int main(int argc, char* argv[])
 	 patch.setRGBMatrix(imageGBlur);
 	 Matrix<int> gray_patch_matrix = patch.getGrayMatrix();
 	 Comparing_Histogram(orgImage, cLandmark, wPatch, hPatch, gray_patch_matrix);*/
+
+	/*
+	 * Apply DoG to extract the edge
+	 */
+	/*Image patch2(step2Image);
+	 Matrix<double> kernel2 = getGaussianKernel(5, 1.0);
+	 Matrix<RGB> imageGBlur2 = mae_Gaussian_Filter(&patch2, kernel2);
+	 patch2.setRGBMatrix(imageGBlur2);
+	 Matrix<int> patch2Int = patch2.getGrayMatrix();
+	 saveGrayScale("results/patch_2.jpg", &patch2Int);
+	 for (int r = 0; r < patch2Int.getCols(); r++) {
+	 for (int c = 0; c < patch2Int.getCols(); c++) {
+	 cout<<patch2Int.getAtPosition(r,c) <<"\t";
+	 }
+	 cout<<endl;
+	 }
+
+
+	 Matrix<int> dog = patch.getGrayMatrix().subtract(patch2.getGrayMatrix(),0);
+	 saveGrayScale("results/dog.jpg", &dog);*/
 
 	return 0;
 
