@@ -111,9 +111,9 @@ void Print_List_Of_Landmarks(vector<Point> list)
 /*
  * Compute the constrast of a patch of 3x3 around a point pcenter
  */
-int LBP_C_General(Image image, Point pcenter, double &ct)
+int LBP_C_General(Matrix<int> grayImage, Point pcenter, double &ct)
 {
-	Matrix<int> grayImage = image.getGrayMatrix();
+	//Matrix<int> grayImage = image.getGrayMatrix();
 	int cValue = grayImage.getAtPosition(pcenter.getY(), pcenter.getX());
 	int i = 0, cg = 0, cl = 0;
 	double lbp = 0, vg = 0, vl = 0;
@@ -123,7 +123,15 @@ int LBP_C_General(Image image, Point pcenter, double &ct)
 		{
 			if (y != pcenter.getY() || x != pcenter.getX())
 			{
-				int tValue = grayImage.getAtPosition(y, x);
+				int tValue;
+				if(x < 0 || y < 0 || x >= grayImage.getCols() || y >= grayImage.getRows())
+				{
+					tValue = 0;
+				}
+				else
+				{
+					tValue = grayImage.getAtPosition(y, x);
+				}
 				double ivalue = pow(2, i);
 				if (tValue >= cValue)
 				{
@@ -143,8 +151,8 @@ int LBP_C_General(Image image, Point pcenter, double &ct)
 	double highContrast = (cg != 0) ? vg / cg : 0;
 	double lowContrast = (cl != 0) ? vl / cl : 0;
 	double contrast = highContrast - lowContrast;
-	if (contrast < 0)
-		cout << endl << lbp << "\t" << contrast;
+	//if (contrast < 0)
+	//	cout << endl << lbp << "\t" << contrast;
 	ct = contrast;
 	return lbp;
 }
@@ -152,7 +160,7 @@ int LBP_C_General(Image image, Point pcenter, double &ct)
 int LBP_C_General_ImagePath(string imgPath, Point pcenter, double &ct)
 {
 	Image image(imgPath);
-	return LBP_C_General(image, pcenter, ct);
+	return LBP_C_General(image.getGrayMatrix(), pcenter, ct);
 }
 
 Matrix<int> Create_Distribution(Image image, Point pcenter, int radius = 10,
@@ -172,7 +180,7 @@ Matrix<int> Create_Distribution(Image image, Point pcenter, int radius = 10,
 			Point pi(r, c);
 			int lbp = 0;
 			double ct = 0;
-			lbp = LBP_C_General(image, pi, ct);
+			lbp = LBP_C_General(image.getGrayMatrix(), pi, ct);
 			lbpArray.push_back(lbp);
 			contrastArray.push_back(ct);
 		}
@@ -221,6 +229,10 @@ double BhattacharyyaMetric(Matrix<int> model, Matrix<int> sample)
 	}
 	return distance;
 }
+double LBP_C_Histogram_Metric(Matrix<int> model, Matrix<int> sample)
+{
+	
+}
 /*
  * Searching based on a pair of (LBP, Contrast)
  */
@@ -241,7 +253,7 @@ Point Searching_Landmark(string imgPath, Point plandmark, int radius, int lbp,
 		for (int c = beginX; c < endX; c++)
 		{
 			Point pi(c, r);
-			temp_lbp = LBP_C_General(image, pi, ctrast);
+			temp_lbp = LBP_C_General(image.getGrayMatrix(), pi, ctrast);
 			distance = sqrt(pow(temp_lbp - lbp, 2) + pow(contrast - ctrast, 2));
 			if (distance <= maxDistance)
 			{
@@ -287,17 +299,17 @@ Point Searching_Landmark_Distribution(string imgPath, Point plandmark,
 /*
  * Split and merge patch 25x25
  */
-void Split_Patches(Image image, int wSize, int hSize)
+vector<Matrix<int> > Split_Patches(Image image, int wSize, int hSize)
 {
-	Matrix<RGB> rgbImage = image.getRGBMatrix();
+	Matrix<int> rgbImage = image.getGrayMatrix();
 	int rows = rgbImage.getRows();
 	int cols = rgbImage.getCols();
 	int nCPatch = cols / wSize;
 	int nRPatch = rows / hSize;
-	cout<<endl<<nRPatch<<"\t"<<nCPatch;
+	cout<<endl<<nRPatch<<"\t"<<nCPatch<<endl;
 	int rbegin = 0, cbegin = 0;
 	int rend = 0, cend = 0;
-	vector<Matrix<RGB> > patches;
+	vector<Matrix<int> > patches;
 	for (int rPatch = 0; rPatch < nRPatch; rPatch++)
 	{
 		rbegin = (rPatch * hSize);
@@ -306,14 +318,14 @@ void Split_Patches(Image image, int wSize, int hSize)
 		{
 			cbegin = (cPatch * wSize);
 			cend = cbegin + wSize;
-			Matrix<RGB> patch(hSize, wSize);
+			Matrix<int> patch(hSize, wSize);
 			int i = 0, j = 0;
 			for (int r = rbegin; r < rend; r++)
 			{
 				j = 0;
 				for (int c = cbegin; c < cend; c++)
 				{
-					RGB color = rgbImage.getAtPosition(r, c);
+					int color = rgbImage.getAtPosition(r, c);
 					patch.setAtPosition(i, j, color);
 					j++;
 				}
@@ -322,7 +334,44 @@ void Split_Patches(Image image, int wSize, int hSize)
 			patches.push_back(patch);
 		}
 	}
-	cout << "\nnumber of patches: " << patches.size()<<endl;
+	return patches;
+	//cout << "\nnumber of patches: " << patches.size()<<endl;
+}
+
+Matrix<int> Compute_Features(Matrix<int> patch, int lbps = 256, int nBins = 8)
+{
+	Matrix<int> feature(lbps,nBins,0);
+	int patchSize = patch.getRows() * patch.getCols();
+	int lbpArray[patchSize] = {0};
+	double contrastArray[patchSize] = {0.0};
+	double contrast_min = DBL_MAX, contrast_max = DBL_MAX;
+	int k = 0;
+	//cout<<endl<<patch.getRows()<<"\t"<<patch.getCols();
+	for(int r =0; r < patch.getRows(); r++) {
+		for(int c=0; c< patch.getCols();c++) {
+				double contrast = 0.0;
+				int lbp = LBP_C_General(patch,Point(c,r),contrast);
+				lbpArray[k] = lbp;
+				contrastArray[k] = contrast;
+				if( contrast > contrast_max)
+				{
+					contrast_max = contrast;
+				}
+				if(contrast < contrast_min)
+				{
+					contrast_min = contrast;
+				}
+		}
+	}
+	double quan_step = (contrast_max - contrast_min)/nBins;
+	for(int m = 0; m < patchSize; m++) {
+		int lbp = lbpArray[m];
+		double contrs = contrastArray[m];
+		int contrsIndex = (contrs - contrast_min)/quan_step;
+		int oldValue = feature.getAtPosition(lbp,contrsIndex);
+		feature.setAtPosition(lbp,contrsIndex, oldValue + 1);
+	}
+	return feature;
 }
 
 int main(int argc, char* argv[])
@@ -330,9 +379,16 @@ int main(int argc, char* argv[])
 	string imagePath =
 			"results/rgb/lm1/Prono_001.jpg";
 	int wSize = 25, hSize = 25;
+	int lbp_limit = 256, nBins = 8;
 	Image inputImg(imagePath);
-	Split_Patches(inputImg,wSize,hSize);
-
+	vector<Matrix<int> > patches = Split_Patches(inputImg,wSize,hSize);
+	vector<Matrix<int> > features;
+	for(size_t i = 0; i < patches.size(); i++)
+	{
+		Matrix<int> patchi = patches.at(i);
+		Matrix<int> feature = Compute_Features(patchi,lbp_limit,nBins);
+		features.push_back(feature);
+	}
 	return 0;
 }
 
