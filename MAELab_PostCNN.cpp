@@ -124,7 +124,8 @@ int LBP_C_General(Matrix<int> grayImage, Point pcenter, double &ct)
 			if (y != pcenter.getY() || x != pcenter.getX())
 			{
 				int tValue;
-				if(x < 0 || y < 0 || x >= grayImage.getCols() || y >= grayImage.getRows())
+				if (x < 0 || y < 0 || x >= grayImage.getCols()
+						|| y >= grayImage.getRows())
 				{
 					tValue = 0;
 				}
@@ -229,9 +230,25 @@ double BhattacharyyaMetric(Matrix<int> model, Matrix<int> sample)
 	}
 	return distance;
 }
-double LBP_C_Histogram_Metric(Matrix<int> model, Matrix<int> sample)
+double LBP_C_ChiSquare_Metric(Matrix<int> model, Matrix<int> sample)
 {
-	
+	int rows = model.getRows();
+	int cols = model.getCols();
+	double distance = 0;
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			int mValue = model.getAtPosition(r, c);
+			int sValue = sample.getAtPosition(r, c);
+			if (mValue == 0)
+				distance += 0;
+			else
+				distance += pow(mValue - sValue, 2)
+						/ (double) (mValue + sValue);
+		}
+	}
+	return distance / 2.0;
 }
 /*
  * Searching based on a pair of (LBP, Contrast)
@@ -306,7 +323,7 @@ vector<Matrix<int> > Split_Patches(Image image, int wSize, int hSize)
 	int cols = rgbImage.getCols();
 	int nCPatch = cols / wSize;
 	int nRPatch = rows / hSize;
-	cout<<endl<<nRPatch<<"\t"<<nCPatch<<endl;
+	cout << endl << nRPatch << "\t" << nCPatch << endl;
 	int rbegin = 0, cbegin = 0;
 	int rend = 0, cend = 0;
 	vector<Matrix<int> > patches;
@@ -340,55 +357,236 @@ vector<Matrix<int> > Split_Patches(Image image, int wSize, int hSize)
 
 Matrix<int> Compute_Features(Matrix<int> patch, int lbps = 256, int nBins = 8)
 {
-	Matrix<int> feature(lbps,nBins,0);
+	Matrix<int> feature(lbps, nBins, 0);
 	int patchSize = patch.getRows() * patch.getCols();
-	int lbpArray[patchSize] = {0};
-	double contrastArray[patchSize] = {0.0};
+	int lbpArray[patchSize] =
+	{ 0 };
+	double contrastArray[patchSize] =
+	{ 0.0 };
 	double contrast_min = DBL_MAX, contrast_max = DBL_MAX;
 	int k = 0;
 	//cout<<endl<<patch.getRows()<<"\t"<<patch.getCols();
-	for(int r =0; r < patch.getRows(); r++) {
-		for(int c=0; c< patch.getCols();c++) {
-				double contrast = 0.0;
-				int lbp = LBP_C_General(patch,Point(c,r),contrast);
-				lbpArray[k] = lbp;
-				contrastArray[k] = contrast;
-				if( contrast > contrast_max)
-				{
-					contrast_max = contrast;
-				}
-				if(contrast < contrast_min)
-				{
-					contrast_min = contrast;
-				}
+	for (int r = 0; r < patch.getRows(); r++)
+	{
+		for (int c = 0; c < patch.getCols(); c++)
+		{
+			double contrast = 0.0;
+			int lbp = LBP_C_General(patch, Point(c, r), contrast);
+			lbpArray[k] = lbp;
+			contrastArray[k] = contrast;
+			if (contrast > contrast_max)
+			{
+				contrast_max = contrast;
+			}
+			if (contrast < contrast_min)
+			{
+				contrast_min = contrast;
+			}
 		}
 	}
-	double quan_step = (contrast_max - contrast_min)/nBins;
-	for(int m = 0; m < patchSize; m++) {
+	double quan_step = (contrast_max - contrast_min) / nBins;
+	for (int m = 0; m < patchSize; m++)
+	{
 		int lbp = lbpArray[m];
 		double contrs = contrastArray[m];
-		int contrsIndex = (contrs - contrast_min)/quan_step;
-		int oldValue = feature.getAtPosition(lbp,contrsIndex);
-		feature.setAtPosition(lbp,contrsIndex, oldValue + 1);
+		int contrsIndex = (contrs - contrast_min) / quan_step;
+		int oldValue = feature.getAtPosition(lbp, contrsIndex);
+		feature.setAtPosition(lbp, contrsIndex, oldValue + 1);
 	}
 	return feature;
 }
 
+/*
+ * direction:
+ * 	-> 1
+ * 	^  2
+ * 	<- 3
+ * 	v  4
+ */
+Matrix<int> Merge_Two_Patches(Matrix<int> patch1, Matrix<int> feature1,
+		Matrix<int> patch2, Matrix<int> feature2, int direction, Matrix<int> &mergeMatrix)
+{
+	int rowsP1 = patch1.getRows();
+	int colsP1 = patch1.getCols();
+	int rowsP2 = patch2.getRows();
+	int colsP2 = patch2.getCols();
+	int rows = 0, cols = 0;
+	//Matrix<int> mergeMatrix;
+	if (direction == 1 || direction == 3)
+	{
+		rows = rowsP1;
+		cols = colsP1 + colsP2;
+		mergeMatrix.setRows(rows);
+		mergeMatrix.setCols(cols);
+		for (int r = 0; r < rows; r++)
+		{
+			for (int c = 0; c < cols; c++)
+			{
+				int value;
+				if (c >= patch1.getCols())
+				{
+					int c1 = c - patch1.getCols();
+					if (direction == 1)
+					{
+						value = patch2.getAtPosition(r, c1);
+					}
+					else // direction == 3
+					{
+						value = patch1.getAtPosition(r, c1);
+					}
+				}
+				else
+				{
+					if (direction == 1)
+					{
+						value = patch1.getAtPosition(r, c);
+					}
+					else // direction == 3
+					{
+						value = patch2.getAtPosition(r, c);
+					}
+				}
+				mergeMatrix.setAtPosition(r, c, value);
+			}
+		}
+	}
+	if (direction == 2 || direction == 4)
+	{
+		rows = rowsP1 + rowsP2;
+		cols = colsP1;
+		mergeMatrix.setRows(rows);
+		mergeMatrix.setCols(cols);
+		for (int r = 0; r < rows; r++)
+		{
+			for (int c = 0; c < cols; c++)
+			{
+				int value;
+				if (r >= patch1.getRows())
+				{
+					int r1 = r - patch1.getRows();
+					if (direction == 2)
+					{
+						value = patch1.getAtPosition(r1, c);
+					}
+					else // direction == 4
+					{
+						value = patch2.getAtPosition(r1, c);
+					}
+				}
+				else
+				{
+					if (direction == 2)
+					{
+						value = patch2.getAtPosition(r, c);
+					}
+					else // direction == 4
+					{
+						value = patch1.getAtPosition(r, c);
+					}
+				}
+				mergeMatrix.setAtPosition(r, c, value);
+			}
+		}
+
+	}
+
+	return feature1.add(feature2, 0);
+}
+
+void Merge_Features(vector<Matrix<int> > &patches, vector<Matrix<int> > &features,
+		int index)
+{
+	int leftAdj = index - 1, rightAdj = index + 1, topAdj = index - 12, botAdj =
+			index + 12;
+	int adjacents[4];
+	adjacents[0] = leftAdj;
+	adjacents[1] = topAdj;
+	adjacents[2] = rightAdj;
+	adjacents[3] = botAdj;
+
+	Matrix<int> center = patches.at(index);
+	Matrix<int> centerFeature = features.at(index);
+	Matrix<int> adjFeature,adj;
+	double mi_left = 0.0, mi_right = 0.0, mi_top = 0.0, mi_bot = 0.0;
+	double smallest_MI = DBL_MAX, mi;
+	int merged_index = -1, direction;
+	for (int i = 0; i < 4; ++i)
+	{
+		int pos = adjacents[i];
+		if (pos >= 0 && pos < patches.size())
+		{
+			adjFeature = features.at(pos);
+			int pi = 0;
+			if (adjFeature.getRows() * adjFeature.getCols()
+					< centerFeature.getRows() * centerFeature.getCols())
+			{
+				pi = adjFeature.getRows() * adjFeature.getCols();
+			}
+			else
+			{
+				pi = centerFeature.getRows() * centerFeature.getCols();
+			}
+			mi = (double) pi * LBP_C_ChiSquare_Metric(center, adjFeature);
+			if(mi < smallest_MI)
+			{
+				smallest_MI = mi;
+				merged_index = pos;
+				direction = i + 1;
+			}
+		}
+	}
+	adjFeature = features.at(merged_index);
+	adj = patches.at(merged_index);
+	Matrix<int> mergedMatrix;
+	Matrix<int> newFeature = Merge_Two_Patches(center,centerFeature,adj,adjFeature, direction,mergedMatrix);
+	patches.erase(patches.begin() + merged_index);
+	features.erase(features.begin() + merged_index);
+	patches.at(index) = mergedMatrix;
+	features.at(index) = newFeature;
+
+}
+
 int main(int argc, char* argv[])
 {
-	string imagePath =
-			"results/rgb/lm1/Prono_001.jpg";
+	string imagePath = "results/rgb/lm1/Prono_001.jpg";
 	int wSize = 25, hSize = 25;
 	int lbp_limit = 256, nBins = 8;
 	Image inputImg(imagePath);
-	vector<Matrix<int> > patches = Split_Patches(inputImg,wSize,hSize);
+	vector<Matrix<int> > patches = Split_Patches(inputImg, wSize, hSize);
+
+// compute the features of patches
 	vector<Matrix<int> > features;
-	for(size_t i = 0; i < patches.size(); i++)
+	for (size_t i = 0; i < patches.size(); i++)
 	{
 		Matrix<int> patchi = patches.at(i);
-		Matrix<int> feature = Compute_Features(patchi,lbp_limit,nBins);
+		Matrix<int> feature = Compute_Features(patchi, lbp_limit, nBins);
 		features.push_back(feature);
+		/*for (int r = 0; r < feature.getRows(); r++) {
+		 for (int c = 0; c < feature.getCols(); c++) {
+		 cout<<feature.getAtPosition(r,c)<<"\t";
+		 }
+		 cout<<endl;
+		 }
+		 cout<<endl;*/
 	}
+
+// compute the metric between patches
+	vector<double> metrics;
+	for (int k = 0; k < features.size() - 1; k++)
+	{
+		Matrix<int> mfeature = features.at(k);
+
+		for (int m = k + 1; m < features.size(); m++)
+		{
+			Matrix<int> sfeature = features.at(m);
+			double distance = LBP_C_ChiSquare_Metric(mfeature, sfeature);
+			cout << endl << distance;
+			metrics.push_back(distance);
+			//break;
+		}
+		//break;
+	}
+	cout << endl << metrics.size();
 	return 0;
 }
 
