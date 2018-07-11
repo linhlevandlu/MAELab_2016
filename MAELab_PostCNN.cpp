@@ -493,67 +493,99 @@ Matrix<int> Merge_Two_Patches(Matrix<int> patch1, Matrix<int> feature1,
 	return feature1.add(feature2, 0);
 }
 
-void Merge_Features(vector<Matrix<int> > &patches, vector<Matrix<int> > &features,
-		int index)
+vector<int> Get_4_Adjacents(vector<bool> merged, int index, int size = 12)
 {
-	int leftAdj = index - 1, rightAdj = index + 1, topAdj = index - 12, botAdj =
-			index + 12;
-	int adjacents[4];
-	adjacents[0] = leftAdj;
-	adjacents[1] = topAdj;
-	adjacents[2] = rightAdj;
-	adjacents[3] = botAdj;
-
-	Matrix<int> center = patches.at(index);
-	Matrix<int> centerFeature = features.at(index);
-	Matrix<int> adjFeature,adj;
-	double mi_left = 0.0, mi_right = 0.0, mi_top = 0.0, mi_bot = 0.0;
-	double smallest_MI = DBL_MAX, mi;
-	int merged_index = -1, direction;
-	for (int i = 0; i < 4; ++i)
+	vector<int> adjancents;
+	int adj = index + 1;
+	if( adj >= 0 && adj < merged.size())
 	{
-		int pos = adjacents[i];
-		if (pos >= 0 && pos < patches.size())
+		if(merged.at(adj) == false)
+			adjacents.push_back(adj);		
+	}
+	adj = index - size;
+	if( adj >= 0 && adj < merged.size())
+	{
+		if(merged.at(adj) == false)
+			adjacents.push_back(adj);		
+	}
+	adj = index - 1;
+	if( adj >= 0 && adj < merged.size())
+	{
+		if(merged.at(adj) == false)
+			adjacents.push_back(adj);		
+	}
+	adj = index + size;
+	if( adj >= 0 && adj < merged.size())
+	{
+		if(merged.at(adj) == false)
+			adjacents.push_back(adj);		
+	}
+	return adjancents;
+}
+void Merge_Features(vector<Matrix<int> > &patches, vector<Matrix<int> > &features,
+		vector<bool> merged, int index, double mi_max)
+{
+	double mi_current = 0;
+	while(mi_max == 0 || mi_current/mi_max < 2)
+	{
+		vector<int> adjacents = Get_4_Adjacents(merged, index, 12);
+
+		Matrix<int> center = patches.at(index);
+		Matrix<int> centerFeature = features.at(index);
+		Matrix<int> adjFeature,adj;
+		double smallest_MI = DBL_MAX, mi;
+		int merged_index = -1, direction;
+		for (size_t i = 0; i < adjacents.size(); ++i)
 		{
-			adjFeature = features.at(pos);
-			int pi = 0;
-			if (adjFeature.getRows() * adjFeature.getCols()
-					< centerFeature.getRows() * centerFeature.getCols())
+			int pos = adjacents.at(i);
+			if (pos >= 0 && pos < patches.size())
 			{
-				pi = adjFeature.getRows() * adjFeature.getCols();
-			}
-			else
-			{
-				pi = centerFeature.getRows() * centerFeature.getCols();
-			}
-			mi = (double) pi * LBP_C_ChiSquare_Metric(center, adjFeature);
-			if(mi < smallest_MI)
-			{
-				smallest_MI = mi;
-				merged_index = pos;
-				direction = i + 1;
+				adjFeature = features.at(pos);
+				int pi = 0;
+				if (adjFeature.getRows() * adjFeature.getCols()
+						< centerFeature.getRows() * centerFeature.getCols())
+				{
+					pi = adjFeature.getRows() * adjFeature.getCols();
+				}
+				else
+				{
+					pi = centerFeature.getRows() * centerFeature.getCols();
+				}
+				mi = (double) pi * LBP_C_ChiSquare_Metric(center, adjFeature);
+				if(mi < smallest_MI)
+				{
+					smallest_MI = mi;
+					merged_index = pos;
+					direction = i + 1;
+				}
 			}
 		}
+		adjFeature = features.at(merged_index); // get feature of best merged
+		adj = patches.at(merged_index); // get best merged batch
+		Matrix<int> mergedMatrix;
+		// compute the features of merge patches
+		Matrix<int> newFeature = Merge_Two_Patches(center,centerFeature,adj,adjFeature, direction,mergedMatrix);
+		/*patches.erase(patches.begin() + merged_index);
+		features.erase(features.begin() + merged_index);
+		patches.at(index) = mergedMatrix;
+		features.at(index) = newFeature;*/
+		merged.at(merged_index) = true;
+		adjacents.erase(adjacents.begin() + direction - 1);
+		vector<int> adj2 = Get_4_Adjacents(merged,merged_index,12);
+		adjacents.insert(adjacents.end(),adj2.begin(),adj2.end());
 	}
-	adjFeature = features.at(merged_index);
-	adj = patches.at(merged_index);
-	Matrix<int> mergedMatrix;
-	Matrix<int> newFeature = Merge_Two_Patches(center,centerFeature,adj,adjFeature, direction,mergedMatrix);
-	patches.erase(patches.begin() + merged_index);
-	features.erase(features.begin() + merged_index);
-	patches.at(index) = mergedMatrix;
-	features.at(index) = newFeature;
-
 }
 
 void Merge_Process(vector<Matrix<int> > patches, vector<Matrix<int> > features, vector<bool> merged)
 {
 	int k = 0;
+	double mi_max = 0;
 	while(k < patches.size())
 	{
 		if(merged[k] == false) // manh chua ghep
 		{
-
+			merged.at(k) = true;
+			Merge_Features(patches, features, merged, k, mi_max);
 		}
 		k++;
 	}
