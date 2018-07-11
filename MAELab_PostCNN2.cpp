@@ -259,30 +259,30 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 7, wPatch = 300, hPatch = 300;
+	int lmIndex = 2, wPatch = 150, hPatch = 150;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
-	Extract_RGB(orgImage,cLandmark,wPatch,hPatch,"results/rgb/lm8");
+	//Extract_RGB(orgImage,cLandmark,wPatch,hPatch,"results/rgb/lm8");
 
-	/*Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+	Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
 			"results");
 
 	string step2Image = "results/patch.jpg";
-	Image patch(step2Image);*/
+	Image patch(step2Image);
 
 	/* Apply a Gaussian filter before computing */
-	/*Matrix<double> kernel = getGaussianKernel(3, 1.0);
+	Matrix<double> kernel = getGaussianKernel(3, 1.0);
 	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
-	patch.setRGBMatrix(imageGBlur);*/
+	patch.setRGBMatrix(imageGBlur);
 
 
 	/* Extract and compare by projection */
-	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
+	ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
 	 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
 	 Point p = Exact_Landmark(*thresh_matrix);
 	 cout << p.getX() + originPatch.getX() << "\t"
-	 << p.getY() + originPatch.getY() << endl;*/
+	 << p.getY() + originPatch.getY() << endl;
 
 	/* Extract and compare by line segment*/
 	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),

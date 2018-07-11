@@ -546,6 +546,19 @@ void Merge_Features(vector<Matrix<int> > &patches, vector<Matrix<int> > &feature
 
 }
 
+void Merge_Process(vector<Matrix<int> > patches, vector<Matrix<int> > features, vector<bool> merged)
+{
+	int k = 0;
+	while(k < patches.size())
+	{
+		if(merged[k] == false) // manh chua ghep
+		{
+
+		}
+		k++;
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	string imagePath = "results/rgb/lm1/Prono_001.jpg";
@@ -569,7 +582,10 @@ int main(int argc, char* argv[])
 		 }
 		 cout<<endl;*/
 	}
-
+	vector<bool> merged;
+	for (int i = 0; i < features.size(); i++) {
+		merged.push_back(false);
+	}
 // compute the metric between patches
 	vector<double> metrics;
 	for (int k = 0; k < features.size() - 1; k++)
