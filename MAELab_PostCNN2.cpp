@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 2, wPatch = 150, hPatch = 150;
+	int lmIndex = 6, wPatch = 150, hPatch = 150;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
@@ -278,14 +278,14 @@ int main(int argc, char* argv[])
 
 
 	/* Extract and compare by projection */
-	ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
+	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
 	 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
 	 Point p = Exact_Landmark(*thresh_matrix);
 	 cout << p.getX() + originPatch.getX() << "\t"
-	 << p.getY() + originPatch.getY() << endl;
+	 << p.getY() + originPatch.getY() << endl;*/
 
 	/* Extract and compare by line segment*/
-	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
+	Point exLandmark(cLandmark.getX() - originPatch.getX(),
 	 cLandmark.getY() - originPatch.getY());
 	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
 	 double minDistance = DBL_MAX;
@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
 	 }
 	 }
 	 cout << result.getX() + originPatch.getX() << "\t"
-	 << result.getY() + originPatch.getY() << endl;*/
+	 << result.getY() + originPatch.getY() << endl;
 
 	/* Load predicted landmarks to the images and saving to the file */
 	/*string save_folder = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/pLandmarksOnImages";

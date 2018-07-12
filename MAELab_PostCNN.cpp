@@ -404,7 +404,8 @@ Matrix<int> Compute_Features(Matrix<int> patch, int lbps = 256, int nBins = 8)
  * 	v  4
  */
 Matrix<int> Merge_Two_Patches(Matrix<int> patch1, Matrix<int> feature1,
-		Matrix<int> patch2, Matrix<int> feature2, int direction, Matrix<int> &mergeMatrix)
+		Matrix<int> patch2, Matrix<int> feature2, int direction,
+		Matrix<int> &mergeMatrix)
 {
 	int rowsP1 = patch1.getRows();
 	int colsP1 = patch1.getCols();
@@ -493,99 +494,138 @@ Matrix<int> Merge_Two_Patches(Matrix<int> patch1, Matrix<int> feature1,
 	return feature1.add(feature2, 0);
 }
 
+Matrix<int> Merge_Two_Features(Matrix<int> index_feature,
+		Matrix<int> merge_feature)
+{
+	return index_feature.add(merge_feature, 0);
+}
+
 vector<int> Get_4_Adjacents(vector<bool> merged, int index, int size = 12)
 {
-	vector<int> adjancents;
+	vector<int> adjacents;
 	int adj = index + 1;
-	if( adj >= 0 && adj < merged.size())
+	if (adj >= 0 && adj < merged.size())
 	{
-		if(merged.at(adj) == false)
-			adjacents.push_back(adj);		
+		if (merged.at(adj) == false)
+			adjacents.push_back(adj);
 	}
 	adj = index - size;
-	if( adj >= 0 && adj < merged.size())
+	if (adj >= 0 && adj < merged.size())
 	{
-		if(merged.at(adj) == false)
-			adjacents.push_back(adj);		
+		if (merged.at(adj) == false)
+			adjacents.push_back(adj);
 	}
 	adj = index - 1;
-	if( adj >= 0 && adj < merged.size())
+	if (adj >= 0 && adj < merged.size())
 	{
-		if(merged.at(adj) == false)
-			adjacents.push_back(adj);		
+		if (merged.at(adj) == false)
+			adjacents.push_back(adj);
 	}
 	adj = index + size;
-	if( adj >= 0 && adj < merged.size())
+	if (adj >= 0 && adj < merged.size())
 	{
-		if(merged.at(adj) == false)
-			adjacents.push_back(adj);		
+		if (merged.at(adj) == false)
+			adjacents.push_back(adj);
 	}
-	return adjancents;
+	return adjacents;
 }
-void Merge_Features(vector<Matrix<int> > &patches, vector<Matrix<int> > &features,
-		vector<bool> merged, int index, double mi_max)
+vector<int> Merge_Features(vector<Matrix<int> > patches,
+		vector<Matrix<int> > features, vector<bool> &merged, int index,
+		double &mi_max)
 {
-	double mi_current = 0;
-	while(mi_max == 0 || mi_current/mi_max < 2)
+	vector<int> mergedList;
+	mergedList.push_back(index);
+	double mir = 0.0;
+	vector<int> adjacents = Get_4_Adjacents(merged, index, 12);
+	Matrix<int> center = patches.at(index);
+	int centerPixels = center.getRows() * center.getCols();
+	Matrix<int> centerFeature = features.at(index);
+	Matrix<int> adjFeature, adj;
+	double smallest_MI, mi = 0.0;
+	int merged_index;
+	int direction;
+	do
 	{
-		vector<int> adjacents = Get_4_Adjacents(merged, index, 12);
-
-		Matrix<int> center = patches.at(index);
-		Matrix<int> centerFeature = features.at(index);
-		Matrix<int> adjFeature,adj;
-		double smallest_MI = DBL_MAX, mi;
-		int merged_index = -1, direction;
-		for (size_t i = 0; i < adjacents.size(); ++i)
+		//cout<<endl<<"Neighbors: "<<adjacents.size();
+		merged_index = -1;
+		smallest_MI = DBL_MAX;
+		direction = 0;
+		for (size_t i = 0; i < adjacents.size(); i++)
 		{
 			int pos = adjacents.at(i);
+			//cout<<"\n"<<pos;
 			if (pos >= 0 && pos < patches.size())
 			{
-				adjFeature = features.at(pos);
+				adjFeature = features.at(pos); // or compute the feature
+				adj = patches.at(pos);
 				int pi = 0;
-				if (adjFeature.getRows() * adjFeature.getCols()
-						< centerFeature.getRows() * centerFeature.getCols())
+				if (adj.getRows() * adj.getCols() < centerPixels)
 				{
-					pi = adjFeature.getRows() * adjFeature.getCols();
+					pi = adj.getRows() * adj.getCols();
 				}
 				else
 				{
-					pi = centerFeature.getRows() * centerFeature.getCols();
+					pi = centerPixels;
 				}
-				mi = (double) pi * LBP_C_ChiSquare_Metric(center, adjFeature);
-				if(mi < smallest_MI)
+				mi = (double) pi
+						* LBP_C_ChiSquare_Metric(centerFeature, adjFeature);
+				if (mi < smallest_MI)
 				{
 					smallest_MI = mi;
 					merged_index = pos;
-					direction = i + 1;
+					direction = i;
+				}
+				if (mi > mi_max)
+				{
+					mi_max = mi;
 				}
 			}
+		} // found the patch to merged
+
+		mir = smallest_MI / mi_max;
+		//cout<<endl<<mir<<"\tindex: "<<merged_index<<endl;
+
+		if (mir < 2 && merged.at(merged_index) == false)
+		{
+			//cout<<endl<<mir<<"\tindex: "<<merged_index<<endl;
+			adjFeature = features.at(merged_index); // get feature of best merged
+			// compute the features of merged patches and merge the patches
+			mergedList.push_back(merged_index);
+			adj = patches.at(merged_index);
+			Matrix<int> newFeature = Merge_Two_Features(centerFeature,
+					adjFeature);
+			centerFeature = newFeature;
+			centerPixels += (adj.getRows() + adj.getCols());
+			merged.at(merged_index) = true; // set the patches to merged
+
+			vector<int> adj2 = Get_4_Adjacents(merged, merged_index, 12); // get adjacents of merged patches
+			adjacents.insert(adjacents.end(), adj2.begin(), adj2.end());
+
 		}
-		adjFeature = features.at(merged_index); // get feature of best merged
-		adj = patches.at(merged_index); // get best merged batch
-		Matrix<int> mergedMatrix;
-		// compute the features of merge patches
-		Matrix<int> newFeature = Merge_Two_Patches(center,centerFeature,adj,adjFeature, direction,mergedMatrix);
-		/*patches.erase(patches.begin() + merged_index);
-		features.erase(features.begin() + merged_index);
-		patches.at(index) = mergedMatrix;
-		features.at(index) = newFeature;*/
-		merged.at(merged_index) = true;
-		adjacents.erase(adjacents.begin() + direction - 1);
-		vector<int> adj2 = Get_4_Adjacents(merged,merged_index,12);
-		adjacents.insert(adjacents.end(),adj2.begin(),adj2.end());
-	}
+		adjacents.erase(adjacents.begin() + direction);
+
+
+	} while (adjacents.size() > 0);
+	return mergedList;
 }
 
-void Merge_Process(vector<Matrix<int> > patches, vector<Matrix<int> > features, vector<bool> merged)
+void Merge_Process(vector<Matrix<int> > patches, vector<Matrix<int> > features,
+		vector<bool> merged)
 {
 	int k = 0;
 	double mi_max = 0;
-	while(k < patches.size())
+	vector<int> mergedList;
+	while (k < patches.size())
 	{
-		if(merged[k] == false) // manh chua ghep
+		if (merged[k] == false) // manh chua ghep
 		{
 			merged.at(k) = true;
-			Merge_Features(patches, features, merged, k, mi_max);
+			mergedList = Merge_Features(patches, features, merged, k, mi_max);
+			for (int m = 0; m < mergedList.size(); ++m)
+			{
+				cout << "\t" << mergedList.at(m);
+			}
+			cout << endl<<endl;
 		}
 		k++;
 	}
@@ -593,12 +633,13 @@ void Merge_Process(vector<Matrix<int> > patches, vector<Matrix<int> > features, 
 
 int main(int argc, char* argv[])
 {
-	string imagePath = "results/rgb/lm1/Prono_001.jpg";
+	string imagePath = "results/rgb/lm2/Prono_001.jpg";
 	int wSize = 25, hSize = 25;
 	int lbp_limit = 256, nBins = 8;
 	Image inputImg(imagePath);
 	vector<Matrix<int> > patches = Split_Patches(inputImg, wSize, hSize);
 
+	cout << "\nNumber of patches: " << patches.size();
 // compute the features of patches
 	vector<Matrix<int> > features;
 	for (size_t i = 0; i < patches.size(); i++)
@@ -614,27 +655,33 @@ int main(int argc, char* argv[])
 		 }
 		 cout<<endl;*/
 	}
+	cout << "\nNumber of features: " << patches.size();
 	vector<bool> merged;
-	for (int i = 0; i < features.size(); i++) {
+	for (int i = 0; i < features.size(); i++)
+	{
 		merged.push_back(false);
 	}
-// compute the metric between patches
-	vector<double> metrics;
-	for (int k = 0; k < features.size() - 1; k++)
-	{
-		Matrix<int> mfeature = features.at(k);
 
-		for (int m = k + 1; m < features.size(); m++)
-		{
-			Matrix<int> sfeature = features.at(m);
-			double distance = LBP_C_ChiSquare_Metric(mfeature, sfeature);
-			cout << endl << distance;
-			metrics.push_back(distance);
-			//break;
-		}
-		//break;
-	}
-	cout << endl << metrics.size();
+	cout << "\nNumber of merged: " << patches.size();
+
+	Merge_Process(patches, features, merged);
+
+	// compute the metric between patches
+	/*vector<double> metrics;
+	 for (int k = 0; k < features.size() - 1; k++)
+	 {
+	 Matrix<int> mfeature = features.at(k);
+
+	 for (int m = k + 1; m < features.size(); m++)
+	 {
+	 Matrix<int> sfeature = features.at(m);
+	 double distance = LBP_C_ChiSquare_Metric(mfeature, sfeature);
+	 cout << endl << distance;
+	 metrics.push_back(distance);
+	 }
+	 }
+	 cout << endl << metrics.size();*/
+
 	return 0;
 }
 
