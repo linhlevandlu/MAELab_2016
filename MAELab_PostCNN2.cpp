@@ -73,12 +73,7 @@ Matrix<RGB> Extract_RGB(Image image, Point pi, int width, int height,
 			pi.getX(), color);
 
 	string name = image.getName();
-	size_t found2 = name.find_last_of(".");
-	string sname = name.substr(0, found2);
-	std::stringstream ssname;
-	ssname << sname;
-	ssname << ".jpg";
-	string savename = save_folder + "/" + ssname.str();
+	string savename = save_folder + "/" + name;
 	saveRGB(savename.c_str(), &patch);
 	return patch;
 }
@@ -237,6 +232,66 @@ void Comparing_Histogram(Image sImage, Point pLandmark, int width1, int height1,
 	presult.toString();
 }
 
+Matrix<int> Mean_Threshold(Matrix<int> inputMatrix,string filename)
+{
+	int rows = inputMatrix.getRows();
+	int cols = inputMatrix.getCols();
+	double total = 0;
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			total += (double) inputMatrix.getAtPosition(r, c);
+		}
+	}
+	total /= (rows * cols);
+	cout << "\nAvg pixels: " << total << endl;
+	Matrix<int> output(rows, cols, 0);
+	int tValue = 0;
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			tValue = inputMatrix.getAtPosition(r, c);
+			if (tValue >= total)
+			{
+				output.setAtPosition(r, c, 255);
+			}
+		}
+	}
+	string folder = "results/rgb_150x200/mean_threshold/lm8";
+	string savefile = folder + "/" + filename;
+	saveGrayScale(savefile.c_str(), &output);
+	return output;
+}
+
+Matrix<int> Process_On_1_And_5(Matrix<int> mt_binThreshold, string filename)
+{
+	int rows = mt_binThreshold.getRows();
+	int cols = mt_binThreshold.getCols();
+	Matrix<int> projection(rows, cols, 0); // black is background
+	int count;
+	for (int r = 0; r < rows; r++)
+	{
+		count = 0;
+		for (int c = 0; c < cols; c++)
+		{
+			if (mt_binThreshold.getAtPosition(r, c) == 0)
+			{
+				count++;
+			}
+		}
+		for (int c2 = 0; c2 < count; c2++)
+		{
+			projection.setAtPosition(r, c2, 255);
+		}
+	}
+	string folder = "results/lm1_projection";
+	string savefile = folder + "/" + filename;
+	saveGrayScale(savefile.c_str(), &projection);
+	return projection;
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -259,12 +314,11 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 6, wPatch = 150, hPatch = 150;
+	int lmIndex = 7, wPatch = 150, hPatch = 200;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
-	//Extract_RGB(orgImage,cLandmark,wPatch,hPatch,"results/rgb/lm8");
-
+	//Extract_RGB(orgImage, cLandmark, wPatch, hPatch, "results/rgb_150x200/lm8");
 	Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
 			"results");
 
@@ -276,6 +330,12 @@ int main(int argc, char* argv[])
 	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
 	patch.setRGBMatrix(imageGBlur);
 
+	/* Mean threshold*/
+	Matrix<int> mean_thresh = Mean_Threshold(patch.getGrayMatrix(),
+			orgImage.getName());
+	//Matrix<int> projection = Process_On_1_And_5(mean_thresh,
+	//		orgImage.getName());
+	//saveGrayScale("results/patch_bin.jpg", &mean_thresh);
 
 	/* Extract and compare by projection */
 	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
@@ -285,7 +345,7 @@ int main(int argc, char* argv[])
 	 << p.getY() + originPatch.getY() << endl;*/
 
 	/* Extract and compare by line segment*/
-	Point exLandmark(cLandmark.getX() - originPatch.getX(),
+	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
 	 cLandmark.getY() - originPatch.getY());
 	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
 	 double minDistance = DBL_MAX;
@@ -302,11 +362,12 @@ int main(int argc, char* argv[])
 	 }
 	 }
 	 cout << result.getX() + originPatch.getX() << "\t"
-	 << result.getY() + originPatch.getY() << endl;
+	 << result.getY() + originPatch.getY() << endl;*/
 
 	/* Load predicted landmarks to the images and saving to the file */
-	/*string save_folder = "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/pLandmarksOnImages";
-	 ReadandSaveLandmarks(imagePath,landmarkPath,save_folder);*/
+	/*string save_folder =
+	 "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/mLandmarksOnImages";
+	 ReadandSaveLandmarks(imagePath, landmarkPath, save_folder);*/
 
 	/*
 	 * Combining test: gaussian blur + nearest points + projection
