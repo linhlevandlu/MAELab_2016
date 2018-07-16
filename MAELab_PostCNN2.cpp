@@ -71,7 +71,16 @@ Matrix<RGB> Extract_RGB(Image image, Point pi, int width, int height,
 	color.R = color.G = color.B = 255;
 	Matrix<RGB> patch = rgbImage.extractPatch(width, height, pi.getY(),
 			pi.getX(), color);
-
+	// calculate the new coordinate of point pi
+	if (width % 2 == 0)
+		width += 1;
+	if (height % 2 == 0)
+		height += 1;
+	int wh = width / 2;
+	int hh = height / 2;
+	int new_x = pi.getX() - (pi.getX() - hh); 
+	int new_y = pi.getY() - (pi.getY() - wh);
+	cout<<"\n"<<new_x<<"\t"<<new_y<<"\t"<<pi.getX() - hh <<"\t" << pi.getY() - wh;
 	string name = image.getName();
 	string savename = save_folder + "/" + name;
 	saveRGB(savename.c_str(), &patch);
@@ -295,12 +304,12 @@ Matrix<int> Process_On_1_And_5(Matrix<int> mt_binThreshold, string filename)
 int main(int argc, char* argv[])
 {
 
-	//string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
-	//string landmarkPath = "/home/linhpc/Data/predicted_landmarks/prono_32.TPS";
-	string imagePath =
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
-	string landmarkPath =
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/predicted_landmarks/prono_001.TPS";
+	string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
+	string landmarkPath = "/home/linhpc/Data/manual_landmarks/p_032.TPS";
+	//string imagePath =
+	//		"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
+	//string landmarkPath =
+	//		"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/predicted_landmarks/prono_001.TPS";
 	if (argc == 3)
 	{
 		imagePath = argv[1];
@@ -314,25 +323,25 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 7, wPatch = 150, hPatch = 200;
+	int lmIndex = 7, wPatch = 200, hPatch = 200;
 	Point cLandmark = list_Landmarks.at(lmIndex);
 	Point originPatch(cLandmark.getX() - wPatch / 2,
 			cLandmark.getY() - hPatch / 2);
-	//Extract_RGB(orgImage, cLandmark, wPatch, hPatch, "results/rgb_150x200/lm8");
-	Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+	Extract_RGB(orgImage, cLandmark, wPatch, hPatch, "results/rgb_200x200/lm8");
+	/*Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
 			"results");
 
 	string step2Image = "results/patch.jpg";
-	Image patch(step2Image);
+	Image patch(step2Image);*/
 
 	/* Apply a Gaussian filter before computing */
-	Matrix<double> kernel = getGaussianKernel(3, 1.0);
+	/*Matrix<double> kernel = getGaussianKernel(3, 1.0);
 	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
-	patch.setRGBMatrix(imageGBlur);
+	patch.setRGBMatrix(imageGBlur);*/
 
 	/* Mean threshold*/
-	Matrix<int> mean_thresh = Mean_Threshold(patch.getGrayMatrix(),
-			orgImage.getName());
+	//Matrix<int> mean_thresh = Mean_Threshold(patch.getGrayMatrix(),
+	//		orgImage.getName());
 	//Matrix<int> projection = Process_On_1_And_5(mean_thresh,
 	//		orgImage.getName());
 	//saveGrayScale("results/patch_bin.jpg", &mean_thresh);
