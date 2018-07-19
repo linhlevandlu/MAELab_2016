@@ -78,9 +78,10 @@ Matrix<RGB> Extract_RGB(Image image, Point pi, int width, int height,
 		height += 1;
 	int wh = width / 2;
 	int hh = height / 2;
-	int new_x = pi.getX() - (pi.getX() - hh); 
+	int new_x = pi.getX() - (pi.getX() - hh);
 	int new_y = pi.getY() - (pi.getY() - wh);
-	cout<<"\n"<<new_x<<"\t"<<new_y<<"\t"<<pi.getX() - hh <<"\t" << pi.getY() - wh;
+	cout << "\n" << new_x << "\t" << new_y << "\t" << pi.getX() - hh << "\t"
+			<< pi.getY() - wh;
 	string name = image.getName();
 	string savename = save_folder + "/" + name;
 	saveRGB(savename.c_str(), &patch);
@@ -241,7 +242,8 @@ void Comparing_Histogram(Image sImage, Point pLandmark, int width1, int height1,
 	presult.toString();
 }
 
-Matrix<int> Mean_Threshold(Matrix<int> inputMatrix,string filename)
+ptr_IntMatrix Mean_Threshold(Matrix<int> inputMatrix, string filename,
+		double &thresholdValue)
 {
 	int rows = inputMatrix.getRows();
 	int cols = inputMatrix.getCols();
@@ -254,8 +256,9 @@ Matrix<int> Mean_Threshold(Matrix<int> inputMatrix,string filename)
 		}
 	}
 	total /= (rows * cols);
-	cout << "\nAvg pixels: " << total << endl;
-	Matrix<int> output(rows, cols, 0);
+	thresholdValue = total;
+	//cout << "\nAvg pixels: " << total << endl;
+	ptr_IntMatrix output = new Matrix<int>(rows, cols, 0);
 	int tValue = 0;
 	for (int r = 0; r < rows; r++)
 	{
@@ -264,13 +267,13 @@ Matrix<int> Mean_Threshold(Matrix<int> inputMatrix,string filename)
 			tValue = inputMatrix.getAtPosition(r, c);
 			if (tValue >= total)
 			{
-				output.setAtPosition(r, c, 255);
+				output->setAtPosition(r, c, 255);
 			}
 		}
 	}
-	string folder = "results/rgb_150x200/mean_threshold/lm8";
-	string savefile = folder + "/" + filename;
-	saveGrayScale(savefile.c_str(), &output);
+	//string folder = "results/rgb_150x200/mean_threshold/lm8";
+	//string savefile = folder + "/" + filename;
+	//saveGrayScale(savefile.c_str(), &output);
 	return output;
 }
 
@@ -304,12 +307,12 @@ Matrix<int> Process_On_1_And_5(Matrix<int> mt_binThreshold, string filename)
 int main(int argc, char* argv[])
 {
 
-	string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
-	string landmarkPath = "/home/linhpc/Data/manual_landmarks/p_032.TPS";
-	//string imagePath =
-	//		"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/Prono_001.JPG";
-	//string landmarkPath =
-	//		"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/predicted_landmarks/prono_001.TPS";
+	//string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
+	//string landmarkPath = "/home/linhpc/Data/manual_landmarks/p_032.TPS";
+	string imagePath =
+			"/home/linhpc/Biogical_Images/mandibule-droite/Images_without_grid_2/Md_281.JPG";
+	string landmarkPath =
+			"/home/linhpc/Biogical_Images/mandibule-droite/predicted_landmarks_CNN/Md_281.TPS";
 	if (argc == 3)
 	{
 		imagePath = argv[1];
@@ -323,56 +326,84 @@ int main(int argc, char* argv[])
 	Image orgImage(imagePath);
 	vector<Point> list_Landmarks = orgImage.readManualLandmarks(landmarkPath);
 
-	int lmIndex = 7, wPatch = 200, hPatch = 200;
-	Point cLandmark = list_Landmarks.at(lmIndex);
-	Point originPatch(cLandmark.getX() - wPatch / 2,
-			cLandmark.getY() - hPatch / 2);
-	Extract_RGB(orgImage, cLandmark, wPatch, hPatch, "results/rgb_200x200/lm8");
-	/*Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
-			"results");
+	for (int index = 0; index < list_Landmarks.size(); index++)
+	{
 
-	string step2Image = "results/patch.jpg";
-	Image patch(step2Image);*/
+		int lmIndex = index, wPatch = 150, hPatch = 200;
+		Point cLandmark = list_Landmarks.at(lmIndex);
+		Point originPatch(cLandmark.getX() - wPatch / 2,
+				cLandmark.getY() - hPatch / 2);
+		//Extract_RGB(orgImage, cLandmark, wPatch, hPatch, "results/rgb_200x200_predicted/lm8");
+		Extract_Landmark_Patch(imagePath, landmarkPath, lmIndex, wPatch, hPatch,
+				"results");
 
-	/* Apply a Gaussian filter before computing */
-	/*Matrix<double> kernel = getGaussianKernel(3, 1.0);
-	Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
-	patch.setRGBMatrix(imageGBlur);*/
+		string step2Image = "results/patch.jpg";
+		Image patch(step2Image);
 
-	/* Mean threshold*/
-	//Matrix<int> mean_thresh = Mean_Threshold(patch.getGrayMatrix(),
-	//		orgImage.getName());
-	//Matrix<int> projection = Process_On_1_And_5(mean_thresh,
-	//		orgImage.getName());
-	//saveGrayScale("results/patch_bin.jpg", &mean_thresh);
+		/* Apply a Gaussian filter before computing */
+		Matrix<double> kernel = getGaussianKernel(3, 1.0);
+		Matrix<RGB> imageGBlur = mae_Gaussian_Filter(&patch, kernel);
+		patch.setRGBMatrix(imageGBlur);
 
-	/* Extract and compare by projection */
-	/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
-	 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
-	 Point p = Exact_Landmark(*thresh_matrix);
-	 cout << p.getX() + originPatch.getX() << "\t"
-	 << p.getY() + originPatch.getY() << endl;*/
+		/*Mean threshold*/
+		double thresh_Value = 0;
+		ptr_IntMatrix mean_thresh = Mean_Threshold(patch.getGrayMatrix(),
+				orgImage.getName(), thresh_Value);
 
-	/* Extract and compare by line segment*/
-	/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
-	 cLandmark.getY() - originPatch.getY());
-	 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
-	 double minDistance = DBL_MAX;
-	 Point result(0, 0);
-	 for (size_t i = 0; i < cannyPoints.size(); i++)
-	 {
-	 Point pi = cannyPoints.at(i);
-	 double distance = distancePoints(exLandmark, pi);
-	 if (distance < minDistance)
-	 {
-	 minDistance = distance;
-	 result.setX(pi.getX());
-	 result.setY(pi.getY());
-	 }
-	 }
-	 cout << result.getX() + originPatch.getX() << "\t"
-	 << result.getY() + originPatch.getY() << endl;*/
+		/*Matrix<int> projection = Process_On_1_And_5(mean_thresh,
+		 orgImage.getName());*/
+		//saveGrayScale("results/patch_bin.jpg", mean_thresh);
+		/* Extract and compare by projection */
+		/*ptr_IntMatrix thresh_matrix = mae_Binary_Threshold(&patch);
+		 saveGrayScale("results/patch_bin.jpg", thresh_matrix);
+		 Point p = Exact_Landmark(*thresh_matrix);
+		 cout << p.getX() + originPatch.getX() << "\t"
+		 << p.getY() + originPatch.getY() << endl;*/
 
+		/* Extract and compare by line segment*/
+		/*Point exLandmark(cLandmark.getX() - originPatch.getX(),
+		 cLandmark.getY() - originPatch.getY());
+		 vector<Point> cannyPoints = mae_Canny_Algorithm(&patch);
+		 double minDistance = DBL_MAX;
+		 Point result(0, 0);
+		 for (size_t i = 0; i < cannyPoints.size(); i++)
+		 {
+		 Point pi = cannyPoints.at(i);
+		 double distance = distancePoints(exLandmark, pi);
+		 if (distance < minDistance)
+		 {
+		 minDistance = distance;
+		 result.setX(pi.getX());
+		 result.setY(pi.getY());
+		 }
+		 }
+		 cout << result.getX() + originPatch.getX() << "\t"
+		 << result.getY() + originPatch.getY() << endl;*/
+
+		/*Extract edge by applying mean threshold*/
+		Point exLandmark(cLandmark.getX() - originPatch.getX(),
+				cLandmark.getY() - originPatch.getY());
+		vector<Point> cannyPoints;
+		cannyProcess(mean_thresh, (int) thresh_Value, 3 * (int) thresh_Value,
+				cannyPoints);
+		double minDistance = DBL_MAX;
+		Point result(0, 0);
+		//cout<<endl<<"Canny points: "<< cannyPoints.size()<<endl;
+		for (size_t i = 0; i < cannyPoints.size(); i++)
+		{
+			Point pi = cannyPoints.at(i);
+			double distance = distancePoints(exLandmark, pi);
+			if (distance < minDistance)
+			{
+				minDistance = distance;
+				result.setX(pi.getX());
+				result.setY(pi.getY());
+			}
+		}
+		cout << result.getX() + originPatch.getX() << "\t"
+				<< result.getY() + originPatch.getY() << endl;
+
+	} // end for
 	/* Load predicted landmarks to the images and saving to the file */
 	/*string save_folder =
 	 "/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/mLandmarksOnImages";

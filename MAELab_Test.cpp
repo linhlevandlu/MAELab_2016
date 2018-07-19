@@ -597,7 +597,7 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 		}
 	}
 	std::sort(images.begin(), images.end());
-	for (int i = 0; i < images.size(); ++i)
+	for (int i = 0; i < images.size(); i++)
 	{
 		cout << "\n" << images.at(i);
 	}
@@ -613,7 +613,7 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 		}
 	}
 	std::sort(landmarks.begin(), landmarks.end());
-	for (int i = 0; i < landmarks.size(); ++i)
+	for (int i = 0; i < landmarks.size(); i++)
 	{
 		cout << "\n" << landmarks.at(i);
 	}
@@ -621,7 +621,7 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 	if (images.size() == landmarks.size())
 	{
 		ofstream outfile(savename.c_str());
-		for (int i = 0; i < images.size(); ++i)
+		for (int i = 0; i < images.size(); i++)
 		{
 			string imgfile = images.at(i);
 			string lmfile = landmarks.at(i);
@@ -633,19 +633,13 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			for (int k = 0; k < mLandmarks.size(); k++)
 			{
 				Point p = mLandmarks.at(k);
+				p.toString();
 				outfile << "\t" << p.getX() << "\t" << p.getY();
 			}
 			outfile << "\n";
-			// write the coordinate of landmarks
-			/*for (int k = 0; k < mLandmarks.size(); ++k)
-			 {
-			 Point p = mLandmarks.at(k);
-			 outfile << p.getX() << "\t" << p.getY() << "\t";
-			 }
-			 outfile << image.getFileName();
-			 outfile << "\n";*/
+
 		}
-		outfile.close();
+		//outfile.close();
 	}
 }
 
@@ -1673,9 +1667,9 @@ int main(int argc, char* argv[])
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
 	read_Image_Landmarks(
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original",
-			"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks",
-			"results/cnn_data_pronotum_i3264x2448.txt");
+			"/home/linhpc/Biogical_Images/mandibule-droite/Images_without_grid",
+			"/home/linhpc/Biogical_Images/mandibule-droite/landmarks",
+			"results/manual_landmarks_md_i3264x2448.txt");
 //split_Save_Channels(
 //	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/original",
 //	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/split_green", 1);
@@ -1684,22 +1678,5 @@ int main(int argc, char* argv[])
 
 //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 //data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);
-	/*
-	 * read two folders (image and landamrk) to export data for CNN
-	 */
-	read_Image_Landmarks("/home/vanlinh/data_CNN/i96x96/original",
-			"/home/vanlinh/data_CNN/i96x96/landmarks",
-			"results/cnn_data_i96x96.txt");
-//split_Save_Channels(
-//	"/home/vanlinh/data_CNN/i96x96/original",
-//	"/home/vanlinh/data_CNN/i96x96/split_blue", 2);
 
-//crop_Image(filename,2448,2448,lm_file);
-//crop_Landmarks(filename, lm_file, 3264-2448,0, save_folder);
-
-//vector<Point> list;
-//list = bounding_Box2(filename, save_folder, list, 10); // lm_file parameter is the save folder path
-//list = bounding_Box2(filename, save_folder, list, 10);
-	/*Test load manual landmarks and save into file*/
-//load_Landmarks_Save(filename, lm_file, save_folder);
 }

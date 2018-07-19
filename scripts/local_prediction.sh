@@ -1,10 +1,10 @@
 # Local prediction
 # path in laptop
-SCENEJPGFOLDER="/home/linhpc/Data/images/*"
-SCENETPSFOLDER="/home/linhpc/Data/manual_landmarks/*"
+#SCENEJPGFOLDER="/home/linhpc/Data/images/*"
+#SCENETPSFOLDER="/home/linhpc/Data/manual_landmarks/*"
 # path in labo
-#SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/original/*"
-#SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/*"
+SCENEJPGFOLDER="/home/linhpc/Biogical_Images/mandibule-gauche/Images_without_grid_2/*"
+SCENETPSFOLDER="/home/linhpc/Biogical_Images/mandibule-gauche/predicted_landmarks_fine_tuning/*"
 
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
