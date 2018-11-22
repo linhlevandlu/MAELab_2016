@@ -310,9 +310,9 @@ int main(int argc, char* argv[])
 	//string imagePath = "/home/linhpc/Data/images/Prono_032.JPG";
 	//string landmarkPath = "/home/linhpc/Data/manual_landmarks/p_032.TPS";
 	string imagePath =
-			"/home/linhpc/Biogical_Images/mandibule-droite/Images_without_grid_2/Md_281.JPG";
+			"/home/linhpc/Biogical_Images/mandibule-gauche/Images_without_grid_2/Mg_259.JPG";
 	string landmarkPath =
-			"/home/linhpc/Biogical_Images/mandibule-droite/predicted_landmarks_CNN/Md_281.TPS";
+			"/home/linhpc/Biogical_Images/mandibule-gauche/predicted_landmarks_fine_tuning/Mg_259.TPS";
 	if (argc == 3)
 	{
 		imagePath = argv[1];
