@@ -590,7 +590,7 @@ void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color)
 	{
 		lm = lms.at(i);
 		cout << "\nManual landmark: " << lm.getX() << "\t" << lm.getY();
-		imgWithLM = fillCircle(imgWithLM, lm, 7, color);
+		imgWithLM = fillCircle(imgWithLM, lm, 4, color);
 	}
 	image->setRGBMatrix(imgWithLM);
 }
@@ -1543,13 +1543,13 @@ void ImageViewer::pcaiMethodViewer()
 	QPainter qpainter(&qImage);
 	qpainter.setPen(Qt::yellow);
 	qpainter.setBrush(Qt::yellow);
-	qpainter.setFont(QFont("Arial", 20));
+	qpainter.setFont(QFont("Arial", 5));
 	for (size_t i = 0; i < estLandmarks.size(); i++)
 	{
 		lm = estLandmarks.at(i);
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
-		fillCircle(matImage->getRGBMatrix(), lm, 5, color);
+		fillCircle(matImage->getRGBMatrix(), lm, 3, color);
 		qpainter.drawEllipse(lm.getX(), lm.getY(), 4, 4);
 		qpainter.drawText(lm.getX() + 6, lm.getY(), QString::number((int) i));
 	}
