@@ -37,17 +37,13 @@ using namespace std;
 #include "segmentation/Projection.h"
 #include "correlation/DescriptorDistance.h"
 
-struct comparexTest
-{
-	bool operator()(Point p1, Point p2)
-	{
+struct comparexTest {
+	bool operator()(Point p1, Point p2) {
 		return p1.getX() < p2.getX();
 	}
 } xComparationTest;
-struct compareyTest
-{
-	bool operator()(Point p1, Point p2)
-	{
+struct compareyTest {
+	bool operator()(Point p1, Point p2) {
 		return p1.getY() < p2.getY();
 	}
 } yComparationTest;
@@ -56,16 +52,13 @@ struct compareyTest
  * Input: file path of rgb image
  * Output: the output image under Binary format.
  */
-ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
-{
+ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix) {
 	int rows = inputMatrix->getRows();
 	int cols = inputMatrix->getCols();
 	ptr_IntMatrix pMatrix = new Matrix<int>(rows - 20, cols - 20, 255);
 	// copy matrix
-	for (int r = 10; r < rows - 10; r++)
-	{
-		for (int c = 10; c < cols - 10; c++)
-		{
+	for (int r = 10; r < rows - 10; r++) {
+		for (int c = 10; c < cols - 10; c++) {
 			int value = inputMatrix->getAtPosition(r, c);
 			pMatrix->setAtPosition(r - 10, c - 10, value);
 		}
@@ -75,80 +68,62 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 	cols = pMatrix->getCols();
 	Point left(0, 0), right(0, 0);
 	vector<Line> lines;
-	for (int r = 1; r < rows; r++)
-	{
-		for (int c = 1; c < cols; c++)
-		{
+	for (int r = 1; r < rows; r++) {
+		for (int c = 1; c < cols; c++) {
 			int value = pMatrix->getAtPosition(r, c);
 			int value_l = pMatrix->getAtPosition(r, c - 1);
-			if (value == 255 && value_l == 0)
-			{
+			if (value == 255 && value_l == 0) {
 				// set the first point
 				left.setX(c - 1);
 				left.setY(r);
-				if (c - 1 != 0)
-				{
-					for (int k = c; k < cols; k++)
-					{
+				if (c - 1 != 0) {
+					for (int k = c; k < cols; k++) {
 						if (pMatrix->getAtPosition(r, k) == 0
-								&& pMatrix->getAtPosition(r, k - 1) == 255)
-						{
+								&& pMatrix->getAtPosition(r, k - 1) == 255) {
 							right.setX(k);
 							right.setY(r);
 							break;
 						}
 					}
 					if (right.getX() != 0 && right.getX() > left.getX()
-							&& right.getX() < cols - 1)
-					{
+							&& right.getX() < cols - 1) {
 
 						bool beginHole = true;
 						if (r - 1 < 0 || r - 1 >= rows)
 							beginHole = false;
-						else
-						{
+						else {
 							for (int l = left.getX() + 1; l <= right.getX() - 1;
-									l++)
-							{
-								if (pMatrix->getAtPosition(r - 1, l) == 255)
-								{
+									l++) {
+								if (pMatrix->getAtPosition(r - 1, l) == 255) {
 									beginHole = false;
 									break;
 								}
 							}
-							if (!beginHole)
-							{
+							if (!beginHole) {
 								left.setX(0);
 								left.setY(0);
 								right.setX(0);
 								right.setY(0);
 							}
-							if (left != 0 && right != 0)
-							{
+							if (left != 0 && right != 0) {
 								bool inhole = true;
 								int rnew = r + 1;
 								int clnew = 0, crnew = 0;
 								lines.push_back(Line(left, right));
-								do
-								{
+								do {
 									clnew = 0;
 									crnew = 0;
-									if (rnew < rows)
-									{
+									if (rnew < rows) {
 										int lValue = pMatrix->getAtPosition(
 												rnew, left.getX());
-										if (lValue == 0)
-										{
+										if (lValue == 0) {
 											clnew = left.getX();
-										}
-										else // lValue == 255
+										} else // lValue == 255
 										{
 											for (int cl = left.getX(); cl > 0;
-													cl--)
-											{
+													cl--) {
 												if (pMatrix->getAtPosition(rnew,
-														cl) == 0)
-												{
+														cl) == 0) {
 													clnew = cl;
 													break;
 												}
@@ -156,41 +131,32 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 										}
 										int rValue = pMatrix->getAtPosition(
 												rnew, right.getX());
-										if (rValue == 0)
-										{
+										if (rValue == 0) {
 											crnew = right.getX();
-										}
-										else // lValue == 255
+										} else // lValue == 255
 										{
 											for (int cr = right.getX();
-													cr < cols; cr++)
-											{
+													cr < cols; cr++) {
 												if (pMatrix->getAtPosition(rnew,
-														cr) == 0)
-												{
+														cr) == 0) {
 													crnew = cr;
 													break;
 												}
 											}
 										}
-										if (clnew != 0 && crnew != 0)
-										{
+										if (clnew != 0 && crnew != 0) {
 											int count = 0;
 											for (int cl = clnew; cl < crnew;
-													cl++)
-											{
+													cl++) {
 												if (pMatrix->getAtPosition(rnew,
-														cl) == 255)
-												{
+														cl) == 255) {
 													count++;
 												}
 											}
 											if (count == 0) // end of hole
-											{
+													{
 												inhole = false;
-											}
-											else
-											{
+											} else {
 												left.setX(clnew);
 												left.setY(rnew);
 												right.setX(crnew);
@@ -199,29 +165,22 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 														Line(left, right));
 											}
 
-										}
-										else
-										{
+										} else {
 											lines.clear();
 											inhole = false;
 										}
-									}
-									else
-									{
+									} else {
 										//lines.clear();
 										inhole = false;
 									}
 									rnew++;
 								} while (inhole);
-								for (size_t li = 0; li < lines.size(); li++)
-								{
+								for (size_t li = 0; li < lines.size(); li++) {
 									Line line = lines.at(li);
 									if (line.getBegin().getY()
-											== line.getEnd().getY())
-									{
+											== line.getEnd().getY()) {
 										for (int x = line.getBegin().getX();
-												x < line.getEnd().getX(); x++)
-										{
+												x < line.getEnd().getX(); x++) {
 											pMatrix->setAtPosition(
 													line.getBegin().getY(), x,
 													0);
@@ -234,9 +193,7 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 						} // end else
 					}
 
-				}
-				else
-				{
+				} else {
 					left.setX(0);
 					left.setY(0);
 				}
@@ -247,27 +204,21 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 	rows = inputMatrix->getRows();
 	cols = inputMatrix->getCols();
 	ptr_IntMatrix result = new Matrix<int>(rows, cols, 255);
-	for (int r = 0; r < pMatrix->getRows(); r++)
-	{
-		for (int c = 0; c < pMatrix->getCols(); c++)
-		{
+	for (int r = 0; r < pMatrix->getRows(); r++) {
+		for (int c = 0; c < pMatrix->getCols(); c++) {
 			int value = pMatrix->getAtPosition(r, c);
 			result->setAtPosition(r + 10, c + 10, value);
 		}
 	}
 
-	for (int r = 0; r <= 10; r++)
-	{
-		for (int c = 0; c < cols; c++)
-		{
+	for (int r = 0; r <= 10; r++) {
+		for (int c = 0; c < cols; c++) {
 			int value = pMatrix->getAtPosition(11, c);
 			result->setAtPosition(r, c, value);
 		}
 	}
-	for (int r = rows - 10; r < rows; r++)
-	{
-		for (int c = 0; c < cols; c++)
-		{
+	for (int r = rows - 10; r < rows; r++) {
+		for (int c = 0; c < cols; c++) {
 			int value = pMatrix->getAtPosition(rows - 21, c);
 			result->setAtPosition(r, c, value);
 		}
@@ -275,8 +226,7 @@ ptr_IntMatrix refillHole(ptr_IntMatrix inputMatrix)
 	delete pMatrix;
 	return result;
 }
-ptr_IntMatrix holeFill(string filename, string savefolder)
-{
+ptr_IntMatrix holeFill(string filename, string savefolder) {
 	Image image(filename);
 	Matrix<double> gauKernel = getGaussianKernel(5, 1);
 	Matrix<int> result = gaussianBlur(image.getGrayMatrix(), gauKernel);
@@ -293,16 +243,14 @@ ptr_IntMatrix holeFill(string filename, string savefolder)
 	return binMatrix;
 }
 
-Matrix<int> removelegMain(string filename, string savename)
-{
+Matrix<int> removelegMain(string filename, string savename) {
 	ptr_IntMatrix binMatrix = holeFill(filename, savename);
 	Matrix<int> result = splitImage(binMatrix, 150); // 150 --> height of sub-image
 	saveGrayScale(savename.c_str(), &result);
 	return result;
 }
 
-void getProjections(string filename, string savename)
-{
+void getProjections(string filename, string savename) {
 	Matrix<int> binMatrix = removelegMain(filename, savename);
 	ptr_IntMatrix hProjection = new Matrix<int>(binMatrix.getRows(),
 			binMatrix.getCols(), 255);
@@ -312,8 +260,7 @@ void getProjections(string filename, string savename)
 	saveGrayScale(savename.c_str(), hProjection);
 }
 
-void colorThreshold(string filename, string savename)
-{
+void colorThreshold(string filename, string savename) {
 	Image matImage(filename);
 	Matrix<RGB> histogram = matImage.getRGBHistogram();
 	double totalPixels = matImage.getGrayMatrix().getRows()
@@ -324,8 +271,7 @@ void colorThreshold(string filename, string savename)
 }
 
 void extractLandmarkPatch(string image_file, string landmark_file, int width,
-		int height, string save_folder)
-{
+		int height, string save_folder) {
 	Image matImage(image_file);
 	matImage.readManualLandmarks(landmark_file);
 	vector<Point> landmarks = matImage.getListOfManualLandmarks();
@@ -335,8 +281,7 @@ void extractLandmarkPatch(string image_file, string landmark_file, int width,
 
 	RGB color;
 	color.R = color.G = color.B = 0;
-	for (int i = 0; i < landmarks.size(); i++)
-	{
+	for (int i = 0; i < landmarks.size(); i++) {
 		Point pi = landmarks.at(i);
 		Matrix<int> patch = matImage.getGrayMatrix().extractPatch(width, height,
 				pi.getY(), pi.getX(), 0);
@@ -349,24 +294,19 @@ void extractLandmarkPatch(string image_file, string landmark_file, int width,
 }
 
 void calSIFT(ptr_IntMatrix imageGray, Point point, int patchsize,
-		string save_file)
-{
+		string save_file) {
 	//ofstream inFile(savetps.c_str());
 
 	ofstream inFile(save_file.c_str());
 	//Image matImage(image_file);
 	vector<double> SIFTVector = SIFTDescriptor(imageGray, point, patchsize);
-	for (size_t i = 0; i < SIFTVector.size(); i++)
-	{
-		if (i % 8 == 0)
-		{
+	for (size_t i = 0; i < SIFTVector.size(); i++) {
+		if (i % 8 == 0) {
 			if (i != 0)
 				inFile << "\n";
 			inFile << SIFTVector.at(i);
 			//cout << endl << SIFTVector.at(i);
-		}
-		else
-		{
+		} else {
 			//cout << "\t" << SIFTVector.at(i);
 			inFile << "\t" << SIFTVector.at(i);
 		}
@@ -375,8 +315,7 @@ void calSIFT(ptr_IntMatrix imageGray, Point point, int patchsize,
 	inFile.close();
 }
 void calculateSIFT(string image_file, string lm_file, int patchsize,
-		string save_folder)
-{
+		string save_folder) {
 	Image matImage(image_file);
 	matImage.readManualLandmarks(lm_file);
 	vector<Point> landmarks = matImage.getListOfManualLandmarks();
@@ -385,8 +324,7 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 	string sname = name.substr(0, found2);
 	//vector<Matrix<int> > channels = matImage.splitChannels();
 	Matrix<int> grayMatrix = matImage.getGrayMatrix();
-	for (int i = 0; i < landmarks.size(); ++i)
-	{
+	for (int i = 0; i < landmarks.size(); ++i) {
 		Point pi = landmarks.at(i);
 		pi.toString();
 		std::stringstream ssname;
@@ -398,8 +336,7 @@ void calculateSIFT(string image_file, string lm_file, int patchsize,
 }
 
 vector<Point> resize_Landmarks(string file_name, string lm_file, double xRatio,
-		double yRatio, string save_file)
-{
+		double yRatio, string save_file) {
 	Image image(file_name);
 	image.readManualLandmarks(lm_file);
 	vector<Point> landmarks = image.getListOfManualLandmarks();
@@ -407,8 +344,7 @@ vector<Point> resize_Landmarks(string file_name, string lm_file, double xRatio,
 	vector<Point> result;
 	ofstream outfile(save_file.c_str());
 	outfile << "LM=" << landmarks.size() << "\n";
-	for (int i = 0; i < landmarks.size(); i++)
-	{
+	for (int i = 0; i < landmarks.size(); i++) {
 		Point pi = landmarks.at(i);
 		double x_new = (double) pi.getX() / xRatio;
 		double y_new = (double) pi.getY() / yRatio;
@@ -420,23 +356,18 @@ vector<Point> resize_Landmarks(string file_name, string lm_file, double xRatio,
 	outfile.close();
 	return result;
 }
-enum AUGMENTATION
-{
+enum AUGMENTATION {
 	INCREASE_RED = 1, INCREASE_GREEN = 2, INCREASE_BLUE = 3, GRAY_SCALE = 4,
 };
 void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
-		string save_file)
-{
+		string save_file) {
 	cout << "\nData augmentation";
 	Image image(filename);
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
-	if (aug == GRAY_SCALE)
-	{
+	if (aug == GRAY_SCALE) {
 		Matrix<int> gray = image.getGrayMatrix();
 		saveGrayScale(save_file.c_str(), &gray);
-	}
-	else
-	{
+	} else {
 		RGB color;
 		color.R = color.G = color.B = 255;
 		int rows = rgbImage.getRows();
@@ -444,30 +375,21 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 		Matrix<RGB> result(rows, cols, color);
 		int count = 0;
 		int temp = 0;
-		for (int r = 0; r < rows; r++)
-		{
-			for (int c = 0; c < cols; c++)
-			{
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
 				temp = 0;
 				color = rgbImage.getAtPosition(r, c);
-				switch (aug)
-				{
+				switch (aug) {
 				case INCREASE_RED:
 					temp = color.R;
 					temp += v_increase;
-					if (temp >= 255)
-					{
+					if (temp >= 255) {
 						color.R = 255;
-					}
-					else
-					{
-						if (temp <= 0)
-						{
+					} else {
+						if (temp <= 0) {
 							color.R = 0;
 							count++;
-						}
-						else
-						{
+						} else {
 							color.R = temp;
 						}
 					}
@@ -475,19 +397,13 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 				case INCREASE_GREEN:
 					temp = color.G;
 					temp += v_increase;
-					if (temp >= 255)
-					{
+					if (temp >= 255) {
 						color.G = 255;
-					}
-					else
-					{
-						if (temp <= 0)
-						{
+					} else {
+						if (temp <= 0) {
 							color.G = 0;
 							count++;
-						}
-						else
-						{
+						} else {
 							color.G = temp;
 						}
 					}
@@ -495,19 +411,13 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 				case INCREASE_BLUE:
 					temp = color.B;
 					temp += v_increase;
-					if (temp >= 255)
-					{
+					if (temp >= 255) {
 						color.B = 255;
-					}
-					else
-					{
-						if (temp <= 0)
-						{
+					} else {
+						if (temp <= 0) {
 							color.B = 0;
 							count++;
-						}
-						else
-						{
+						} else {
 							color.B = temp;
 						}
 					}
@@ -524,12 +434,10 @@ void data_Augmentation(string filename, AUGMENTATION aug, int v_increase,
 }
 
 // calculating the bounding box from manual landmarks
-Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
-{
+Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180) {
 	cout << "\nMargin: " << marginSize << "\n";
 	int minX = DBL_MAX, maxX = DBL_MIN, minY = DBL_MAX, maxY = DBL_MIN;
-	for (size_t i = 0; i < mLandmarks.size(); i++)
-	{
+	for (size_t i = 0; i < mLandmarks.size(); i++) {
 		Point pi = mLandmarks.at(i);
 		if (pi.getX() < minX)
 			minX = pi.getX();
@@ -565,8 +473,7 @@ Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
 
 	move = (marginSize - dy) / 2;
 	minY -= move;
-	if (minY < 0)
-	{
+	if (minY < 0) {
 		distance = 0 - minY;
 		minY = 0;
 	}
@@ -578,8 +485,7 @@ Line manual_BBox(vector<Point> mLandmarks, int marginSize = 180)
 // read image and landmark folders, then write the image and corresponding landmarks
 // into file
 void read_Image_Landmarks(string image_folder, string lm_folder,
-		string savename)
-{
+		string savename) {
 	//Image image(filename);
 	//image.readManualLandmarks(lm_file);
 	DIR *dir;
@@ -587,42 +493,34 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 
 	// read image directory
 	vector < string > images;
-	if ((dir = opendir(image_folder.c_str())) != NULL)
-	{
-		while ((ent = readdir(dir)) != NULL)
-		{
+	if ((dir = opendir(image_folder.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
 			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
 				images.push_back(image_folder + "/" + ent->d_name);
 			//cout<<"\n"<<ent->d_name;
 		}
 	}
 	std::sort(images.begin(), images.end());
-	for (int i = 0; i < images.size(); i++)
-	{
+	for (int i = 0; i < images.size(); i++) {
 		cout << "\n" << images.at(i);
 	}
 	closedir(dir);
 	// read landmark directory
 	vector < string > landmarks;
-	if ((dir = opendir(lm_folder.c_str())) != NULL)
-	{
-		while ((ent = readdir(dir)) != NULL)
-		{
+	if ((dir = opendir(lm_folder.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
 			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
 				landmarks.push_back(lm_folder + "/" + ent->d_name);
 		}
 	}
 	std::sort(landmarks.begin(), landmarks.end());
-	for (int i = 0; i < landmarks.size(); i++)
-	{
+	for (int i = 0; i < landmarks.size(); i++) {
 		cout << "\n" << landmarks.at(i);
 	}
 	closedir(dir);
-	if (images.size() == landmarks.size())
-	{
+	if (images.size() == landmarks.size()) {
 		ofstream outfile(savename.c_str());
-		for (int i = 0; i < images.size(); i++)
-		{
+		for (int i = 0; i < images.size(); i++) {
 			string imgfile = images.at(i);
 			string lmfile = landmarks.at(i);
 			Image image(imgfile);
@@ -630,8 +528,7 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 			vector<Point> mLandmarks = image.getListOfManualLandmarks();
 			// write file name
 			outfile << image.getName();
-			for (int k = 0; k < mLandmarks.size(); k++)
-			{
+			for (int k = 0; k < mLandmarks.size(); k++) {
 				Point p = mLandmarks.at(k);
 				p.toString();
 				outfile << "\t" << p.getX() << "\t" << p.getY();
@@ -643,17 +540,14 @@ void read_Image_Landmarks(string image_folder, string lm_folder,
 	}
 }
 
-void split_Save_Channels(string folderPath, string saveFolder, int cIndex)
-{
+void split_Save_Channels(string folderPath, string saveFolder, int cIndex) {
 	DIR *dir;
 	struct dirent *ent;
 
 	// read image directory
 	vector < string > images;
-	if ((dir = opendir(folderPath.c_str())) != NULL)
-	{
-		while ((ent = readdir(dir)) != NULL)
-		{
+	if ((dir = opendir(folderPath.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
 			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
 				images.push_back(folderPath + "/" + ent->d_name);
 		}
@@ -661,8 +555,7 @@ void split_Save_Channels(string folderPath, string saveFolder, int cIndex)
 	std::sort(images.begin(), images.end());
 	vector<Matrix<int> > channels;
 	Matrix<int> channel;
-	for (size_t i = 0; i < images.size(); ++i)
-	{
+	for (size_t i = 0; i < images.size(); ++i) {
 		string imgfile = images.at(i);
 		Image *image = new Image(imgfile);
 		//gray = image->getGrayMatrix();
@@ -675,8 +568,7 @@ void split_Save_Channels(string folderPath, string saveFolder, int cIndex)
 			channel = channels.at(cIndex);
 		else
 			channel = image->getGrayMatrix();
-		switch (cIndex)
-		{
+		switch (cIndex) {
 		case 0:
 			cname = "_red";
 			break;
@@ -701,8 +593,7 @@ void split_Save_Channels(string folderPath, string saveFolder, int cIndex)
 
 // ******************************************************************************************************* //
 Point check_Contour_Point(Point origin, Point begin, Point end,
-		ptr_IntMatrix matrix)
-{
+		ptr_IntMatrix matrix) {
 	int cols = matrix->getCols();
 	int rows = matrix->getRows();
 	Point mid(abs(begin.getX() + end.getX()) / 2,
@@ -711,25 +602,18 @@ Point check_Contour_Point(Point origin, Point begin, Point end,
 	vector<Point> linePoints = detectLine(midLine);
 	std::sort(linePoints.begin(), linePoints.end(), xComparationTest);
 	Point index(-1, -1);
-	if (mid.getX() > origin.getX())
-	{
-		for (size_t i = 0; i < linePoints.size(); i++)
-		{
+	if (mid.getX() > origin.getX()) {
+		for (size_t i = 0; i < linePoints.size(); i++) {
 			Point pi = linePoints.at(i);
-			if (matrix->getAtPosition(pi.getY(), pi.getX()) == 255)
-			{
+			if (matrix->getAtPosition(pi.getY(), pi.getX()) == 255) {
 				index = pi;
 				break;
 			}
 		}
-	}
-	else
-	{
-		for (size_t i = linePoints.size() - 1; i > 0; i--)
-		{
+	} else {
+		for (size_t i = linePoints.size() - 1; i > 0; i--) {
 			Point pi = linePoints.at(i);
-			if (matrix->getAtPosition(pi.getY(), pi.getX()) == 255)
-			{
+			if (matrix->getAtPosition(pi.getY(), pi.getX()) == 255) {
 				index = pi;
 				break;
 			}
@@ -740,29 +624,24 @@ Point check_Contour_Point(Point origin, Point begin, Point end,
 	Line oy1(Point(0, 0), Point(0, rows - 1));
 	Line oy2(Point(cols - 1, 0), Point(cols - 1, rows - 1));
 	Point p1, p2;
-	if (index.getX() == -1 || index.getY() == -1)
-	{
+	if (index.getX() == -1 || index.getY() == -1) {
 		if (mid.getX() > origin.getX()) // right part
-		{
+				{
 			if (mid.getY() > origin.getY()) // below part
-			{
+					{
 				p1 = midLine.intersection(ox2);
 				p2 = midLine.intersection(oy2);
-			}
-			else // above part
+			} else // above part
 			{
 				p1 = midLine.intersection(ox1);
 				p2 = midLine.intersection(oy2);
 			}
-		}
-		else
-		{
+		} else {
 			if (mid.getY() > origin.getY()) // below part
-			{
+					{
 				p1 = midLine.intersection(ox2);
 				p2 = midLine.intersection(oy1);
-			}
-			else // above part
+			} else // above part
 			{
 				p1 = midLine.intersection(ox1);
 				p2 = midLine.intersection(oy1);
@@ -779,8 +658,7 @@ Point check_Contour_Point(Point origin, Point begin, Point end,
 	return index;
 }
 
-void bounding_Box(string imagePath, string savefolder)
-{
+void bounding_Box(string imagePath, string savefolder) {
 	ptr_IntMatrix binImage = holeFill(imagePath, savefolder);
 
 	int width = 600, height = 400;
@@ -800,10 +678,8 @@ void bounding_Box(string imagePath, string savefolder)
 	Point p6(origin.getX(), origin.getY() + height / 2);
 	Point p7(origin.getX() + width / 2, origin.getY() + height / 2);
 	int index = -1;
-	for (int c1 = origin.getX(); c1 < cols; c1++)
-	{
-		if (binImage->getAtPosition(origin.getY(), c1) == 255)
-		{
+	for (int c1 = origin.getX(); c1 < cols; c1++) {
+		if (binImage->getAtPosition(origin.getY(), c1) == 255) {
 			index = c1;
 			break;
 		}
@@ -813,10 +689,8 @@ void bounding_Box(string imagePath, string savefolder)
 	p0.setX(index);
 
 	index = -1;
-	for (int c1 = origin.getX(); c1 >= 0; c1--)
-	{
-		if (binImage->getAtPosition(origin.getY(), c1) == 255)
-		{
+	for (int c1 = origin.getX(); c1 >= 0; c1--) {
+		if (binImage->getAtPosition(origin.getY(), c1) == 255) {
 			index = c1;
 			break;
 		}
@@ -826,10 +700,8 @@ void bounding_Box(string imagePath, string savefolder)
 	p4.setX(index);
 
 	index = -1;
-	for (int r1 = origin.getX(); r1 >= 0; r1--)
-	{
-		if (binImage->getAtPosition(r1, origin.getX()) == 255)
-		{
+	for (int r1 = origin.getX(); r1 >= 0; r1--) {
+		if (binImage->getAtPosition(r1, origin.getX()) == 255) {
 			index = r1;
 			break;
 		}
@@ -839,10 +711,8 @@ void bounding_Box(string imagePath, string savefolder)
 	p2.setY(index);
 
 	index = -1;
-	for (int r1 = origin.getX(); r1 < rows; r1++)
-	{
-		if (binImage->getAtPosition(r1, origin.getX()) == 255)
-		{
+	for (int r1 = origin.getX(); r1 < rows; r1++) {
+		if (binImage->getAtPosition(r1, origin.getX()) == 255) {
 			index = r1;
 			break;
 		}
@@ -862,11 +732,9 @@ void bounding_Box(string imagePath, string savefolder)
 
 	vector<Point> line1 = detectLine(Line(origin, p1));
 	std::sort(line1.begin(), line1.end(), xComparationTest);
-	for (size_t i = 0; i < line1.size(); i++)
-	{
+	for (size_t i = 0; i < line1.size(); i++) {
 		Point pi = line1.at(i);
-		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255)
-		{
+		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255) {
 			p1.setX(pi.getX());
 			p1.setY(pi.getY());
 			break;
@@ -874,11 +742,9 @@ void bounding_Box(string imagePath, string savefolder)
 	}
 	vector<Point> line3 = detectLine(Line(origin, p3));
 	std::sort(line3.begin(), line3.end(), xComparationTest);
-	for (size_t i = line3.size() - 1; i >= 0; i--)
-	{
+	for (size_t i = line3.size() - 1; i >= 0; i--) {
 		Point pi = line3.at(i);
-		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255)
-		{
+		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255) {
 			p3.setX(pi.getX());
 			p3.setY(pi.getY());
 			break;
@@ -891,11 +757,9 @@ void bounding_Box(string imagePath, string savefolder)
 
 	vector<Point> line5 = detectLine(Line(origin, p5));
 	std::sort(line5.begin(), line5.end(), xComparationTest);
-	for (size_t i = line5.size() - 1; i >= 0; i--)
-	{
+	for (size_t i = line5.size() - 1; i >= 0; i--) {
 		Point pi = line5.at(i);
-		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255)
-		{
+		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255) {
 			p5.setX(pi.getX());
 			p5.setY(pi.getY());
 			break;
@@ -903,11 +767,9 @@ void bounding_Box(string imagePath, string savefolder)
 	}
 	vector<Point> line7 = detectLine(Line(origin, p7));
 	std::sort(line7.begin(), line7.end(), xComparationTest);
-	for (size_t i = 0; i < line1.size(); i++)
-	{
+	for (size_t i = 0; i < line1.size(); i++) {
 		Point pi = line7.at(i);
-		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255)
-		{
+		if (binImage->getAtPosition(pi.getY(), pi.getX()) == 255) {
 			p7.setX(pi.getX());
 			p7.setY(pi.getY());
 			break;
@@ -943,100 +805,83 @@ void bounding_Box(string imagePath, string savefolder)
 	color.B = 255;
 
 	Point mid01 = check_Contour_Point(origin, p0, p1, binImage);
-	if (mid01.getX() != -1 && mid01.getY() != -1)
-	{
+	if (mid01.getX() != -1 && mid01.getY() != -1) {
 		drawingLine(rgb, Line(p0, mid01), color);
 		drawingLine(rgb, Line(mid01, p1), color);
 	}
 
 	Point mid12 = check_Contour_Point(origin, p1, p2, binImage);
-	if (mid12.getX() != -1 && mid12.getY() != -1)
-	{
+	if (mid12.getX() != -1 && mid12.getY() != -1) {
 		drawingLine(rgb, Line(p1, mid12), color);
 		drawingLine(rgb, Line(mid12, p2), color);
 	}
 	Point mid23 = check_Contour_Point(origin, p2, p3, binImage);
-	if (mid23.getX() != -1 && mid23.getY() != -1)
-	{
+	if (mid23.getX() != -1 && mid23.getY() != -1) {
 		drawingLine(rgb, Line(p2, mid23), color);
 		drawingLine(rgb, Line(mid23, p3), color);
 	}
 	Point mid34 = check_Contour_Point(origin, p3, p4, binImage);
-	if (mid34.getX() != -1 && mid34.getY() != -1)
-	{
+	if (mid34.getX() != -1 && mid34.getY() != -1) {
 		drawingLine(rgb, Line(p3, mid34), color);
 		drawingLine(rgb, Line(mid34, p4), color);
 	}
 	Point mid45 = check_Contour_Point(origin, p4, p5, binImage);
-	if (mid45.getX() != -1 && mid45.getY() != -1)
-	{
+	if (mid45.getX() != -1 && mid45.getY() != -1) {
 		drawingLine(rgb, Line(p4, mid45), color);
 		drawingLine(rgb, Line(mid45, p5), color);
 	}
 	Point mid56 = check_Contour_Point(origin, p5, p6, binImage);
-	if (mid56.getX() != -1 && mid56.getY() != -1)
-	{
+	if (mid56.getX() != -1 && mid56.getY() != -1) {
 		drawingLine(rgb, Line(p5, mid56), color);
 		drawingLine(rgb, Line(mid56, p6), color);
 	}
 	Point mid67 = check_Contour_Point(origin, p6, p7, binImage);
-	if (mid67.getX() != -1 && mid67.getY() != -1)
-	{
+	if (mid67.getX() != -1 && mid67.getY() != -1) {
 		drawingLine(rgb, Line(p6, mid67), color);
 		drawingLine(rgb, Line(mid67, p7), color);
 	}
 	Point mid70 = check_Contour_Point(origin, p7, p0, binImage);
-	if (mid70.getX() != -1 && mid70.getY() != -1)
-	{
+	if (mid70.getX() != -1 && mid70.getY() != -1) {
 		drawingLine(rgb, Line(p7, mid70), color);
 		drawingLine(rgb, Line(mid70, p0), color);
 	}
 	string savefile = savefolder + "/" + imgName;
 	saveRGB(savefile.c_str(), &rgb);
 }
-void move_Queue(std::queue<Line> &queue1, std::queue<Line> &queue2)
-{
-	while (!queue1.empty())
-	{
+void move_Queue(std::queue<Line> &queue1, std::queue<Line> &queue2) {
+	while (!queue1.empty()) {
 		Line l = queue1.front();
 		queue2.push(l);
 		queue1.pop();
 	}
 }
-Line corners_Detection(vector<Point> pQueue, Line axis)
-{
+Line corners_Detection(vector<Point> pQueue, Line axis) {
 
 	double dmax = -1;
 	int imax = -1, imin1 = -1, imin2 = -1;
 	std::sort(pQueue.begin(), pQueue.end(), yComparationTest);
 
-	for (size_t i = 0; i < pQueue.size(); i++)
-	{
+	for (size_t i = 0; i < pQueue.size(); i++) {
 		Point pi = pQueue.at(i);
 		double d = axis.perpendicularDistance(pi);
-		if (d > dmax)
-		{
+		if (d > dmax) {
 			dmax = d;
 			imax = i;
 		}
 	}
 	double dmin1 = dmax + 100, dmin2 = dmax + 100;
-	for (size_t i = 0; i < imax; i++)
-	{
+	for (size_t i = 0; i < imax; i++) {
 		Point pi = pQueue.at(i);
 		double d = axis.perpendicularDistance(pi);
-		if (d < dmin1)
-		{
+		if (d < dmin1) {
 			dmin1 = d;
 			imin1 = i;
 		}
 	}
-	for (size_t i = imax + 1; i < pQueue.size(); i++)
-	{
+	for (size_t i = imax + 1; i < pQueue.size(); i++) {
 		Point pi = pQueue.at(i);
 		double d = axis.perpendicularDistance(pi);
-		if (d < dmin2)
-		{
+		if (d < dmin2) {
 			dmin2 = d;
 			imin2 = i;
 		}
@@ -1051,51 +896,43 @@ Line corners_Detection(vector<Point> pQueue, Line axis)
 	return Line(Point(x1, y1), Point(x2, y2));
 
 }
-int checkPosition(vector<double> listDistance, int range)
-{
+int checkPosition(vector<double> listDistance, int range) {
 	if (range % 2 == 0)
 		range += 1;
 	int mid = range / 2;
 
 	vector<int> vIndex;
-	for (int i = mid; i < listDistance.size() - mid; i++)
-	{
+	for (int i = mid; i < listDistance.size() - mid; i++) {
 		double ivalue = listDistance.at(i);
 
 		bool lowest = true;
 		double mv1 = DBL_MAX, mv2 = DBL_MAX;
 		int im1, im2;
-		for (int j = i - mid; j < i + mid; j++)
-		{
+		for (int j = i - mid; j < i + mid; j++) {
 			double jvalue = listDistance.at(j);
-			if (ivalue > jvalue)
-			{
+			if (ivalue > jvalue) {
 				lowest = false;
 				break;
 			}
 		}
 
-		if (lowest)
-		{
+		if (lowest) {
 			vIndex.push_back(i);
 		}
 	}
 	cout << "\nVindex size: " << vIndex.size();
 	double minValue = listDistance.at(vIndex.at(0));
 	int minIndex = 0;
-	for (int k = 1; k < vIndex.size(); k++)
-	{
+	for (int k = 1; k < vIndex.size(); k++) {
 		double kvalue = listDistance.at(vIndex.at(k));
-		if (kvalue < minValue)
-		{
+		if (kvalue < minValue) {
 			minValue = kvalue;
 			minIndex = k;
 		}
 	}
 	return vIndex.at(minIndex);
 }
-Line corners_Detection2(vector<Point> pQueue, Line axis, Point origin)
-{
+Line corners_Detection2(vector<Point> pQueue, Line axis, Point origin) {
 
 	double dmax = -1;
 	int imax = -1, imin1 = -1, imin2 = -1;
@@ -1103,19 +940,16 @@ Line corners_Detection2(vector<Point> pQueue, Line axis, Point origin)
 	//auto last = std::unique(pQueue.begin(),pQueue.end());
 	pQueue.erase(std::unique(pQueue.begin(), pQueue.end()), pQueue.end());
 
-	for (size_t i = 0; i < pQueue.size(); i++)
-	{
+	for (size_t i = 0; i < pQueue.size(); i++) {
 		Point pi = pQueue.at(i);
-		if (pi.getY() > origin.getY())
-		{
+		if (pi.getY() > origin.getY()) {
 			imax = i;
 			break;
 		}
 	}
 
 	vector<double> list1;
-	for (size_t i = 0; i < imax; i++)
-	{
+	for (size_t i = 0; i < imax; i++) {
 		Point pi = pQueue.at(i);
 		double d = abs(axis.getBegin().getX() - pi.getX());
 		list1.push_back(d);
@@ -1124,8 +958,7 @@ Line corners_Detection2(vector<Point> pQueue, Line axis, Point origin)
 	imin1 = checkPosition(list1, 5);
 
 	vector<double> list2;
-	for (size_t i = imax; i < pQueue.size(); i++)
-	{
+	for (size_t i = imax; i < pQueue.size(); i++) {
 		Point pi = pQueue.at(i);
 		double d = axis.perpendicularDistance(pi);
 		list2.push_back(d);
@@ -1150,8 +983,7 @@ Line corners_Detection2(vector<Point> pQueue, Line axis, Point origin)
  Line right = corners_Detection(pqueue2,oy);
  }*/
 
-Point origin_Detect(ptr_IntMatrix binMatrix)
-{
+Point origin_Detect(ptr_IntMatrix binMatrix) {
 	Point origin(0, 0);
 	int hsize = 0, vsize = 0;
 	int* hProjection = histogramProjection(binMatrix, Horizontal_Projection,
@@ -1160,16 +992,13 @@ Point origin_Detect(ptr_IntMatrix binMatrix)
 	ptr_IntMatrix hMatrix = new Matrix<int>(binMatrix->getRows(),
 			binMatrix->getCols(), 255);
 	int max = 0;
-	for (int i = 0; i < hsize; ++i)
-	{
+	for (int i = 0; i < hsize; ++i) {
 		int rows = hProjection[i];
 		for (int ro = binMatrix->getRows() - 1;
-				ro > binMatrix->getRows() - rows - 1; ro--)
-		{
+				ro > binMatrix->getRows() - rows - 1; ro--) {
 			hMatrix->setAtPosition(ro, i, 0);
 		}
-		if (rows > max)
-		{
+		if (rows > max) {
 			max = rows;
 		}
 		//cout << hProjection[i] << "\t";
@@ -1182,22 +1011,18 @@ Point origin_Detect(ptr_IntMatrix binMatrix)
 			vsize);
 	cout << "\n";
 
-	for (int i = 0; i < vsize; ++i)
-	{
+	for (int i = 0; i < vsize; ++i) {
 		int cols = vProjection[i];
-		for (int c = 0; c < cols; c++)
-		{
+		for (int c = 0; c < cols; c++) {
 			vMatrix->setAtPosition(i, c, 0);
 		}
 
 		//cout << vProjection[i] << "\t";
 	}
 	int sum = 0, count = 0;
-	for (int i = 0; i < hsize; ++i)
-	{
+	for (int i = 0; i < hsize; ++i) {
 		int cols = hProjection[i];
-		if (cols == max)
-		{
+		if (cols == max) {
 			sum += i;
 			count++;
 		}
@@ -1212,8 +1037,7 @@ Point origin_Detect(ptr_IntMatrix binMatrix)
 }
 
 vector<Point> bounding_Box2(string imagePath, string savefolder,
-		vector<Point> listPoints, int num_iter)
-{
+		vector<Point> listPoints, int num_iter) {
 	ptr_IntMatrix binImage = holeFill(imagePath, savefolder);
 	//origin_Detect(binImage);
 	Image inputImage(imagePath);
@@ -1223,8 +1047,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	string imgName = inputImage.getName();
 	Point origin(0, 0);
 	vector<Point> initPoints;
-	if (listPoints.size() == 0)
-	{
+	if (listPoints.size() == 0) {
 		//origin.setX((cols / 2) + 500);
 		//origin.setY((rows / 2) + 500);
 		origin = origin_Detect(binImage);
@@ -1236,9 +1059,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 		//initPoints.push_back(Point(0, rows - 1));
 		initPoints.push_back(Point(cols / 2, rows - 1));
 		//initPoints.push_back(Point(cols - 1, rows - 1));
-	}
-	else
-	{
+	} else {
 		origin = listPoints.at(listPoints.size() - 1);
 		initPoints.assign(listPoints.begin(), listPoints.end());
 		int index = initPoints.size() - 1;
@@ -1246,20 +1067,16 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	}
 	Point rightLM(0, origin.getY());
 	Point leftLM(0, origin.getY());
-	for (int i = origin.getX(); i < cols; i++)
-	{
-		if (binImage->getAtPosition(origin.getY(), i) == 255)
-		{
+	for (int i = origin.getX(); i < cols; i++) {
+		if (binImage->getAtPosition(origin.getY(), i) == 255) {
 			rightLM.setX(i);
 			break;
 		}
 	}
 	if (rightLM.getX() == 0)
 		rightLM.setX(cols - 1);
-	for (int i = origin.getX(); i > 0; i--)
-	{
-		if (binImage->getAtPosition(origin.getY(), i) == 255)
-		{
+	for (int i = origin.getX(); i > 0; i--) {
+		if (binImage->getAtPosition(origin.getY(), i) == 255) {
 			leftLM.setX(i);
 			break;
 		}
@@ -1267,8 +1084,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 
 	// init the queue of lines
 	std::queue<Line> initQueue;
-	for (size_t i = 0; i < initPoints.size() - 1; i++)
-	{
+	for (size_t i = 0; i < initPoints.size() - 1; i++) {
 		Line l(initPoints.at(i), initPoints.at(i + 1));
 		initQueue.push(l);
 	}
@@ -1276,10 +1092,8 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 			Line(initPoints.at(initPoints.size() - 1), initPoints.at(0)));
 	std::queue<Line> queue2;
 	int i = 0;
-	while (i < num_iter)
-	{
-		while (!initQueue.empty())
-		{
+	while (i < num_iter) {
+		while (!initQueue.empty()) {
 			Line l = initQueue.front();
 			Point p = check_Contour_Point(origin, l.getBegin(), l.getEnd(),
 					binImage);
@@ -1302,8 +1116,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	int count = 0;
 	fillCircle(rgb, origin, 7, color);
 	std::queue<Point> pQueue;
-	while (!initQueue.empty())
-	{
+	while (!initQueue.empty()) {
 		Line l1 = initQueue.front();
 		initQueue.pop();
 		Point bPoint = l1.getBegin();
@@ -1321,8 +1134,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	//bbox detection
 	Line oy(Point(origin.getX(), 0), Point(origin.getX(), rows - 1));
 	vector<Point> pqueue1, pqueue2;
-	while (!pQueue.empty())
-	{
+	while (!pQueue.empty()) {
 		Point pi = pQueue.front();
 		if (pi.getX() < origin.getX())
 			pqueue1.push_back(pi);
@@ -1335,8 +1147,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	std::sort(pqueue1.begin(), pqueue1.end(), yComparationTest);
 	color.R = 0;
 	color.B = 255;
-	for (int i = 0; i < pqueue1.size() - 1; i++)
-	{
+	for (int i = 0; i < pqueue1.size() - 1; i++) {
 		Point p1 = pqueue1.at(i);
 		Point p2 = pqueue1.at(i + 1);
 		drawingLine(rgb, Line(p1, p2), color);
@@ -1344,8 +1155,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	color.R = 255;
 	color.B = 0;
 	std::sort(pqueue2.begin(), pqueue2.end(), yComparationTest);
-	for (int i = 0; i < pqueue2.size() - 1; i++)
-	{
+	for (int i = 0; i < pqueue2.size() - 1; i++) {
 		Point p1 = pqueue2.at(i);
 		Point p2 = pqueue2.at(i + 1);
 		drawingLine(rgb, Line(p1, p2), color);
@@ -1376,12 +1186,9 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 
 	int bottomy = 0;
 
-	if (left.getEnd().getY() > right.getEnd().getY())
-	{
+	if (left.getEnd().getY() > right.getEnd().getY()) {
 		bottomy = left.getEnd().getY();
-	}
-	else
-	{
+	} else {
 		bottomy = right.getEnd().getY();
 	}
 	bottomy += vmargin;
@@ -1444,8 +1251,7 @@ vector<Point> bounding_Box2(string imagePath, string savefolder,
 	return result;
 }
 
-void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
-{
+void load_Landmarks_Save(string fimage, string flandmarks, string fsave) {
 	Image image(fimage);
 	image.readManualLandmarks(flandmarks);
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
@@ -1459,8 +1265,7 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	vector<Point> landmarks = image.getListOfManualLandmarks();
 	// drawing the landmarks on RGB
 	int sumX = 0, sumY = 0;
-	for (int i = 0; i < landmarks.size(); i++)
-	{
+	for (int i = 0; i < landmarks.size(); i++) {
 		Point pi = landmarks.at(i);
 		sumX += pi.getX();
 		sumY += pi.getY();
@@ -1474,27 +1279,20 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	int x1_limit = cX - fix_number;
 	int x2_limit = cX + fix_number;
 	int x_aug = 0;
-	if (x1_limit < 0)
-	{
+	if (x1_limit < 0) {
 		x_aug = -x1_limit;
-		if (x2_limit >= width)
-		{
+		if (x2_limit >= width) {
 			return;
-		}
-		else
-		{
+		} else {
 			x2_limit += x_aug;
 			x1_limit = 0;
-			if (x2_limit >= width)
-			{
+			if (x2_limit >= width) {
 				return;
 			}
 		}
-	}
-	else //x1_limit >=0
+	} else //x1_limit >=0
 	{
-		if (x2_limit >= width)
-		{
+		if (x2_limit >= width) {
 			x_aug = x2_limit - width;
 			x1_limit -= x_aug;
 			x2_limit = width;
@@ -1508,27 +1306,20 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	int y1_limit = cY - fix_number;
 	int y2_limit = cY + fix_number;
 	int y_aug = 0;
-	if (y1_limit < 0)
-	{
+	if (y1_limit < 0) {
 		y_aug = -y1_limit;
-		if (y2_limit >= height)
-		{
+		if (y2_limit >= height) {
 			return;
-		}
-		else
-		{
+		} else {
 			y2_limit += y_aug;
 			y1_limit = 0;
-			if (y2_limit >= height)
-			{
+			if (y2_limit >= height) {
 				return;
 			}
 		}
-	}
-	else //y1_limit >=0
+	} else //y1_limit >=0
 	{
-		if (y2_limit >= height)
-		{
+		if (y2_limit >= height) {
 			y_aug = y2_limit - height;
 			y1_limit -= y_aug;
 			y2_limit = height;
@@ -1541,12 +1332,10 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	color.G = color.B = 255;
 	Matrix<RGB> saveImg(224, 224, color);
 	int i = -1, j = 0;
-	for (int row = y1_limit; row < y2_limit; row++)
-	{
+	for (int row = y1_limit; row < y2_limit; row++) {
 		i++;
 		j = 0;
-		for (int col = x1_limit; col < x2_limit; col++)
-		{
+		for (int col = x1_limit; col < x2_limit; col++) {
 			RGB value = rgbImage.getAtPosition(row, col);
 			saveImg.setAtPosition(i, j, value);
 			j++;
@@ -1554,8 +1343,7 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	}
 	ofstream outfile(fsave.c_str());
 	outfile << "LM=" << landmarks.size() << "\n";
-	for (int i = 0; i < landmarks.size(); ++i)
-	{
+	for (int i = 0; i < landmarks.size(); ++i) {
 		Point pi = landmarks.at(i);
 		int newX = pi.getX() - x1_limit;
 		int newY = pi.getY() - y1_limit;
@@ -1569,8 +1357,7 @@ void load_Landmarks_Save(string fimage, string flandmarks, string fsave)
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
 }
-void crop_Image(string filename, int n_width, int n_height, string savepath)
-{
+void crop_Image(string filename, int n_width, int n_height, string savepath) {
 	Image image(filename);
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	int rows = rgbImage.getRows();
@@ -1581,11 +1368,9 @@ void crop_Image(string filename, int n_width, int n_height, string savepath)
 	int i = 0, j = 0;
 	int temp = (cols - n_width);
 	Matrix<RGB> newImage(n_height, n_width, color);
-	for (int r = rows - n_height; r < rows; r++)
-	{
+	for (int r = rows - n_height; r < rows; r++) {
 		j = 0;
-		for (int c = temp; c < cols; c++)
-		{
+		for (int c = temp; c < cols; c++) {
 			color = rgbImage.getAtPosition(r, c);
 			newImage.setAtPosition(i, j, color);
 			j++;
@@ -1596,8 +1381,7 @@ void crop_Image(string filename, int n_width, int n_height, string savepath)
 }
 
 vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
-		double cropY, string save_file)
-{
+		double cropY, string save_file) {
 	Image image(file_name);
 	image.readManualLandmarks(lm_file);
 	vector<Point> landmarks = image.getListOfManualLandmarks();
@@ -1605,8 +1389,7 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 	vector<Point> result;
 	ofstream outfile(save_file.c_str());
 	outfile << "LM=" << landmarks.size() << "\n";
-	for (int i = 0; i < landmarks.size(); i++)
-	{
+	for (int i = 0; i < landmarks.size(); i++) {
 		Point pi = landmarks.at(i);
 		int x_new = pi.getX() - cropX;
 		int y_new = pi.getY() - cropY;
@@ -1618,8 +1401,7 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 	return result;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	cout << "\n Test a function !!!" << endl;
 	unsigned int a = 100;
 	unsigned int b = 180;
@@ -1628,8 +1410,7 @@ int main(int argc, char* argv[])
 	string filename, savename, lm_file;
 	int width, height;
 	string save_folder;
-	if (argc == 1)
-	{
+	if (argc == 1) {
 		cout << "\nWithout parameters !!" << endl;
 		filename =
 				"/home/linhpc/data_CNN/linhlv/pronotum/v2/original/Prono_001.JPG";
@@ -1641,9 +1422,7 @@ int main(int argc, char* argv[])
 		width = 121;
 		height = 121;
 		save_folder = "results/test.tps";
-	}
-	else
-	{
+	} else {
 		cout << "\nWith parameters !!" << endl;
 		filename = argv[1];
 //savename = argv[2];
@@ -1662,21 +1441,20 @@ int main(int argc, char* argv[])
 //calculateSIFT(filename,lm_file,9,save_folder);
 
 //resize_Landmarks(filename, lm_file, 24, 24, save_folder);
-//data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
+data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
-	read_Image_Landmarks(
-			"/home/linhpc/data_CNN/linhlv/tdata/i192x192/original",
-			"/home/linhpc/data_CNN/linhlv/tdata/i192x192/landmarks",
-			"results/manual_landmarks_pronotum_i192x192.txt");
-//split_Save_Channels(
-//	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/original",
-//	"/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/split_green", 1);
+	/*read_Image_Landmarks(
+	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/images",
+	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/landmarks",
+	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/flipY_original_landmarks.txt");*/
+	/*split_Save_Channels(
+	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/images",
+	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/split_green", 1);*/
+
 //crop_Image(filename,192,192,lm_file);
 //crop_Landmarks(filename, lm_file, (256-192),0, save_folder);
-
 //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 //data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);
-
 }
