@@ -590,7 +590,7 @@ void ImageViewer::displayLandmarks(Image *image, vector<Point> lms, RGB color)
 	{
 		lm = lms.at(i);
 		cout << "\nManual landmark: " << lm.getX() << "\t" << lm.getY();
-		imgWithLM = fillCircle(imgWithLM, lm, 4, color);
+		imgWithLM = fillCircle(imgWithLM, lm, 3, color);
 	}
 	image->setRGBMatrix(imgWithLM);
 }
