@@ -1366,11 +1366,12 @@ void crop_Image(string filename, int n_width, int n_height, string savepath) {
 	RGB color;
 	color.R = color.G = color.B = 0;
 	int i = 0, j = 0;
-	int temp = (cols - n_width);
+	int tempW = (cols - n_width);
+    int tempH = (rows - n_height);
 	Matrix<RGB> newImage(n_height, n_width, color);
-	for (int r = rows - n_height; r < rows; r++) {
+	for (int r = tempH/2; r < rows - tempH/2; r++) {
 		j = 0;
-		for (int c = temp; c < cols; c++) {
+		for (int c = tempW/2; c < cols - tempW/2; c++) {
 			color = rgbImage.getAtPosition(r, c);
 			newImage.setAtPosition(i, j, color);
 			j++;
@@ -1428,8 +1429,8 @@ int main(int argc, char* argv[]) {
 //savename = argv[2];
 		lm_file = argv[2];
 //save_folder = argv[2];
-//width = atoi(argv[3]);
-//height = atoi(argv[4]);
+width = atoi(argv[3]);
+height = atoi(argv[4]);
 		save_folder = argv[5];
 		//save_folder = argv[2];
 	}
@@ -1441,7 +1442,7 @@ int main(int argc, char* argv[]) {
 //calculateSIFT(filename,lm_file,9,save_folder);
 
 //resize_Landmarks(filename, lm_file, 24, 24, save_folder);
-data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
+//data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
@@ -1453,7 +1454,7 @@ data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/images",
 	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/split_green", 1);*/
 
-//crop_Image(filename,192,192,lm_file);
+crop_Image(filename,2400,2400,lm_file);
 //crop_Landmarks(filename, lm_file, (256-192),0, save_folder);
 //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 //data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);

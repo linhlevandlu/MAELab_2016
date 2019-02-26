@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = 
+TARGET = MAELab_CI
 DEPENDPATH += .
 INCLUDEPATH += "/usr/local/include"
 LIBS += -L"/usr/lib" \
