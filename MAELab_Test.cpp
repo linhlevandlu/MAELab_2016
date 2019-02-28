@@ -585,7 +585,8 @@ void split_Save_Channels(string folderPath, string saveFolder, int cIndex) {
 			cname = "_red";
 			break;
 		}
-		filename += cname + ".JPG";
+		//filename += cname + ".JPG";
+        filename += ".JPG";
 		saveGrayScale((saveFolder + "/" + filename).c_str(), &channel);
 		delete image;
 	}
@@ -1362,7 +1363,7 @@ void crop_Image(string filename, int n_width, int n_height, string savepath) {
 	Matrix<RGB> rgbImage = image.getRGBMatrix();
 	int rows = rgbImage.getRows();
 	int cols = rgbImage.getCols();
-	cout << "\n rows - cols: " << rows << "\t" << cols;
+	cout << "\n rows - cols: " << rows << "\t" << cols << endl;
 	RGB color;
 	color.R = color.G = color.B = 0;
 	int i = 0, j = 0;
@@ -1395,7 +1396,7 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 		int x_new = pi.getX() - cropX;
 		int y_new = pi.getY() - cropY;
 		result.push_back(Point(x_new, y_new));
-		outfile << x_new << " " << 192 - y_new << "\n";
+		outfile << x_new << " " << 2400 - y_new << "\n";
 	}
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
@@ -1406,32 +1407,28 @@ int main(int argc, char* argv[]) {
 	cout << "\n Test a function !!!" << endl;
 	unsigned int a = 100;
 	unsigned int b = 180;
-	cout << "Test: " << a + b;
+	cout << "Test: " << a + b << endl;
 // ================================================================ Test hole fill =================================================
 	string filename, savename, lm_file;
 	int width, height;
 	string save_folder;
 	if (argc == 1) {
 		cout << "\nWithout parameters !!" << endl;
-		filename =
-				"/home/linhpc/data_CNN/linhlv/pronotum/v2/original/Prono_001.JPG";
-		//filename="/media/vanlinh/Data/Biogical_Images/pronotum/Images_without_grid_2/Prono_001.JPG";
-		savename = "results/Prono_001_add100.jpg";
-		lm_file =
-				"/home/linhpc/data_CNN/linhlv/tdata/i3264x2448/landmarks/p_001.TPS";
-		//lm_file = "/media/vanlinh/Data/Biogical_Images/pronotum/landmarks/p 001.TPS";
-		width = 121;
-		height = 121;
+		filename ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/original/Prono_001.JPG";
+		savename = "results/Prono_001_cropped.jpg";
+		lm_file ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/landmarks/p_001.TPS";
+		width = 2400;
+		height = 2400;
 		save_folder = "results/test.tps";
 	} else {
 		cout << "\nWith parameters !!" << endl;
 		filename = argv[1];
-//savename = argv[2];
+        //savename = argv[3];
 		lm_file = argv[2];
-//save_folder = argv[2];
-width = atoi(argv[3]);
-height = atoi(argv[4]);
-		save_folder = argv[5];
+        //save_folder = argv[2];
+        //width = atoi(argv[3]);
+        //height = atoi(argv[4]);
+		//save_folder = argv[5];
 		//save_folder = argv[2];
 	}
 	//holeFill(filename, save_folder);
@@ -1441,21 +1438,21 @@ height = atoi(argv[4]);
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 
-//resize_Landmarks(filename, lm_file, 24, 24, save_folder);
-//data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
+//resize_Landmarks(filename, lm_file, 16, 16, savename);
+data_Augmentation(filename, INCREASE_BLUE, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
 	/*read_Image_Landmarks(
-	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/images",
-	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/landmarks",
-	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/flipY_original_landmarks.txt");*/
+	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/original",
+	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/landmarks",
+	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/i150_original_landmarks.txt");*/
 	/*split_Save_Channels(
-	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/images",
-	 "/home/linhpc/CNN_data/pronotum/v1_abc/flipY/split_green", 1);*/
+	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/original",
+	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/channel_blue", 2);*/
 
-crop_Image(filename,2400,2400,lm_file);
-//crop_Landmarks(filename, lm_file, (256-192),0, save_folder);
-//resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
+//crop_Image(filename,2400,2400,savename);
+//crop_Landmarks(filename, lm_file, 24,24, savename);
+    //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 //data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);
 }
