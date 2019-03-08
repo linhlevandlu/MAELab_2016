@@ -1370,9 +1370,9 @@ void crop_Image(string filename, int n_width, int n_height, string savepath) {
 	int tempW = (cols - n_width);
     int tempH = (rows - n_height);
 	Matrix<RGB> newImage(n_height, n_width, color);
-	for (int r = tempH/2; r < rows - tempH/2; r++) {
+	for (int r = tempH; r < rows; r++) {
 		j = 0;
-		for (int c = tempW/2; c < cols - tempW/2; c++) {
+		for (int c = tempW; c < cols; c++) {
 			color = rgbImage.getAtPosition(r, c);
 			newImage.setAtPosition(i, j, color);
 			j++;
@@ -1396,7 +1396,7 @@ vector<Point> crop_Landmarks(string file_name, string lm_file, int cropX,
 		int x_new = pi.getX() - cropX;
 		int y_new = pi.getY() - cropY;
 		result.push_back(Point(x_new, y_new));
-		outfile << x_new << " " << 2400 - y_new << "\n";
+		outfile << x_new << " " << 192 - y_new << "\n";
 	}
 	outfile << "IMAGE=" << image.getName();
 	outfile.close();
@@ -1423,8 +1423,8 @@ int main(int argc, char* argv[]) {
 	} else {
 		cout << "\nWith parameters !!" << endl;
 		filename = argv[1];
-        //savename = argv[3];
 		lm_file = argv[2];
+        //savename = argv[3];
         //save_folder = argv[2];
         //width = atoi(argv[3]);
         //height = atoi(argv[4]);
@@ -1438,21 +1438,21 @@ int main(int argc, char* argv[]) {
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 
-//resize_Landmarks(filename, lm_file, 16, 16, savename);
-data_Augmentation(filename, INCREASE_BLUE, 10, lm_file);
+    //crop_Image(filename,192,192,lm_file);
+    //crop_Landmarks(filename, lm_file, 32,0, savename);
+
+    //data_Augmentation(filename, INCREASE_BLUE, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
 	/*read_Image_Landmarks(
-	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/original",
-	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/landmarks",
-	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/i150_original_landmarks.txt");*/
-	/*split_Save_Channels(
-	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/original",
-	 "/home/linhpc/data_CNN/linhlv/tdata/i150x150/channel_blue", 2);*/
+	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/original",
+	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/landmarks",
+	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/i192_original_landmarks.txt");*/
+	split_Save_Channels(
+	 "/home/linhpc/data_CNN/linhlv/md/i192x192/original",
+	 "/home/linhpc/data_CNN/linhlv/md/i192x192/channel_green", 1);
+  
+  //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 
-//crop_Image(filename,2400,2400,savename);
-//crop_Landmarks(filename, lm_file, 24,24, savename);
-    //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
-//data_Augmentation(filename, INCREASE_GREEN, 10, save_folder);
 }
