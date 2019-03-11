@@ -2,8 +2,8 @@
 #SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/original/*"
 #sSAVEFOLDER="/home/linhpc/data_CNN/linhlv/tdata/i102x102_pronotum/add_green/"
 
-SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/md/i192x192/original/*"
-SAVEFOLDER="/home/linhpc/data_CNN/linhlv/md/i192x192/aug_blue/"
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/mg/i192x192/original/*"
+SAVEFOLDER="/home/linhpc/data_CNN/linhlv/mg/i192x192/aug_green/"
 
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})

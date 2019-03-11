@@ -1,9 +1,9 @@
 #!/bin/bash
 # SCRIPT CALCULATE THE SIFT DESCRIPTOR OF A PATCH AROUND THE LANDMARK
 # THE OUTPUT IS A MATRIX 9X8 FOR EACH LANDMARK ( DEFAULT SIZE 9X9 -> 9 X(3X3))
-SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/md/v1/original/*"
-SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/md/v1/landmarks/*"
-SAVEFOLDER="/home/linhpc/data_CNN/linhlv/md/i192x192/landmarks_2/"
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/mg/v1/original/*"
+SCENETPSFOLDER="/home/linhpc/data_CNN/linhlv/mg/v1/landmarks/*"
+SAVEFOLDER="/home/linhpc/data_CNN/linhlv/mg/i192x192/landmarks/"
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
 tpsarray=(${SCENETPSFOLDER})

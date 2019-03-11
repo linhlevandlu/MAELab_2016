@@ -1372,7 +1372,7 @@ void crop_Image(string filename, int n_width, int n_height, string savepath) {
 	Matrix<RGB> newImage(n_height, n_width, color);
 	for (int r = tempH; r < rows; r++) {
 		j = 0;
-		for (int c = tempW; c < cols; c++) {
+		for (int c = 0; c < n_width; c++) {
 			color = rgbImage.getAtPosition(r, c);
 			newImage.setAtPosition(i, j, color);
 			j++;
@@ -1414,8 +1414,8 @@ int main(int argc, char* argv[]) {
 	string save_folder;
 	if (argc == 1) {
 		cout << "\nWithout parameters !!" << endl;
-		filename ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/original/Prono_001.JPG";
-		savename = "results/Prono_001_cropped.jpg";
+		filename ="/home/linhpc/data_CNN/linhlv/mg/v1/original/Mg_182.JPG";
+		savename = "results/Mg_182.JPG";
 		lm_file ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/landmarks/p_001.TPS";
 		width = 2400;
 		height = 2400;
@@ -1439,19 +1439,21 @@ int main(int argc, char* argv[]) {
 //calculateSIFT(filename,lm_file,9,save_folder);
 
     //crop_Image(filename,192,192,lm_file);
-    //crop_Landmarks(filename, lm_file, 32,0, savename);
+    //crop_Landmarks(filename, lm_file, 64,0, savename);
 
-    //data_Augmentation(filename, INCREASE_BLUE, 10, lm_file);
+    //data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
-	/*read_Image_Landmarks(
-	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/original",
-	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/landmarks",
-	 "/home/linhpc/data_CNN/linhlv/elytre/i192x192/i192_original_landmarks.txt");*/
-	split_Save_Channels(
-	 "/home/linhpc/data_CNN/linhlv/md/i192x192/original",
-	 "/home/linhpc/data_CNN/linhlv/md/i192x192/channel_green", 1);
+
+	read_Image_Landmarks(
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/original",
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/landmarks",
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/i192_original_landmarks.txt");
+
+	/*split_Save_Channels(
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/original",
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/channel_red", 0);*/
   
   //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 

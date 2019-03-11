@@ -1,6 +1,6 @@
 #!/bin/bash
-SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/md/v1/original/*"
-SAVEFOLDER="/home/linhpc/data_CNN/linhlv/md/i192x192/original/"
+SCENEJPGFOLDER="/home/linhpc/data_CNN/linhlv/mg/v1/original/*"
+SAVEFOLDER="/home/linhpc/data_CNN/linhlv/mg/i192x192/original_2/"
 EXECUTE="./MAELab_CI"
 jpgarray=(${SCENEJPGFOLDER})
 total=${#jpgarray[@]}
