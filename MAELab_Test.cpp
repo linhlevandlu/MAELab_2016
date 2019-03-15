@@ -1438,7 +1438,7 @@ int main(int argc, char* argv[]) {
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 
-    //crop_Image(filename,192,192,lm_file);
+    crop_Image(filename,178,178,lm_file);
     //crop_Landmarks(filename, lm_file, 64,0, savename);
 
     //data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
@@ -1446,10 +1446,10 @@ int main(int argc, char* argv[]) {
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
 
-	read_Image_Landmarks(
+	/*read_Image_Landmarks(
 	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/original",
 	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/landmarks",
-	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/i192_original_landmarks.txt");
+	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/i192_original_landmarks.txt");*/
 
 	/*split_Save_Channels(
 	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/original",
