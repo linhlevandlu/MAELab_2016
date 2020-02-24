@@ -136,7 +136,7 @@ vector<Point> PCAIPoints(vector<Point> modelPoints, Point mPoint,
 	vector<Point> scenePoints, double angle)
 {
 
-	size_t nlimit = modelPoints.size() / 2;
+	size_t nlimit = modelPoints.size() * 3 / 4; // /2
 	std::sort(modelPoints.begin(), modelPoints.end(), yComparation);
 	vector<Point> newModel(modelPoints.begin(), modelPoints.begin() + nlimit);
 	vector<Point> sceneTemp(scenePoints); // copy the points of scene

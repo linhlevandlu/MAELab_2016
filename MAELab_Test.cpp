@@ -1414,9 +1414,10 @@ int main(int argc, char* argv[]) {
 	string save_folder;
 	if (argc == 1) {
 		cout << "\nWithout parameters !!" << endl;
-		filename ="/home/linhpc/data_CNN/linhlv/mg/v1/original/Mg_182.JPG";
+		filename ="data/pronotum/images/Prono_004.JPG";
 		savename = "results/Mg_182.JPG";
-		lm_file ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/landmarks/p_001.TPS";
+		//lm_file ="/home/linhpc/data_CNN/linhlv/tdata/i2448x2448/landmarks/p_001.TPS";
+        lm_file ="results/Prono_004_green.JPG";
 		width = 2400;
 		height = 2400;
 		save_folder = "results/test.tps";
@@ -1438,10 +1439,10 @@ int main(int argc, char* argv[]) {
 //extractLandmarkPatch(filename, lm_file, width, height, save_folder);
 //calculateSIFT(filename,lm_file,9,save_folder);
 
-    crop_Image(filename,178,178,lm_file);
+    //crop_Image(filename,178,178,lm_file);
     //crop_Landmarks(filename, lm_file, 64,0, savename);
 
-    //data_Augmentation(filename, INCREASE_GREEN, 10, lm_file);
+    //data_Augmentation(filename, INCREASE_BLUE, 40, lm_file);
 	/*
 	 * read two folders (image and landamrk) to export data for CNN
 	 */
@@ -1451,9 +1452,9 @@ int main(int argc, char* argv[]) {
 	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/landmarks",
 	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/i192_original_landmarks.txt");*/
 
-	/*split_Save_Channels(
-	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/original",
-	 "/home/linhpc/data_CNN/linhlv/mg/i192x192/channel_red", 0);*/
+	split_Save_Channels(
+	 "/home/linhpc/data_CNN/linhlv/Tete_dec/i250x200/original",
+	 "/home/linhpc/data_CNN/linhlv/Tete_dec/i250x200/channel_blue", 2);
   
   //resize_Landmarks(filename, lm_file, 25.5, 25.5, save_folder);
 

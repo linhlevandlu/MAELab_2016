@@ -1549,7 +1549,7 @@ void ImageViewer::pcaiMethodViewer()
 		lm = estLandmarks.at(i);
 		cout << "Landmarks " << i + 1 << ":\t" << lm.getX() << "\t" << lm.getY()
 				<< endl;
-		fillCircle(matImage->getRGBMatrix(), lm, 3, color);
+		fillCircle(matImage->getRGBMatrix(), lm, 10, color);
 		qpainter.drawEllipse(lm.getX(), lm.getY(), 4, 4);
 		qpainter.drawText(lm.getX() + 6, lm.getY(), QString::number((int) i));
 	}
